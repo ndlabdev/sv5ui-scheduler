@@ -6,7 +6,7 @@ user-invocable: true
 
 # Scheduler Architecture
 
-Design notes and the reasoning behind these rules live in `docs/`, which is local-only and gitignored. Nothing tracked in the repository may depend on a file there. Keep it current anyway. It is where the *why* lives.
+Design notes and the reasoning behind these rules live in `docs/`, which is local-only and gitignored. Nothing tracked in the repository may depend on a file there. Keep it current anyway. It is where the _why_ lives.
 
 ## Build order, do not reorder
 
@@ -25,13 +25,13 @@ Types and the store shape everything after them. The DST table written first mea
 
 ## Public vs internal
 
-| Public (in `src/lib/index.ts`) | Internal (never exported) |
-|---|---|
+| Public (in `src/lib/index.ts`)           | Internal (never exported)                                  |
+| ---------------------------------------- | ---------------------------------------------------------- |
 | `Scheduler` component and the four views | `core/layout/*`: overlap solver, lane packing, grid layout |
-| All types in `scheduler.types.ts` | Any concrete `LayoutStrategy` implementation |
-| `TimeScale` (`core/time/scale.ts`) | Store internals beyond the class surface |
-| `LayoutStrategy` **interface** | |
-| The four registration functions | |
+| All types in `scheduler.types.ts`        | Any concrete `LayoutStrategy` implementation               |
+| `TimeScale` (`core/time/scale.ts`)       | Store internals beyond the class surface                   |
+| `LayoutStrategy` **interface**           |                                                            |
+| The four registration functions          |                                                            |
 
 The layout engine is deliberately internal. Do not export it, do not re-export it "for testing", do not widen `index.ts` without a reason written in the PR. Adding an export later is free; removing one is a breaking change.
 

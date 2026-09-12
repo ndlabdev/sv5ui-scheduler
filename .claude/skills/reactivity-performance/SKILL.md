@@ -19,7 +19,7 @@ const dayColumns = $derived(splitByDay(visibleEvents, range, timeZone))
 const positioned = $derived.by(() => dayColumns.map((day) => layoutDay(day, scale)))
 ```
 
-  `positioned` reruns when `dayColumns` changes, and `dayColumns` reruns only when `visibleEvents` or `range` changes. Do not collapse these into one block.
+`positioned` reruns when `dayColumns` changes, and `dayColumns` reruns only when `visibleEvents` or `range` changes. Do not collapse these into one block.
 
 - Read `store.version` only where a full recompute is intended. Reading it in a per-cell derived turns every mutation into a full re-render.
 - Precompute per-cell view models in a derived array. The template reads fields; it never calls `toZoned`, `compare`, or formatting functions per cell.

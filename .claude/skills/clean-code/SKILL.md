@@ -12,17 +12,17 @@ Not "few". None. The name, the type and the test carry the meaning; a comment is
 
 **The exception is `*.types.ts`**, which is documentation rather than commentary: those JSDoc blocks are the tooltips an app sees over every option, and `@default` says what the type cannot. Every public option in a `*.types.ts` file must carry one. Both halves are enforced: none anywhere else, and never none there.
 
-Before writing a comment anywhere else, ask: *would deleting this line let someone undo a decision without noticing?* If the answer is no, do not write it. If the answer is yes, the code is not clear enough yet: rename, extract or restructure until it is.
+Before writing a comment anywhere else, ask: _would deleting this line let someone undo a decision without noticing?_ If the answer is no, do not write it. If the answer is yes, the code is not clear enough yet: rename, extract or restructure until it is.
 
 What replaces comments:
 
-| Instead of | Do |
-|---|---|
-| `// check if the event spans midnight` | `if (spansMidnight(event))` |
-| `// convert to minutes since start of day` | `const minutesFromDayStart = ...` |
-| `// TODO: handle DST` | A failing test, or an issue |
-| `// this is needed because Safari...` | The commit message, and a test that fails without it |
-| A block explaining an algorithm | A function per step, named for what it does |
+| Instead of                                 | Do                                                   |
+| ------------------------------------------ | ---------------------------------------------------- |
+| `// check if the event spans midnight`     | `if (spansMidnight(event))`                          |
+| `// convert to minutes since start of day` | `const minutesFromDayStart = ...`                    |
+| `// TODO: handle DST`                      | A failing test, or an issue                          |
+| `// this is needed because Safari...`      | The commit message, and a test that fails without it |
+| A block explaining an algorithm            | A function per step, named for what it does          |
 
 ## No suppression comments, ever
 

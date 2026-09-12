@@ -114,14 +114,14 @@ export const eventChipDefaults = {
 
 Use only sv5ui theme tokens. Never a Tailwind palette colour (`bg-blue-500`), never a hex value.
 
-| Purpose | Tokens |
-|---|---|
-| Surfaces | `surface`, `surface-dim`, `surface-bright`, `surface-container-{lowest,low,,high,highest}` |
-| Text on surfaces | `on-surface`, `on-surface-variant` |
-| Accents | `primary`, `secondary`, `tertiary` + `on-*` and `*-container` / `on-*-container` |
-| Status | `success`, `warning`, `error`, `info` + the same `on-*` / `*-container` forms |
-| Borders | `outline`, `outline-variant` |
-| Inverse | `inverse-surface`, `inverse-on-surface`, `inverse-primary` |
+| Purpose          | Tokens                                                                                     |
+| ---------------- | ------------------------------------------------------------------------------------------ |
+| Surfaces         | `surface`, `surface-dim`, `surface-bright`, `surface-container-{lowest,low,,high,highest}` |
+| Text on surfaces | `on-surface`, `on-surface-variant`                                                         |
+| Accents          | `primary`, `secondary`, `tertiary` + `on-*` and `*-container` / `on-*-container`           |
+| Status           | `success`, `warning`, `error`, `info` + the same `on-*` / `*-container` forms              |
+| Borders          | `outline`, `outline-variant`                                                               |
+| Inverse          | `inverse-surface`, `inverse-on-surface`, `inverse-primary`                                 |
 
 Dark mode and theming then work without any extra code.
 
@@ -189,42 +189,42 @@ export type EventChipProps = Omit<HTMLAttributes<HTMLDivElement>, 'class' | 'col
 
 What the scheduler takes from sv5ui:
 
-| Need | Use |
-|---|---|
-| Toolbar buttons, today, prev, next | `Button`, `Icon`, `Kbd` |
-| View switcher | `ToggleGroup` or `SelectMenu` |
-| Date navigator (mini calendar) | `Calendar` |
-| Date and time pickers in event forms | `DatePicker`, `DateRangePicker`, `TimeField` |
-| Event details on click | `Popover` |
-| Event editor | `Modal` or `Slideover`, `Form`, `FormField`, `Input`, `Textarea`, `Select`, `Switch` |
-| Right click on an event or cell | `ContextMenu` |
-| Overflow and actions | `DropdownMenu` |
-| Hover details | `Tooltip` |
-| Event tags and status | `Chip`, `Badge` |
-| Loading states | `Skeleton`, `Progress` |
-| Empty agenda | `Empty` |
-| Scrollable time grid | `ScrollArea` |
-| Notifications after a mutation | `Toast` |
-| Resource or attendee display | `Avatar`, `AvatarGroup`, `User` |
-| Keyboard listing in help | `Kbd` |
+| Need                                 | Use                                                                                  |
+| ------------------------------------ | ------------------------------------------------------------------------------------ |
+| Toolbar buttons, today, prev, next   | `Button`, `Icon`, `Kbd`                                                              |
+| View switcher                        | `ToggleGroup` or `SelectMenu`                                                        |
+| Date navigator (mini calendar)       | `Calendar`                                                                           |
+| Date and time pickers in event forms | `DatePicker`, `DateRangePicker`, `TimeField`                                         |
+| Event details on click               | `Popover`                                                                            |
+| Event editor                         | `Modal` or `Slideover`, `Form`, `FormField`, `Input`, `Textarea`, `Select`, `Switch` |
+| Right click on an event or cell      | `ContextMenu`                                                                        |
+| Overflow and actions                 | `DropdownMenu`                                                                       |
+| Hover details                        | `Tooltip`                                                                            |
+| Event tags and status                | `Chip`, `Badge`                                                                      |
+| Loading states                       | `Skeleton`, `Progress`                                                               |
+| Empty agenda                         | `Empty`                                                                              |
+| Scrollable time grid                 | `ScrollArea`                                                                         |
+| Notifications after a mutation       | `Toast`                                                                              |
+| Resource or attendee display         | `Avatar`, `AvatarGroup`, `User`                                                      |
+| Keyboard listing in help             | `Kbd`                                                                                |
 
 Hooks:
 
-| Need | Use |
-|---|---|
-| Drag to create, move, resize | `usePointerDrag` (throttled per frame, pointer capture, axis lock) |
-| Escape cancels a drag or closes a popover | `useEscapeKeydown` |
-| Global listeners with cleanup | `useEventListener` |
-| Click outside a popover | `useClickOutside` |
-| Focus inside an open editor | `useFocusTrap` |
-| Grid resizes | `useResizeObserver` |
-| Lazy loading agenda | `useIntersectionObserver`, `useInfiniteScroll` |
-| Search and filter input | `useDebounce`, `useDebouncedState`, `useThrottle` |
-| Current time line tick | `useTimers` |
-| Narrow screens | `useMediaQuery` |
-| Persist last view | `useLocalStorage` |
-| Lock body scroll under a modal | `useScrollLock` |
-| Copy event link | `useClipboard` |
+| Need                                      | Use                                                                |
+| ----------------------------------------- | ------------------------------------------------------------------ |
+| Drag to create, move, resize              | `usePointerDrag` (throttled per frame, pointer capture, axis lock) |
+| Escape cancels a drag or closes a popover | `useEscapeKeydown`                                                 |
+| Global listeners with cleanup             | `useEventListener`                                                 |
+| Click outside a popover                   | `useClickOutside`                                                  |
+| Focus inside an open editor               | `useFocusTrap`                                                     |
+| Grid resizes                              | `useResizeObserver`                                                |
+| Lazy loading agenda                       | `useIntersectionObserver`, `useInfiniteScroll`                     |
+| Search and filter input                   | `useDebounce`, `useDebouncedState`, `useThrottle`                  |
+| Current time line tick                    | `useTimers`                                                        |
+| Narrow screens                            | `useMediaQuery`                                                    |
+| Persist last view                         | `useLocalStorage`                                                  |
+| Lock body scroll under a modal            | `useScrollLock`                                                    |
+| Copy event link                           | `useClipboard`                                                     |
 
 Only build a component here when it is scheduler-specific and has no sv5ui counterpart: the four views, `EventChip`, the time gutter, the current time indicator, the drag ghost. Even those are composed from sv5ui parts and sv5ui tokens.
 

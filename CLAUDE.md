@@ -4,28 +4,28 @@ Working guide for AI agents and humans in `@sv5ui/scheduler`, a scheduler and ca
 
 ## Commands
 
-| Command | What it does |
-|---|---|
-| `pnpm dev` | demo app (`src/routes`) |
-| `pnpm check` | svelte-check, must stay at 0 errors, 0 warnings |
-| `pnpm lint` / `pnpm format` | prettier + eslint |
-| `pnpm test` | vitest: `server` (node, `*.spec.ts`) + `client` (chromium, `*.svelte.spec.ts`) |
-| `pnpm build` | build + `svelte-package` + publint |
+| Command                     | What it does                                                                   |
+| --------------------------- | ------------------------------------------------------------------------------ |
+| `pnpm dev`                  | demo app (`src/routes`)                                                        |
+| `pnpm check`                | svelte-check, must stay at 0 errors, 0 warnings                                |
+| `pnpm lint` / `pnpm format` | prettier + eslint                                                              |
+| `pnpm test`                 | vitest: `server` (node, `*.spec.ts`) + `client` (chromium, `*.svelte.spec.ts`) |
+| `pnpm build`                | build + `svelte-package` + publint                                             |
 
 Definition of done: `check`, `lint`, `test` green; `build` too when exports changed.
 
 ## Skills: read the one that matches before acting
 
-| Skill | When |
-|---|---|
-| `svelte5` | Writing any `.svelte` or `.svelte.ts` file. Runes only; training data is Svelte 4 |
-| `sv5ui-conventions` | Creating or editing a component, variants, types or barrel |
-| `clean-code` | Before writing or reviewing any source file |
-| `scheduler-architecture` | Before adding an export, touching `core/`, or starting a view |
+| Skill                    | When                                                                              |
+| ------------------------ | --------------------------------------------------------------------------------- |
+| `svelte5`                | Writing any `.svelte` or `.svelte.ts` file. Runes only; training data is Svelte 4 |
+| `sv5ui-conventions`      | Creating or editing a component, variants, types or barrel                        |
+| `clean-code`             | Before writing or reviewing any source file                                       |
+| `scheduler-architecture` | Before adding an export, touching `core/`, or starting a view                     |
 | `reactivity-performance` | Before writing any view, store or interaction code, and when something feels slow |
-| `algorithms` | Before implementing or changing anything in `core/` |
-| `review-component` | Reviewing a component or core module |
-| `git-workflow` | Before any git or GitHub action |
+| `algorithms`             | Before implementing or changing anything in `core/`                               |
+| `review-component`       | Reviewing a component or core module                                              |
+| `git-workflow`           | Before any git or GitHub action                                                   |
 
 ## Non-negotiables
 
@@ -62,4 +62,4 @@ Each component: `Component.svelte`, `component.types.ts`, `component.variants.ts
 
 ## Local notes
 
-`docs/` is local-only and gitignored. It holds design notes and the reasoning behind the rules above. Nothing tracked in the repo may depend on it, but keep it current. It is where the *why* lives.
+`docs/` is local-only and gitignored. It holds design notes and the reasoning behind the rules above. Nothing tracked in the repo may depend on it, but keep it current. It is where the _why_ lives.

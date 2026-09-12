@@ -1,0 +1,46 @@
+import type { SchedulerEvent } from './event.types.js'
+
+/**
+ * Every string the scheduler displays or announces. Supply a full set per
+ * locale; `mergeLabels` fills gaps from the default English set.
+ */
+export interface SchedulerLabels {
+    today: string
+    previous: string
+    next: string
+    month: string
+    week: string
+    day: string
+    agenda: string
+    allDay: string
+    noEvents: string
+    newEvent: string
+
+    /**
+     * Label of the "+N more" link in a full month cell.
+     */
+    more: (count: number) => string
+
+    /**
+     * Accessible name of the grid, read when focus enters it.
+     */
+    grid: (view: string) => string
+
+    /**
+     * Accessible name of one event chip.
+     */
+    event: (event: SchedulerEvent, start: string, end: string) => string
+
+    /**
+     * Live region announcements after a keyboard or pointer action.
+     */
+    announce: {
+        created: (event: SchedulerEvent) => string
+        moved: (event: SchedulerEvent, start: string) => string
+        resized: (event: SchedulerEvent, end: string) => string
+        deleted: (event: SchedulerEvent) => string
+        cancelled: string
+        reverted: (event: SchedulerEvent) => string
+        conflict: (event: SchedulerEvent) => string
+    }
+}

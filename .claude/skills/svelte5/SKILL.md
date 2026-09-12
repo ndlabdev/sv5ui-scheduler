@@ -9,7 +9,7 @@ Always use Svelte 5 runes. Never use Svelte 4 patterns.
 
 ## Svelte 4 -> Svelte 5
 
-| Svelte 4 (wrong)                    | Svelte 5 (correct)                                            |
+| Svelte 4 (wrong)               | Svelte 5 (correct)                                     |
 | ------------------------------ | ------------------------------------------------------ |
 | `export let foo`               | `let { foo } = $props()`                               |
 | `export let foo = 'default'`   | `let { foo = 'default' } = $props()`                   |
@@ -26,7 +26,7 @@ Always use Svelte 5 runes. Never use Svelte 4 patterns.
 
 ## Stores -> Runes
 
-| Svelte 4 (wrong)                               | Svelte 5 (correct)             |
+| Svelte 4 (wrong)                          | Svelte 5 (correct)      |
 | ----------------------------------------- | ----------------------- |
 | `import { writable } from 'svelte/store'` | Remove import           |
 | `const count = writable(0)`               | `let count = $state(0)` |
