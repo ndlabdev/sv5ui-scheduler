@@ -269,7 +269,9 @@ export interface ViewDefinition {
  * Wraps the store's `apply`. Receives the next link in the chain and returns
  * the function the store will call. Runs in registration order.
  */
-export type StoreMiddleware = (next: (patch: EventPatch) => void) => (patch: EventPatch) => void
+export type StoreMiddleware<T = unknown> = (
+    next: (patch: EventPatch<T>) => void
+) => (patch: EventPatch<T>) => void
 
 /**
  * What a pointer or keyboard position resolves to.
