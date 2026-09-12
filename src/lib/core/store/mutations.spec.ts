@@ -37,7 +37,7 @@ function setup(handlers: MutationHandlers = {}) {
     const onRevert = vi.fn()
     const pipeline = new MutationPipeline({
         store,
-        timeZone: ZONE,
+        timeZone: () => ZONE,
         handlers: () => handlers,
         onRevert
     })
@@ -305,7 +305,11 @@ describe('handlers are read per mutation', () => {
     it('picks up a handler that changed after construction', async () => {
         let handlers: MutationHandlers = {}
         const store = new EventStore()
-        const pipeline = new MutationPipeline({ store, timeZone: ZONE, handlers: () => handlers })
+        const pipeline = new MutationPipeline({
+            store,
+            timeZone: () => ZONE,
+            handlers: () => handlers
+        })
         expect(await pipeline.commit(create(event('a')))).toBe('committed')
 
         const seen: Mutation[] = []

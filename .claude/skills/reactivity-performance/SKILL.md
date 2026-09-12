@@ -64,6 +64,14 @@ const positioned = $derived.by(() => dayColumns.map((day) => layoutDay(day, scal
 - Snippet parameters are objects built in a derived once per item, not inline in `{@render}`.
 - Avoid `bind:` on hot paths; pass a callback prop.
 
+## Attachments: three rules learned the hard way
+
+All three cost real time on 2026-09-12 while wiring the first view. Each produced an `effect_update_depth_exceeded` loop.
+
+1. **Attachment bodies run inside a tracking effect.** `{@attach fn}` re-creates only when `fn`'s identity changes, but the inner effect that calls `fn(node)` tracks every signal read during the call. A plugin that reads or writes state in its attach body (for example calling `commit`, which touches the pending set) re-attaches on every change of that state. Plugin attachments must run under `untrack`; `composeAttachments` in `interactions/attachments.ts` does this, so route every plugin through it.
+2. **A spread destroys prop stability.** With `<View {...props} interactions={x} />` Svelte folds every prop into one derived, so a change to any spread member invalidates the `interactions` getter too, and the attachment effect re-runs. Pass props that carry attachments or other identity-sensitive values as explicit props on a component with no spread, or accept that they re-run.
+3. **Sync effects compare against what you last synced, not against the target.** The array-to-store effect first runs after mount; anything that touched the store between init and that first run (a plugin committing on attach) looked like a divergence and got reset away. Keep the last mirrored snapshot and compare the input to that. `Scheduler.svelte` keeps `mirrored` for exactly this.
+
 ## Measure before optimising
 
 - A browser spec that mounts a week with 500 events and asserts render time under a budget is the regression guard for every rule above. Keep it green.

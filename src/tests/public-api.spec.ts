@@ -4,10 +4,14 @@ import { describe, expect, it } from 'vitest'
 
 const ROOT = 'src/lib/index.ts'
 
-const AREAS = ['./types/index.js', './core/index.js']
+const AREAS = ['./types/index.js', './core/index.js', './components/index.js']
 
 const PUBLIC_TYPES = [
     'BusinessHours',
+    'EventChipProps',
+    'PartialLabels',
+    'SchedulerConfig',
+    'SchedulerProps',
     'CellSnippetProps',
     'ConflictResolution',
     'DateInput',
@@ -52,7 +56,20 @@ const PUBLIC_TYPES = [
     'WeekDay'
 ]
 
-const PUBLIC_VALUES = ['createTimeScale']
+const PUBLIC_VALUES = [
+    'DayView',
+    'EventChip',
+    'Scheduler',
+    'WeekView',
+    'createTimeScale',
+    'defaultLabels',
+    'defineSchedulerConfig',
+    'mergeLabels',
+    'resetSchedulerConfig'
+]
+
+const LOCALES_ENTRY = 'src/lib/locales.ts'
+const PUBLIC_LOCALES = ['en', 'vi']
 
 const STAR_EXPORT = /export\s+\*\s+from\s+'([^']+)'/g
 const NAMED_EXPORT = /export\s+(type\s+)?\{([^}]*)\}/g
@@ -87,9 +104,20 @@ function namedExports(source: string): { types: string[]; values: string[] } {
 describe('root entry', () => {
     const source = read(ROOT)
 
-    it('only joins the area barrels', () => {
+    it('joins the area barrels and the config module only', () => {
         expect(starTargets(source)).toEqual(AREAS)
-        expect(namedExports(source)).toEqual({ types: [], values: [] })
+        expect(namedExports(source)).toEqual({
+            types: ['SchedulerConfig'],
+            values: ['defineSchedulerConfig', 'resetSchedulerConfig']
+        })
+    })
+})
+
+describe('locales entry', () => {
+    it('exports exactly the agreed locales by name', () => {
+        const source = read(LOCALES_ENTRY)
+        expect(starTargets(source)).toEqual([])
+        expect(namedExports(source).values.sort()).toEqual(PUBLIC_LOCALES)
     })
 })
 
@@ -100,7 +128,7 @@ describe('area barrels', () => {
         expect(starTargets(read(barrel))).toEqual([])
     })
 
-    const collected = barrels.map((barrel) => namedExports(read(barrel)))
+    const collected = [...barrels.map((barrel) => read(barrel)), read(ROOT)].map(namedExports)
     const types = collected.flatMap((entry) => entry.types).sort()
     const values = collected.flatMap((entry) => entry.values).sort()
 

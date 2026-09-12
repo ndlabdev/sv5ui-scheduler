@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { at, contextFor, event, week } from './fixtures.js'
+import { at, contextFor, event, week } from '../../../tests/fixtures/layout.js'
 import { layoutTimeGrid } from './timegrid.js'
 
 const range = week('2026-09-07')
@@ -75,16 +75,35 @@ describe('layoutTimeGrid', () => {
         expect(byId(positions, 'b')[0].columns).toBe(2)
     })
 
-    it('uses the real day length on a DST day', () => {
+    it('places 09:00 on a DST day at the same pixel as on any other day', () => {
         const dst = week('2026-03-08')
-        const dstContext = contextFor(dst)
         const [p] = layoutTimeGrid(
             [event('a', '2026-03-08T09:00', '2026-03-08T10:00')],
             dst,
-            dstContext
+            contextFor(dst)
         )
-        expect(p.top).toBe(16 * 20)
+        expect(p.top).toBe(18 * 20)
         expect(p.height).toBe(2 * 20)
+    })
+
+    it('draws an event across the skipped hour by its clock times', () => {
+        const dst = week('2026-03-08')
+        const [p] = layoutTimeGrid(
+            [event('a', '2026-03-08T01:30', '2026-03-08T03:30')],
+            dst,
+            contextFor(dst)
+        )
+        expect(p.top).toBe(3 * 20)
+        expect(p.height).toBe(4 * 20)
+    })
+
+    it('extends a segment that crosses midnight to the bottom of its column', () => {
+        const positions = layoutTimeGrid(
+            [event('a', '2026-09-09T23:00', '2026-09-10T01:00')],
+            range,
+            context
+        )
+        expect(positions[0].top + positions[0].height).toBe(context.scale.dayHeight)
     })
 
     it('clips to the range and keeps the clipped segment times', () => {

@@ -152,25 +152,23 @@ describe.each(TRANSITIONS)('$zone $day ($kind)', (t) => {
     describe('TimeScale', () => {
         const scale = createTimeScale({ slotMinutes: 30, slotHeight: 20 })
 
-        it('sizes the day column by real minutes', () => {
-            expect(scale.dayHeight(dayStart)).toBe((t.length / 30) * 20)
+        it('keeps every day column 24 hours tall', () => {
+            expect(scale.dayHeight).toBe(48 * 20)
         })
 
-        it('places 09:00 by real minutes from day start', () => {
-            expect(scale.toPixel(nine, dayStart)).toBe((minutesFromDayStart(nine) / 30) * 20)
+        it('places 09:00 at the same pixel as on any other day', () => {
+            expect(scale.toPixel(nine)).toBe(18 * 20)
         })
 
-        it('round-trips through pixels on slot boundaries', () => {
-            for (const minutes of [0, 30, 60, 90, 120, 150, 180, 540, t.length - 30]) {
-                const date = dayStart.add({ minutes })
-                expect(scale.toDate(scale.toPixel(date, dayStart), dayStart).toString()).toBe(
-                    date.toString()
-                )
+        it('round-trips clock times that exist exactly once', () => {
+            for (const time of ['00:00', '00:30', '06:00', '09:00', '12:30', '23:30']) {
+                const date = zoned(t.zone, t.day, time)
+                expect(scale.toDate(scale.toPixel(date), dayStart).toString()).toBe(date.toString())
             }
         })
 
-        it('never produces a pixel past the end of the day', () => {
-            expect(scale.toDate(scale.dayHeight(dayStart) + 500, dayStart).toString()).toBe(
+        it('maps the end of the column to the next midnight', () => {
+            expect(scale.toDate(scale.dayHeight + 500, dayStart).toString()).toBe(
                 endOfDay(nine).toString()
             )
         })
@@ -188,6 +186,18 @@ describe('skipped wall time', () => {
             expect(resolved.offset).toBe(zoned(t.zone, t.day, '12:00').offset)
         }
     )
+
+    it.each(TRANSITIONS.filter((t) => t.kind === 'gap'))(
+        '$zone $day never snaps a pixel into the skipped hour',
+        (t) => {
+            const scale = createTimeScale({ slotMinutes: 30, slotHeight: 20 })
+            const dayStart = startOfDay(zoned(t.zone, t.day, '12:00'))
+            const [hour] = t.wall.split(':').map(Number)
+            const snapped = scale.toDate(hour * 60 * (20 / 30) + 20, dayStart)
+            expect(snapped.hour).toBe(hour + 1)
+            expect(snapped.offset).toBe(zoned(t.zone, t.day, '12:00').offset)
+        }
+    )
 })
 
 describe('repeated wall time', () => {
@@ -200,6 +210,18 @@ describe('repeated wall time', () => {
             expect(first.minute).toBe(second.minute)
             expect(minutesBetween(first, second)).toBe(60)
             expect(minutesFromDayStart(second) - minutesFromDayStart(first)).toBe(60)
+        }
+    )
+
+    it.each(TRANSITIONS.filter((t) => t.kind === 'overlap'))(
+        '$zone $day $wall draws both instants at one pixel and picks the first on the way back',
+        (t) => {
+            const scale = createTimeScale({ slotMinutes: 30, slotHeight: 20 })
+            const first = toZoned(`${t.day}T${t.wall}${t.offsetBefore}`, t.zone)
+            const second = toZoned(`${t.day}T${t.wall}${t.offsetAfter}`, t.zone)
+            expect(scale.toPixel(first)).toBe(scale.toPixel(second))
+            const dayStart = startOfDay(first)
+            expect(scale.toDate(scale.toPixel(second), dayStart).toString()).toBe(first.toString())
         }
     )
 

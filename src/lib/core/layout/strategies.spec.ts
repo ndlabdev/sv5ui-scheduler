@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { contextFor, event, week } from './fixtures.js'
+import { contextFor, event, week } from '../../../tests/fixtures/layout.js'
 import { builtinLayouts, listLayout, monthGridLayout, timeGridLayout } from './strategies.js'
 
 const range = week('2026-09-07')

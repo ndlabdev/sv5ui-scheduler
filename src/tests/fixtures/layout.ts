@@ -1,9 +1,9 @@
 import { parseZonedDateTime, type ZonedDateTime } from '@internationalized/date'
-import type { SchedulerEvent } from '../../types/event.types.js'
-import type { LayoutContext, SchedulerContext } from '../../types/extension.types.js'
-import type { DateRange } from '../../types/range.types.js'
-import { eachDay } from '../time/range.js'
-import { createTimeScale } from '../time/scale.js'
+import type { SchedulerEvent } from '../../lib/types/event.types.js'
+import type { LayoutContext, SchedulerContext } from '../../lib/types/extension.types.js'
+import type { DateRange } from '../../lib/types/range.types.js'
+import { eachDay } from '../../lib/core/time/range.js'
+import { createTimeScale } from '../../lib/core/time/scale.js'
 
 export const ZONE = 'America/New_York'
 

@@ -8,9 +8,14 @@ import type { BusinessHours, DateRange, Holiday, TimeZoneId, WeekDay } from './r
 import type { CellSnippetProps, EventSnippetProps, HeaderSnippetProps } from './snippet.types.js'
 
 /**
- * Maps instants to pixels along a time axis and back. One instance per
- * rendered range; views, layouts and interactions share it so a pixel means
- * the same minute everywhere.
+ * Maps wall-clock time to pixels along a day column and back. One instance
+ * per rendered range; views, layouts and interactions share it so a pixel
+ * means the same clock time in every column.
+ *
+ * The axis is wall clock, not elapsed time: 09:00 sits at the same pixel on
+ * every day, including the days a time zone skips or repeats an hour. On such
+ * a day an event crossing the change is drawn by its clock times, which is
+ * what calendars users already know do.
  */
 export interface TimeScale {
     /**
@@ -24,20 +29,21 @@ export interface TimeScale {
     readonly slotHeight: number
 
     /**
-     * Pixel offset of `date` from the start of its day column. Uses real
-     * zoned differences, so a 23 or 25 hour day maps without drift.
+     * Height of every day column: 24 hours of slots.
      */
-    toPixel(date: ZonedDateTime, dayStart: ZonedDateTime): number
+    readonly dayHeight: number
 
     /**
-     * Inverse of `toPixel`, rounded to the nearest slot.
+     * Pixel offset of `date` inside its day column, from its clock time.
+     */
+    toPixel(date: ZonedDateTime): number
+
+    /**
+     * Clock time at `pixel` on the day of `dayStart`, rounded to the nearest
+     * slot. A skipped time resolves forward; a repeated time resolves to its
+     * first occurrence.
      */
     toDate(pixel: number, dayStart: ZonedDateTime): ZonedDateTime
-
-    /**
-     * Total height of a day column that starts at `dayStart`.
-     */
-    dayHeight(dayStart: ZonedDateTime): number
 }
 
 /**
@@ -205,6 +211,11 @@ export interface ViewSnippets<T = unknown> {
  */
 export interface ViewProps<T = unknown> {
     /**
+     * Name of the view being rendered, as registered.
+     */
+    view: string
+
+    /**
      * Date the range was computed from, usually the day the user navigated to.
      */
     anchor: ZonedDateTime
@@ -237,6 +248,11 @@ export interface ViewProps<T = unknown> {
         event: (position: PositionedEvent<T>) => Attachment<HTMLElement>
     }
 
+    /**
+     * Gesture in progress, to render as a ghost. `null` when idle.
+     */
+    preview: InteractionPreview<T> | null
+
     selectedEventId: string | null
 
     onSelectEvent: (eventId: string | null) => void
@@ -246,7 +262,7 @@ export interface ViewProps<T = unknown> {
  * Registers a named view. The built-in `month`, `week`, `day` and `agenda`
  * are defined the same way.
  */
-export interface ViewDefinition {
+export interface ViewDefinition<T = unknown> {
     /**
      * Value of the scheduler's `view` prop that activates this view, and the
      * key looked up in `labels`.
@@ -268,7 +284,19 @@ export interface ViewDefinition {
      */
     layout: string
 
-    component: Component<ViewProps>
+    /**
+     * Days per row handed to the layout. The month view uses `7`.
+     * @default every day of the range in one row
+     */
+    columnsPerRow?: number
+
+    /**
+     * Title the toolbar shows for the current range. Falls back to the
+     * formatted range when omitted.
+     */
+    title?: (anchor: ZonedDateTime, range: DateRange, context: SchedulerContext) => string
+
+    component: Component<ViewProps<T>>
 }
 
 /**
@@ -350,20 +378,20 @@ export interface InteractionPreview<T = unknown> {
  * the view component, so the returned attachment may use hooks that rely on
  * component lifecycle.
  */
-export interface InteractionPlugin {
+export interface InteractionPlugin<T = unknown> {
     name: string
 
     /**
      * Attachment for the grid element. Receives the node when it mounts and
      * may return a cleanup.
      */
-    attach: (context: InteractionContext) => Attachment<HTMLElement>
+    attach: (context: InteractionContext<T>) => Attachment<HTMLElement>
 
     /**
      * Optional attachment for each rendered event segment.
      */
     attachEvent?: (
-        context: InteractionContext,
-        position: PositionedEvent
+        context: InteractionContext<T>,
+        position: PositionedEvent<T>
     ) => Attachment<HTMLElement>
 }

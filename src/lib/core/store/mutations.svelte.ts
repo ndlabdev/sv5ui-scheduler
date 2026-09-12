@@ -12,7 +12,7 @@ export type MutationOutcome = 'committed' | 'reverted' | 'skipped' | 'kept-serve
 
 export interface MutationPipelineOptions<T = unknown> {
     store: EventStore<T>
-    timeZone: TimeZoneId
+    timeZone: () => TimeZoneId
     handlers: () => MutationHandlers<T>
     onRevert?: (mutation: Mutation<T>) => void
 }
@@ -67,7 +67,7 @@ export class MutationPipeline<T = unknown> {
             return 'reverted'
         }
         if (!result || !mutation.after) return 'committed'
-        const server = normalizeEvent(result, this.#options.timeZone)
+        const server = normalizeEvent(result, this.#options.timeZone())
         return this.#reconcile(mutation, mutation.after, server, handlers)
     }
 

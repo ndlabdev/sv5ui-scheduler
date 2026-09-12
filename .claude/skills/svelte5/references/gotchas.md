@@ -249,3 +249,37 @@
 <!-- Parent can then bind -->
 <Child bind:value={name} />
 ```
+
+## Attachments
+
+### Attachment bodies are tracked
+
+```svelte
+<script>
+    import { untrack } from 'svelte'
+
+    // Wrong: reading `count` here re-runs the attachment when it changes
+    const bad = (node) => {
+        node.dataset.count = count
+    }
+
+    // Correct: read state you do not want to track under untrack
+    const good = (node) => {
+        untrack(() => {
+            node.dataset.count = count
+        })
+    }
+</script>
+
+<div {@attach good}></div>
+```
+
+### Spreading props re-runs every attachment in the child
+
+```svelte
+<!-- Wrong: any change inside props re-runs {@attach child.interactions.grid} -->
+<Child {...props} interactions={stable} />
+
+<!-- Correct: explicit props keep each getter independent -->
+<Child a={props.a} b={props.b} interactions={stable} />
+```

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { DateRange } from '../../types/range.types.js'
-import { at, contextFor, event } from './fixtures.js'
+import { at, contextFor, event } from '../../../tests/fixtures/layout.js'
 import { layoutSpans, overflowByCell } from './spans.js'
 
 const monthRange: DateRange = { start: at('2026-08-31T00:00'), end: at('2026-10-12T00:00') }

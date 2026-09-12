@@ -28,8 +28,15 @@
     "exports": {
         ".": {
             "types": "./dist/index.d.ts",
-            "svelte": "./dist/index.js"
-        }
+            "svelte": "./dist/index.js",
+            "default": "./dist/index.js"
+        },
+        "./locales": {
+            "types": "./dist/locales.d.ts",
+            "svelte": "./dist/locales.js",
+            "default": "./dist/locales.js"
+        },
+        "./package.json": "./package.json"
     },
     "peerDependencies": {
         "svelte": "^5.0.0",

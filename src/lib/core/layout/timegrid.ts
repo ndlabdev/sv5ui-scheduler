@@ -42,8 +42,10 @@ function toPosition<T>(
     placement: ColumnPlacement,
     context: LayoutContext
 ): TimePosition<T> {
-    const top = context.scale.toPixel(segment.start, segment.dayStart)
-    const bottom = context.scale.toPixel(segment.end, segment.dayStart)
+    const top = context.scale.toPixel(segment.start)
+    const bottom = segment.continuesAfter
+        ? context.scale.dayHeight
+        : context.scale.toPixel(segment.end)
     return {
         kind: 'time',
         event: segment.event,

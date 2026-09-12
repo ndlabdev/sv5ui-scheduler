@@ -13,6 +13,11 @@ export interface SchedulerLabels {
     day: string
     agenda: string
     allDay: string
+
+    /**
+     * Accessible name of the view switcher.
+     */
+    views: string
     noEvents: string
     newEvent: string
 

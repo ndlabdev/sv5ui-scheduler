@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { eachDay } from '../time/range.js'
-import { event, week } from './fixtures.js'
+import { event, week } from '../../../tests/fixtures/layout.js'
 import { isWholeDay, segmentsInRange } from './segments.js'
 
 const range = week('2026-09-07')
