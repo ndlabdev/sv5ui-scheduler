@@ -1,3 +1,13 @@
-<h1>Welcome to your library project</h1>
-<p>Create your package using @sveltejs/package and preview/showcase your work with SvelteKit</p>
-<p>Visit <a href="https://svelte.dev/docs/kit">svelte.dev/docs/kit</a> to read the documentation</p>
+<script lang="ts">
+	import { Button, Card, ThemeModeButton } from 'sv5ui'
+</script>
+
+<main class="bg-surface text-on-surface min-h-screen p-8">
+	<Card>
+		<div class="flex items-center gap-3">
+			<Button color="primary" leadingIcon="lucide:calendar">Scheduler</Button>
+			<Button variant="outline">Today</Button>
+			<ThemeModeButton />
+		</div>
+	</Card>
+</main>

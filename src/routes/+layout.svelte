@@ -1,7 +1,10 @@
 <script lang="ts">
-	import './layout.css';
+	import { ModeWatcher } from 'mode-watcher'
+	import './layout.css'
 
-	const { children } = $props();
+	const { children } = $props()
 </script>
 
-{@render children()}
+<ModeWatcher />
+
+{@render children?.()}
