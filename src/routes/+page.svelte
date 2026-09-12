@@ -1,6 +1,8 @@
 <script lang="ts">
     import { getLocalTimeZone, now } from '@internationalized/date'
+    import { ThemeModeButton, ToggleGroup } from 'sv5ui'
     import { Scheduler, type EventInput, type Mutation } from '$lib/index.js'
+    import { vi } from '$lib/locales.js'
 
     const timeZone = getLocalTimeZone()
     const today = now(timeZone).set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
@@ -67,6 +69,7 @@
         }
     ])
     let view = $state('week')
+    let locale = $state('en-US')
     let log = $state<string[]>([])
 
     async function handleMutate(mutation: Mutation) {
@@ -77,14 +80,26 @@
 <main class="flex h-screen flex-col gap-3 bg-surface p-4 text-on-surface">
     <header class="flex items-center justify-between">
         <h1 class="text-lg font-semibold">@sv5ui/scheduler</h1>
-        <p class="text-sm text-on-surface-variant">{events.length} events, view: {view}</p>
+        <div class="flex items-center gap-2">
+            <ToggleGroup
+                size="sm"
+                bind:value={locale}
+                items={[
+                    { value: 'en-US', label: 'EN' },
+                    { value: 'vi-VN', label: 'VI' }
+                ]}
+                aria-label="Locale"
+            />
+            <ThemeModeButton />
+        </div>
     </header>
     <div class="min-h-0 flex-1 overflow-hidden rounded-lg border border-outline-variant">
         <Scheduler
             bind:events
             bind:view
             {timeZone}
-            locale="en-US"
+            {locale}
+            labels={locale === 'vi-VN' ? vi : undefined}
             weekStartsOn={1}
             businessHours={{ start: '09:00', end: '18:00', days: [1, 2, 3, 4, 5] }}
             onMutate={handleMutate}

@@ -2,39 +2,48 @@ import { tv } from 'tailwind-variants'
 
 export const timeGridVariants = tv({
     slots: {
-        root: 'bg-surface text-on-surface flex h-full min-h-0 flex-col overflow-hidden',
+        root: 'bg-surface text-on-surface @container flex h-full min-h-0 flex-col overflow-hidden',
         header: 'border-outline-variant grid shrink-0 border-b',
         gutterSpacer: 'border-outline-variant border-r',
         dayHeader: [
-            'border-outline-variant flex flex-col items-center gap-0.5 border-r px-1 py-2 last:border-r-0',
-            'text-on-surface-variant text-xs uppercase'
+            'border-outline-variant flex flex-col items-center gap-1 border-r py-2 last:border-r-0',
+            'text-on-surface-variant'
         ],
+        dayHeaderWeekend: 'bg-surface-container-low/60',
         dayHeaderToday: 'text-primary',
-        dayNumber: 'text-on-surface text-lg leading-none font-medium',
-        dayNumberToday: 'bg-primary text-on-primary rounded-full px-2 py-0.5',
+        weekday: 'text-[11px] font-medium tracking-wide uppercase @max-md:text-[10px]',
+        dayNumber: [
+            'text-on-surface flex size-8 items-center justify-center rounded-full text-xl leading-none font-semibold',
+            '@max-md:size-7 @max-md:text-base'
+        ],
+        dayNumberToday: 'bg-primary text-on-primary',
         allDayRow: 'border-outline-variant grid shrink-0 border-b',
         allDayLabel: [
-            'border-outline-variant text-on-surface-variant border-r px-1 py-1 text-right text-[11px]'
+            'border-outline-variant text-on-surface-variant flex items-start justify-end border-r px-2 py-1.5',
+            'text-[11px] leading-none'
         ],
         allDayCells: 'relative grid',
         allDayCell: 'border-outline-variant border-r last:border-r-0',
-        allDayEvents: 'pointer-events-none absolute inset-0 grid gap-y-0.5 py-0.5',
+        allDayCellWeekend: 'bg-surface-container-low/60',
+        allDayEvents: 'pointer-events-none absolute inset-0 grid gap-y-0.5 py-1',
         allDayEvent: 'pointer-events-auto min-w-0 px-0.5',
-        body: 'relative min-h-0 flex-1 overflow-y-auto',
+        body: 'relative min-h-0 flex-1',
+        scroll: 'h-full',
         bodyGrid: 'grid',
-        gutter: 'border-outline-variant text-on-surface-variant relative border-r text-[11px]',
-        hourLabel: 'absolute right-1 -translate-y-1/2 select-none',
+        gutter: 'border-outline-variant text-on-surface-variant relative border-r text-[11px] tabular-nums',
+        hourLabel: 'absolute right-2 -translate-y-1/2 leading-none select-none',
         columns: 'relative grid',
         column: 'border-outline-variant relative border-r last:border-r-0',
-        columnToday: 'bg-primary/[0.04]',
+        columnWeekend: 'bg-surface-container-low/60',
+        columnToday: 'bg-primary/[0.035]',
         offHours: 'bg-surface-container-low pointer-events-none absolute right-0 left-0',
-        events: 'absolute inset-0',
         background: [
             'bg-surface-container-highest/70 text-on-surface-variant pointer-events-none absolute right-0 left-0',
-            'truncate px-1.5 py-0.5 text-[11px]'
+            'truncate px-2 py-1 text-[11px] leading-none'
         ],
-        event: 'absolute min-w-0 px-px',
-        nowLine: 'bg-error pointer-events-none absolute right-0 left-0 z-10 h-0.5',
+        events: 'absolute inset-0',
+        event: 'absolute min-w-0 px-px pb-px',
+        nowLine: 'bg-error pointer-events-none absolute right-0 left-0 z-10 h-px',
         nowDot: 'bg-error absolute top-1/2 -left-1 size-2 -translate-y-1/2 rounded-full'
     }
 })

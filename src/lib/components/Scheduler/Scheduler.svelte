@@ -7,6 +7,7 @@
 <script lang="ts" generics="T">
     import { getLocalTimeZone } from '@internationalized/date'
     import type { Attachment } from 'svelte/attachments'
+    import { Skeleton } from 'sv5ui'
     import { untrack } from 'svelte'
     import { getComponentConfig } from '../../config.js'
     import { mergeLabels, viewLabel } from '../../core/i18n/labels.js'
@@ -83,6 +84,7 @@
     let selectedEventId = $state<string | null>(null)
     let preview = $state.raw<InteractionPreview<T> | null>(null)
     let announcement = $state('')
+    let loading = $state(false)
     let gridNode: HTMLElement | null = null
 
     const now = $derived(toZoned(clock, timeZone))
@@ -192,7 +194,8 @@
         return {
             root: slots.root({ class: [config.slots.root, className, ui?.root] }),
             toolbar: slots.toolbar({ class: [config.slots.toolbar, ui?.toolbar] }),
-            view: slots.view({ class: [config.slots.view, ui?.view] })
+            view: slots.view({ class: [config.slots.view, ui?.view] }),
+            loading: slots.loading({ class: [config.slots.loading, ui?.loading] })
         }
     })
 
@@ -286,6 +289,11 @@
             onSelectEvent={viewProps.onSelectEvent}
             interactions={viewInteractions}
         />
+        {#if loading}
+            <div class={classes.loading} aria-busy="true">
+                <Skeleton class="h-full w-full" />
+            </div>
+        {/if}
     </div>
     <div class="sr-only" aria-live="polite" aria-atomic="true">{announcement}</div>
 </div>
