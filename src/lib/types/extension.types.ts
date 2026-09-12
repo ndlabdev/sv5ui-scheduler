@@ -158,6 +158,12 @@ export interface LayoutContext {
     days: ZonedDateTime[]
 
     /**
+     * How many of `days` form one row. The month grid uses `7`; the time grid
+     * puts all of its days in one row.
+     */
+    columnsPerRow: number
+
+    /**
      * Maximum lanes a whole-day row shows before collapsing into "+N more".
      * `Infinity` disables collapsing.
      */
