@@ -68,7 +68,7 @@
             color: 'error'
         }
     ])
-    let view = $state('month')
+    let view = $state('week')
     let locale = $state('en-US')
     let log = $state<string[]>([])
 
@@ -102,6 +102,7 @@
             labels={locale === 'vi-VN' ? vi : undefined}
             weekStartsOn={1}
             businessHours={{ start: '09:00', end: '18:00', days: [1, 2, 3, 4, 5] }}
+            hour12={locale === 'vi-VN' ? false : undefined}
             onMutate={handleMutate}
         />
     </div>

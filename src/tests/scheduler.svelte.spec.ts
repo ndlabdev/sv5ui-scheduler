@@ -51,10 +51,15 @@ describe('Scheduler', () => {
         expect(columns(container)[0].dataset.schDay).toBe('2026-09-06')
     })
 
-    it('renders one column in the day view with a long title', () => {
-        const { container } = render(Scheduler, { timeZone: ZONE, date: anchor, view: 'day' })
+    it('renders one column in the day view, dated in the toolbar and inside the view', () => {
+        const { container } = render(Scheduler, {
+            props: { timeZone: ZONE, date: anchor, view: 'day' }
+        })
         expect(columns(container)).toHaveLength(1)
-        expect(title(container)).toBe('Wednesday, September 9, 2026')
+        expect(title(container)).toBe('September 9, 2026')
+        const dayTitle = container.querySelector('[data-sch-day-title]')
+        expect(dayTitle?.textContent).toContain('Wednesday')
+        expect(dayTitle?.textContent).toContain('September 9, 2026')
     })
 
     it('places an event in its column at the pixel of its clock time', () => {
@@ -124,9 +129,12 @@ describe('Scheduler', () => {
 
     it('uses the labels of the given locale pack', () => {
         const { container } = render(Scheduler, {
-            timeZone: ZONE,
-            date: anchor,
-            labels: { today: 'Hôm nay', allDay: 'Cả ngày' }
+            props: {
+                timeZone: ZONE,
+                date: anchor,
+                labels: { today: 'Hôm nay', allDay: 'Cả ngày', noEvents: 'Không có sự kiện' },
+                events: [input('a', '2026-09-09', '2026-09-10', { allDay: true })]
+            }
         })
         expect(container.textContent).toContain('Hôm nay')
         expect(container.textContent).toContain('Cả ngày')
@@ -305,5 +313,151 @@ describe('Scheduler month view', () => {
         await screen.getByText(more!.textContent!.trim()).click()
         await new Promise((resolve) => setTimeout(resolve, 150))
         expect(document.body.textContent).toContain('Wednesday, September 9, 2026')
+    })
+})
+
+describe('Scheduler agenda view', () => {
+    const agendaProps = { timeZone: ZONE, date: anchor, view: 'agenda' }
+    const groups = (container: Element) => [
+        ...container.querySelectorAll<HTMLElement>('[data-sch-day]')
+    ]
+
+    it('shows an empty state when the range holds no events', () => {
+        const { container } = render(Scheduler, { props: agendaProps })
+        expect(container.textContent).toContain('No events')
+        expect(groups(container)).toHaveLength(0)
+    })
+
+    it('accepts a custom empty snippet', () => {
+        const { container } = render(Scheduler, {
+            props: { ...agendaProps, events: [] }
+        })
+        expect(container.querySelector('[data-sch-agenda]')).not.toBeNull()
+    })
+
+    it('groups events by day and skips days without any', () => {
+        const { container } = render(Scheduler, {
+            props: {
+                ...agendaProps,
+                events: [
+                    input('a', '2026-09-09T09:00', '2026-09-09T10:00'),
+                    input('b', '2026-09-09T14:00', '2026-09-09T14:30'),
+                    input('c', '2026-09-15T09:00', '2026-09-15T09:45')
+                ]
+            }
+        })
+        expect(groups(container).map((g) => g.dataset.schDay)).toEqual(['2026-09-09', '2026-09-15'])
+    })
+
+    it('counts events and sums the booked time per day', () => {
+        const { container } = render(Scheduler, {
+            props: {
+                ...agendaProps,
+                events: [
+                    input('a', '2026-09-09T09:00', '2026-09-09T10:00'),
+                    input('b', '2026-09-09T14:00', '2026-09-09T14:30')
+                ]
+            }
+        })
+        const header = groups(container)[0].querySelector('header')
+        expect(header?.textContent).toContain('2 events')
+        expect(header?.textContent).toContain('1h 30m')
+    })
+
+    it('counts an all-day event without adding booked time', () => {
+        const { container } = render(Scheduler, {
+            props: {
+                ...agendaProps,
+                events: [input('a', '2026-09-09', '2026-09-10', { allDay: true })]
+            }
+        })
+        const header = groups(container)[0].querySelector('header')
+        expect(header?.textContent).toContain('1 event')
+        expect(header?.textContent).not.toContain('h')
+    })
+
+    it('shows the start and end time of a timed event and All day otherwise', () => {
+        const { container } = render(Scheduler, {
+            props: {
+                ...agendaProps,
+                events: [
+                    input('timed', '2026-09-09T15:00', '2026-09-09T15:45'),
+                    input('whole', '2026-09-09', '2026-09-10', { allDay: true })
+                ]
+            }
+        })
+        const rows = [...container.querySelectorAll('[data-sch-event-id]')]
+        expect(rows.map((r) => r.getAttribute('data-sch-event-id'))).toEqual(['whole', 'timed'])
+        expect(rows[0].textContent).toContain('All day')
+        expect(rows[1].textContent).toContain('3:00')
+        expect(rows[1].textContent).toContain('3:45')
+    })
+
+    it('repeats a multi-day event under every day it covers', () => {
+        const { container } = render(Scheduler, {
+            props: {
+                ...agendaProps,
+                events: [input('trip', '2026-09-09', '2026-09-12', { allDay: true })]
+            }
+        })
+        expect(groups(container).map((g) => g.dataset.schDay)).toEqual([
+            '2026-09-09',
+            '2026-09-10',
+            '2026-09-11'
+        ])
+    })
+})
+
+describe('Scheduler time grid details', () => {
+    it('hides the all-day row when nothing is all day', () => {
+        const { container } = render(Scheduler, {
+            props: {
+                timeZone: ZONE,
+                date: anchor,
+                events: [input('a', '2026-09-09T09:00', '2026-09-09T10:00')]
+            }
+        })
+        expect(container.textContent).not.toContain('All day')
+    })
+
+    it('shows the all-day row as soon as one event needs it', () => {
+        const { container } = render(Scheduler, {
+            props: {
+                timeZone: ZONE,
+                date: anchor,
+                events: [input('a', '2026-09-09', '2026-09-10', { allDay: true })]
+            }
+        })
+        expect(container.textContent).toContain('All day')
+    })
+
+    it('labels the current time beside the now line', () => {
+        const { container } = render(Scheduler, { props: { timeZone: ZONE } })
+        expect(container.querySelector('[data-sch-now]')).not.toBeNull()
+        const label = container.querySelector('[data-sch-time-grid] .text-error')
+        expect(label?.textContent).toMatch(/\d/)
+    })
+
+    it('shows a day title with a Today badge in the day view', () => {
+        const { container } = render(Scheduler, { props: { timeZone: ZONE, view: 'day' } })
+        const title = container.querySelector('[data-sch-day-title]')
+        expect(title?.textContent).toContain('Today')
+    })
+
+    it('tells the user when the visible range is empty', () => {
+        const { container } = render(Scheduler, { props: { timeZone: ZONE, date: anchor } })
+        expect(container.querySelector('[data-sch-empty]')?.textContent?.trim()).toBe('No events')
+    })
+
+    it('uses 24 hour labels when asked', () => {
+        const { container } = render(Scheduler, {
+            props: {
+                timeZone: ZONE,
+                date: anchor,
+                hour12: false,
+                events: [input('a', '2026-09-09T15:00', '2026-09-09T16:00')]
+            }
+        })
+        expect(container.querySelector('[data-sch-event-id="a"]')?.textContent).toContain('15:00')
     })
 })

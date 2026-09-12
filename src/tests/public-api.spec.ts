@@ -57,6 +57,7 @@ const PUBLIC_TYPES = [
 ]
 
 const PUBLIC_VALUES = [
+    'AgendaView',
     'DayView',
     'EventChip',
     'MonthView',

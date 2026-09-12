@@ -1,10 +1,17 @@
 <script lang="ts" generics="T">
     import type { ZonedDateTime } from '@internationalized/date'
-    import { ScrollArea } from 'sv5ui'
+    import { Badge, ScrollArea } from 'sv5ui'
     import { untrack } from 'svelte'
     import type { SpanPosition, TimePosition, ViewProps } from '../../types/extension.types.js'
     import { eachDay } from '../../core/time/range.js'
-    import { formatDayNumber, formatHour, formatWeekday } from '../../core/time/format.js'
+    import {
+        formatDayNumber,
+        formatHour,
+        formatDate,
+        formatWeekdayLong,
+        formatTime,
+        formatWeekday
+    } from '../../core/time/format.js'
     import { weekDayOf } from '../../core/time/week.js'
     import { isSameDay } from '../../core/time/zone.js'
     import EventChip from '../EventChip/EventChip.svelte'
@@ -49,6 +56,9 @@
     const nowTop = $derived(scale.toPixel(scheduler.now))
     const holidays = $derived(new Set(scheduler.holidays.map((h) => h.date)))
     const hours = Array.from({ length: 23 }, (_, i) => i + 1)
+    const single = $derived(days.length === 1)
+    const hasAllDay = $derived(spans.length > 0)
+    const isEmpty = $derived(positioned.length === 0)
 
     let viewport = $state<HTMLDivElement | null>(null)
 
@@ -116,7 +126,31 @@
 </script>
 
 <div class={classes.root()} data-sch-time-grid>
-    <div class={classes.header()} style:grid-template-columns={headerTemplate}>
+    {#if single}
+        <div class={classes.dayTitle()} data-sch-day-title>
+            <span class={classes.dayTitleWeekday()}>
+                {formatWeekdayLong(days[0], scheduler.locale)}
+            </span>
+            <div class={classes.dayTitleRow()}>
+                <h3 class={classes.dayTitleDate()}>
+                    {formatDate(days[0], scheduler.locale)}
+                </h3>
+                {#if todayIndex === 0}
+                    <Badge
+                        color="primary"
+                        variant="soft"
+                        size="sm"
+                        label={scheduler.labels.today}
+                    />
+                {/if}
+            </div>
+        </div>
+    {/if}
+    <div
+        class={classes.header()}
+        style:grid-template-columns={headerTemplate}
+        class:hidden={single}
+    >
         <div class={classes.gutterSpacer()}></div>
         {#each days as day, dayIndex (isoDate(day))}
             {@const isToday = dayIndex === todayIndex}
@@ -126,6 +160,7 @@
                 class={classes.dayHeader({
                     class: [
                         isClosedDay(day) ? classes.dayHeaderWeekend() : '',
+                        isToday && !single ? classes.dayHeaderTodayColumn() : '',
                         isToday ? classes.dayHeaderToday() : ''
                     ]
                 })}
@@ -153,54 +188,63 @@
         {/each}
     </div>
 
-    <div class={classes.allDayRow()} style:grid-template-columns={bodyTemplate}>
-        <div class={classes.allDayLabel()}>{scheduler.labels.allDay}</div>
-        <div class={classes.allDayCells()} style:grid-template-columns={dayTemplate}>
-            {#each days as day, dayIndex (isoDate(day))}
-                <div
-                    class={classes.allDayCell({
-                        class: isClosedDay(day) ? classes.allDayCellWeekend() : ''
-                    })}
-                    style:min-height="{Math.max(laneCount, 1) * 1.5 + 0.5}rem"
-                    data-sch-day-index={dayIndex}
-                    data-sch-all-day
-                ></div>
-            {/each}
-            <div
-                class={classes.allDayEvents()}
-                style:grid-template-columns={dayTemplate}
-                style:grid-template-rows="repeat({Math.max(laneCount, 1)}, 1.375rem)"
-            >
-                {#each spans as position (position.event.id + position.row)}
+    {#if hasAllDay}
+        <div class={classes.allDayRow()} style:grid-template-columns={bodyTemplate}>
+            <div class={classes.allDayLabel()}>{scheduler.labels.allDay}</div>
+            <div class={classes.allDayCells()} style:grid-template-columns={dayTemplate}>
+                {#each days as day, dayIndex (isoDate(day))}
                     <div
-                        class={classes.allDayEvent()}
-                        style:grid-column="{position.startColumn + 1} / {position.endColumn + 1}"
-                        style:grid-row={position.lane + 1}
-                        {@attach interactions.event(position)}
-                    >
-                        <EventChip
-                            event={position.event}
-                            {position}
-                            size="sm"
-                            class="h-full"
-                            locale={scheduler.locale}
-                            selected={selectedEventId === position.event.id}
-                            onclick={() => onSelectEvent(position.event.id)}
-                        />
-                    </div>
+                        class={classes.allDayCell({
+                            class: isClosedDay(day) ? classes.allDayCellWeekend() : ''
+                        })}
+                        style:min-height="{Math.max(laneCount, 1) * 1.5 + 0.5}rem"
+                        data-sch-day-index={dayIndex}
+                        data-sch-all-day
+                    ></div>
                 {/each}
+                <div
+                    class={classes.allDayEvents()}
+                    style:grid-template-columns={dayTemplate}
+                    style:grid-template-rows="repeat({Math.max(laneCount, 1)}, 1.375rem)"
+                >
+                    {#each spans as position (position.event.id + position.row)}
+                        <div
+                            class={classes.allDayEvent()}
+                            style:grid-column="{position.startColumn + 1} / {position.endColumn +
+                                1}"
+                            style:grid-row={position.lane + 1}
+                            {@attach interactions.event(position)}
+                        >
+                            <EventChip
+                                event={position.event}
+                                {position}
+                                size="sm"
+                                class="h-full"
+                                locale={scheduler.locale}
+                                hour12={scheduler.hour12}
+                                selected={selectedEventId === position.event.id}
+                                onclick={() => onSelectEvent(position.event.id)}
+                            />
+                        </div>
+                    {/each}
+                </div>
             </div>
         </div>
-    </div>
+    {/if}
 
     <div class={classes.body()}>
         <ScrollArea class={classes.scroll()} bind:viewportRef={viewport}>
             <div class={classes.bodyGrid()} style:grid-template-columns={bodyTemplate}>
                 <div class={classes.gutter()} style:height="{scale.dayHeight}px" aria-hidden="true">
+                    {#if todayIndex >= 0}
+                        <span class={classes.nowLabel()} style:top="{nowTop}px">
+                            {formatTime(scheduler.now, scheduler.locale, scheduler.hour12)}
+                        </span>
+                    {/if}
                     {#each hours as hour (hour)}
                         {@const date = days[0].set({ hour, minute: 0 })}
                         <span class={classes.hourLabel()} style:top="{scale.toPixel(date)}px">
-                            {formatHour(date, scheduler.locale)}
+                            {formatHour(date, scheduler.locale, scheduler.hour12)}
                         </span>
                     {/each}
                 </div>
@@ -216,7 +260,7 @@
                             class={classes.column({
                                 class: [
                                     isClosedDay(day) ? classes.columnWeekend() : '',
-                                    dayIndex === todayIndex ? classes.columnToday() : ''
+                                    dayIndex === todayIndex && !single ? classes.columnToday() : ''
                                 ]
                             })}
                             data-sch-day={isoDate(day)}
@@ -263,6 +307,7 @@
                                                 event={position.event}
                                                 {position}
                                                 locale={scheduler.locale}
+                                                hour12={scheduler.hour12}
                                                 size={compact ? 'sm' : 'md'}
                                                 showTime={!compact}
                                                 selected={selectedEventId === position.event.id}
@@ -280,6 +325,15 @@
                             {/if}
                         </div>
                     {/each}
+                    {#if isEmpty}
+                        <div class={classes.empty()} data-sch-empty>
+                            {#if snippets.empty}
+                                {@render snippets.empty()}
+                            {:else}
+                                {scheduler.labels.noEvents}
+                            {/if}
+                        </div>
+                    {/if}
                 </div>
             </div>
         </ScrollArea>

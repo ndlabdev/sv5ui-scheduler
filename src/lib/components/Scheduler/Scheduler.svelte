@@ -47,6 +47,7 @@
         timeZone = getLocalTimeZone(),
         locale = 'en-US',
         weekStartsOn = 1,
+        hour12,
         businessHours,
         holidays = [],
         labels: labelOverrides,
@@ -59,6 +60,8 @@
         toolbar = true,
         onMenu,
         toolbarActions,
+        banner,
+        empty,
         onMutate,
         onConflict,
         onError,
@@ -102,6 +105,7 @@
         timeZone,
         locale,
         weekStartsOn,
+        hour12,
         businessHours,
         holidays,
         labels,
@@ -185,7 +189,7 @@
         scheduler: context,
         scale,
         positioned,
-        snippets: { event: eventSnippet, cell, header },
+        snippets: { event: eventSnippet, cell, header, empty },
         preview,
         selectedEventId,
         onSelectEvent: (eventId) => (selectedEventId = eventId)
@@ -278,6 +282,7 @@
             actions={toolbarActions}
         />
     {/if}
+    {@render banner?.()}
     <div class={classes.view}>
         <View
             view={viewProps.view}

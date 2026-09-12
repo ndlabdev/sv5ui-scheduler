@@ -78,6 +78,12 @@ export type SchedulerProps<T = unknown> = Omit<HTMLAttributes<HTMLDivElement>, '
          */
         weekStartsOn?: WeekDay
 
+        /**
+         * Force 12 or 24 hour clocks in every time label. Follows the locale
+         * when left unset.
+         */
+        hour12?: boolean
+
         businessHours?: BusinessHours
 
         /**
@@ -146,6 +152,17 @@ export type SchedulerProps<T = unknown> = Omit<HTMLAttributes<HTMLDivElement>, '
          * buttons.
          */
         toolbarActions?: Snippet
+
+        /**
+         * Renders a strip between the toolbar and the view, for a suggestion
+         * or a notice.
+         */
+        banner?: Snippet
+
+        /**
+         * Replaces the message shown when the visible range holds no events.
+         */
+        empty?: Snippet
 
         /**
          * Renders one event.

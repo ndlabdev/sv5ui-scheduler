@@ -42,6 +42,16 @@ export interface SchedulerLabels {
     dayCell: (date: string, count: number) => string
 
     /**
+     * Count shown beside a day heading in the agenda.
+     */
+    eventCount: (count: number) => string
+
+    /**
+     * Total booked time shown beside a day heading in the agenda.
+     */
+    duration: (hours: number, minutes: number) => string
+
+    /**
      * Accessible name of the grid, read when focus enters it.
      */
     grid: (view: string) => string

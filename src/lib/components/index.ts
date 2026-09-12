@@ -1,3 +1,4 @@
+export { AgendaView } from './AgendaView/index.js'
 export { Scheduler, type SchedulerProps } from './Scheduler/index.js'
 export { MonthView } from './MonthView/index.js'
 export { WeekView } from './WeekView/index.js'

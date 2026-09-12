@@ -57,6 +57,11 @@ export interface SchedulerContext {
 
     weekStartsOn: WeekDay
 
+    /**
+     * Force 12 or 24 hour clocks. `undefined` follows the locale.
+     */
+    hour12?: boolean
+
     businessHours?: BusinessHours
 
     holidays: Holiday[]
@@ -202,6 +207,11 @@ export interface ViewSnippets<T = unknown> {
     cell?: Snippet<[CellSnippetProps]>
 
     header?: Snippet<[HeaderSnippetProps]>
+
+    /**
+     * Replaces the message a view shows when the range holds no events.
+     */
+    empty?: Snippet
 }
 
 /**

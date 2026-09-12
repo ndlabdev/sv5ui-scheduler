@@ -29,6 +29,11 @@ export type EventChipProps<T = unknown> = Omit<HTMLButtonAttributes, 'class' | '
     locale?: string
 
     /**
+     * Force 12 or 24 hour clocks in the time line.
+     */
+    hour12?: boolean
+
+    /**
      * Overrides `event.color`.
      */
     color?: NonNullable<EventChipVariantProps['color']>

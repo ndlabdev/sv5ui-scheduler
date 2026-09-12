@@ -16,6 +16,7 @@
         event,
         position,
         locale = 'en-US',
+        hour12,
         color,
         size = config.defaultVariants.size,
         showTime = true,
@@ -30,7 +31,7 @@
     const continuesBefore = $derived(position?.kind === 'span' && position.continuesBefore)
     const continuesAfter = $derived(position?.kind === 'span' && position.continuesAfter)
     const timeVisible = $derived(showTime && position?.kind !== 'span' && !event.allDay)
-    const timeText = $derived(formatTimeRange(event.start, event.end, locale))
+    const timeText = $derived(formatTimeRange(event.start, event.end, locale, hour12))
 
     const classes = $derived.by(() => {
         const slots = eventChipVariants({

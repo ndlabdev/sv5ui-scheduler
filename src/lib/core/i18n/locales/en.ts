@@ -17,6 +17,9 @@ export const en: SchedulerLabels = {
     more: (count) => `+${count} more`,
     dayCell: (date, count) =>
         count === 0 ? `${date}, no events` : `${date}, ${count} event${count === 1 ? '' : 's'}`,
+    eventCount: (count) => `${count} event${count === 1 ? '' : 's'}`,
+    duration: (hours, minutes) =>
+        [hours > 0 ? `${hours}h` : '', minutes > 0 ? `${minutes}m` : ''].filter(Boolean).join(' '),
     grid: (view) => `Calendar, ${view} view`,
     event: (event, start, end) => `${event.title}, ${start} to ${end}`,
     announce: {

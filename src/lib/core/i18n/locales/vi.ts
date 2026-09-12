@@ -17,6 +17,11 @@ export const vi: SchedulerLabels = {
     more: (count) => `+${count} nữa`,
     dayCell: (date, count) =>
         count === 0 ? `${date}, không có sự kiện` : `${date}, ${count} sự kiện`,
+    eventCount: (count) => `${count} sự kiện`,
+    duration: (hours, minutes) =>
+        [hours > 0 ? `${hours} giờ` : '', minutes > 0 ? `${minutes} phút` : '']
+            .filter(Boolean)
+            .join(' '),
     grid: (view) => `Lịch, chế độ ${view}`,
     event: (event, start, end) => `${event.title}, từ ${start} đến ${end}`,
     announce: {
