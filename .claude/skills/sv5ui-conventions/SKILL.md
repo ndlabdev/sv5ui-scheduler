@@ -165,7 +165,8 @@ export type EventChipProps = Omit<HTMLAttributes<HTMLDivElement>, 'class' | 'col
 
 - `index.ts` per component exports the component and user-facing types only: `Props`, and public `Size` / `Color` / `Variant` aliases. Never `Slots`, `Defaults` or `VariantProps`.
 - Type re-exports use `export type { }`.
-- `src/lib/index.ts` is the semver contract: an explicit named list, never `export *`. Adding an export later is free; removing one is a breaking change. When in doubt, leave it out.
+- The public surface has two levels. `src/lib/index.ts` is the root: it only contains `export * from './<area>/index.js'` lines, one per area (`types`, `core`, later `components`), nothing else. Each area barrel (`types/index.ts`, `core/index.ts`, ...) is an explicit named list grouped by source file, and never uses `export *`. So a star exists in exactly one file, and every public name is spelled out exactly once in the area that owns it. `src/tests/public-api.spec.ts` walks the root into the areas and pins the exact list.
+- Adding an export later is free; removing one is a breaking change. When in doubt, leave it out.
 - Inside the library import modules directly (`../../core/time/range.js`), not through a barrel. Barrels define contracts at boundaries; using them internally is how import cycles start.
 
 ## Imports

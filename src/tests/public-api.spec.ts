@@ -1,7 +1,10 @@
 import { readFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
-const ENTRY = 'src/lib/index.ts'
+const ROOT = 'src/lib/index.ts'
+
+const AREAS = ['./types/index.js', './core/index.js']
 
 const PUBLIC_TYPES = [
     'BusinessHours',
@@ -39,9 +42,9 @@ const PUBLIC_TYPES = [
     'SchedulerResource',
     'SpanPosition',
     'StoreMiddleware',
-    'StorePatch',
     'TimePosition',
     'TimeScale',
+    'TimeScaleOptions',
     'TimeZoneId',
     'ViewDefinition',
     'ViewProps',
@@ -49,40 +52,68 @@ const PUBLIC_TYPES = [
     'WeekDay'
 ]
 
-const PUBLIC_VALUES: string[] = []
+const PUBLIC_VALUES = ['createTimeScale']
 
+const STAR_EXPORT = /export\s+\*\s+from\s+'([^']+)'/g
 const NAMED_EXPORT = /export\s+(type\s+)?\{([^}]*)\}/g
 
-function exportedNames(source: string): { types: string[]; values: string[] } {
+function read(path: string): string {
+    return readFileSync(path.replace(/\.js$/, '.ts'), 'utf8')
+}
+
+function starTargets(source: string): string[] {
+    return [...source.matchAll(STAR_EXPORT)].map(([, target]) => target)
+}
+
+function namedExports(source: string): { types: string[]; values: string[] } {
     const types: string[] = []
     const values: string[] = []
     for (const [, typeOnly, body] of source.matchAll(NAMED_EXPORT)) {
         for (const raw of body.split(',')) {
-            const name = raw
-                .trim()
+            const entry = raw.trim()
+            const inlineType = entry.startsWith('type ')
+            const name = entry
+                .replace(/^type\s+/, '')
                 .replace(/^default as\s+/, '')
                 .split(/\s+as\s+/)
                 .pop()
             if (!name) continue
-            ;(typeOnly ? types : values).push(name)
+            ;(typeOnly || inlineType ? types : values).push(name)
         }
     }
-    return { types: types.sort(), values: values.sort() }
+    return { types, values }
 }
 
-describe('public api', () => {
-    const source = readFileSync(ENTRY, 'utf8')
-    const names = exportedNames(source)
+describe('root entry', () => {
+    const source = read(ROOT)
 
-    it('exports exactly the agreed types', () => {
-        expect(names.types).toEqual([...PUBLIC_TYPES].sort())
+    it('only joins the area barrels', () => {
+        expect(starTargets(source)).toEqual(AREAS)
+        expect(namedExports(source)).toEqual({ types: [], values: [] })
+    })
+})
+
+describe('area barrels', () => {
+    const barrels = AREAS.map((area) => join(dirname(ROOT), area))
+
+    it.each(barrels)('%s lists every export by name', (barrel) => {
+        expect(starTargets(read(barrel))).toEqual([])
     })
 
-    it('exports exactly the agreed values', () => {
-        expect(names.values).toEqual([...PUBLIC_VALUES].sort())
+    const collected = barrels.map((barrel) => namedExports(read(barrel)))
+    const types = collected.flatMap((entry) => entry.types).sort()
+    const values = collected.flatMap((entry) => entry.values).sort()
+
+    it('export exactly the agreed types', () => {
+        expect(types).toEqual([...PUBLIC_TYPES].sort())
     })
 
-    it('never re-exports with a star', () => {
-        expect(source).not.toMatch(/export\s+\*/)
+    it('export exactly the agreed values', () => {
+        expect(values).toEqual([...PUBLIC_VALUES].sort())
+    })
+
+    it('never export the same name twice', () => {
+        const all = [...types, ...values]
+        expect(new Set(all).size).toBe(all.length)
     })
 })

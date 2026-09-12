@@ -55,7 +55,9 @@ src/lib/
   interactions/   drag-create.ts, drag-move.ts, resize.ts, keyboard.ts
   scheduler.types.ts
   scheduler.variants.ts
-  index.ts        explicit named export list, the semver contract
+  index.ts        root: export * from each area barrel, nothing else
+  types/index.ts  area barrel: explicit named list, the semver contract
+  core/index.ts   area barrel: explicit named list
 ```
 
 Each component: `Component.svelte`, `component.types.ts`, `component.variants.ts`, `Component.svelte.spec.ts`, `index.ts`.

@@ -1,10 +1,3 @@
-export type { EventColor, EventInput, SchedulerEvent, SchedulerResource } from './event.types.js'
-export type {
-    OrdinalWeekDay,
-    RecurrenceFrequency,
-    RecurrenceRule,
-    RecurrenceRuleInput
-} from './recurrence.types.js'
 export type {
     BusinessHours,
     DateInput,
@@ -13,7 +6,18 @@ export type {
     TimeZoneId,
     WeekDay
 } from './range.types.js'
+
+export type { EventColor, EventInput, SchedulerEvent, SchedulerResource } from './event.types.js'
+
+export type {
+    OrdinalWeekDay,
+    RecurrenceFrequency,
+    RecurrenceRule,
+    RecurrenceRuleInput
+} from './recurrence.types.js'
+
 export type { EventSource, EventSourceFn, LoadContext } from './source.types.js'
+
 export type {
     ConflictResolution,
     EventPatch,
@@ -22,6 +26,11 @@ export type {
     MutationKind,
     MutationResult
 } from './mutation.types.js'
+
+export type { SchedulerLabels } from './labels.types.js'
+
+export type { CellSnippetProps, EventSnippetProps, HeaderSnippetProps } from './snippet.types.js'
+
 export type {
     HitTarget,
     InteractionContext,
@@ -33,12 +42,9 @@ export type {
     SchedulerContext,
     SpanPosition,
     StoreMiddleware,
-    StorePatch,
     TimePosition,
     TimeScale,
     ViewDefinition,
     ViewProps,
     ViewSnippets
 } from './extension.types.js'
-export type { SchedulerLabels } from './labels.types.js'
-export type { CellSnippetProps, EventSnippetProps, HeaderSnippetProps } from './snippet.types.js'

@@ -269,13 +269,7 @@ export interface ViewDefinition {
  * Wraps the store's `apply`. Receives the next link in the chain and returns
  * the function the store will call. Runs in registration order.
  */
-export type StoreMiddleware = (next: (patch: StorePatch) => void) => (patch: StorePatch) => void
-
-/**
- * Alias kept separate from `EventPatch` so middleware signatures stay stable
- * if the patch shape widens.
- */
-export type StorePatch = EventPatch
+export type StoreMiddleware = (next: (patch: EventPatch) => void) => (patch: EventPatch) => void
 
 /**
  * What a pointer or keyboard position resolves to.

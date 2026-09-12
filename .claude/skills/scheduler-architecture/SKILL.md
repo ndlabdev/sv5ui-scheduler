@@ -33,7 +33,7 @@ Types and the store shape everything after them. The DST table written first mea
 | `LayoutStrategy` **interface**           |                                                            |
 | The four registration functions          |                                                            |
 
-The layout engine is deliberately internal. Do not export it, do not re-export it "for testing", do not widen `index.ts` without a reason written in the PR. Adding an export later is free; removing one is a breaking change.
+The layout engine is deliberately internal. Do not export it, do not re-export it "for testing", do not widen an area barrel without a reason written in the PR. The root `src/lib/index.ts` only joins the area barrels with `export *`; each area barrel names its exports explicitly. Adding an export later is free; removing one is a breaking change.
 
 ## Layout engine is pure
 
