@@ -57,6 +57,8 @@
         middleware = [],
         interactions = [],
         toolbar = true,
+        onMenu,
+        toolbarActions,
         onMutate,
         onConflict,
         onError,
@@ -272,6 +274,8 @@
             onToday={today}
             onStep={step}
             onView={setView}
+            {onMenu}
+            actions={toolbarActions}
         />
     {/if}
     <div class={classes.view}>

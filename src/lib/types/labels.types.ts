@@ -18,6 +18,16 @@ export interface SchedulerLabels {
      * Accessible name of the view switcher.
      */
     views: string
+
+    /**
+     * Accessible name of the button that toggles the application's sidebar.
+     */
+    menu: string
+
+    /**
+     * Accessible name of the overflow menu.
+     */
+    actions: string
     noEvents: string
     newEvent: string
 
@@ -25,6 +35,11 @@ export interface SchedulerLabels {
      * Label of the "+N more" link in a full month cell.
      */
     more: (count: number) => string
+
+    /**
+     * Accessible name of one day cell in the month grid.
+     */
+    dayCell: (date: string, count: number) => string
 
     /**
      * Accessible name of the grid, read when focus enters it.

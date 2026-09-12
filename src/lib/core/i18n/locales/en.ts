@@ -10,9 +10,13 @@ export const en: SchedulerLabels = {
     agenda: 'Agenda',
     allDay: 'All day',
     views: 'View',
+    menu: 'Toggle sidebar',
+    actions: 'More actions',
     noEvents: 'No events',
     newEvent: 'New event',
     more: (count) => `+${count} more`,
+    dayCell: (date, count) =>
+        count === 0 ? `${date}, no events` : `${date}, ${count} event${count === 1 ? '' : 's'}`,
     grid: (view) => `Calendar, ${view} view`,
     event: (event, start, end) => `${event.title}, ${start} to ${end}`,
     announce: {

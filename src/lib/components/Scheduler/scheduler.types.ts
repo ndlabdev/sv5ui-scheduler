@@ -129,11 +129,23 @@ export type SchedulerProps<T = unknown> = Omit<HTMLAttributes<HTMLDivElement>, '
         toolbar?: boolean
 
         /**
+         * Called when the toolbar's menu button is pressed. The button is
+         * shown only when this is set; the scheduler does not own a sidebar.
+         */
+        onMenu?: () => void
+
+        /**
          * Per-slot class overrides.
          */
         ui?: Partial<Record<SchedulerSlots, ClassNameValue>>
 
         class?: ClassNameValue
+
+        /**
+         * Extra controls at the end of the toolbar, such as share or filter
+         * buttons.
+         */
+        toolbarActions?: Snippet
 
         /**
          * Renders one event.

@@ -68,7 +68,7 @@
             color: 'error'
         }
     ])
-    let view = $state('week')
+    let view = $state('month')
     let locale = $state('en-US')
     let log = $state<string[]>([])
 

@@ -9,7 +9,7 @@ export const timeGridVariants = tv({
             'border-outline-variant flex flex-col items-center gap-1 border-r py-2 last:border-r-0',
             'text-on-surface-variant'
         ],
-        dayHeaderWeekend: 'bg-surface-container-low/60',
+        dayHeaderWeekend: 'bg-surface-container-low',
         dayHeaderToday: 'text-primary',
         weekday: 'text-[11px] font-medium tracking-wide uppercase @max-md:text-[10px]',
         dayNumber: [
@@ -24,7 +24,7 @@ export const timeGridVariants = tv({
         ],
         allDayCells: 'relative grid',
         allDayCell: 'border-outline-variant border-r last:border-r-0',
-        allDayCellWeekend: 'bg-surface-container-low/60',
+        allDayCellWeekend: 'bg-surface-container-low',
         allDayEvents: 'pointer-events-none absolute inset-0 grid gap-y-0.5 py-1',
         allDayEvent: 'pointer-events-auto min-w-0 px-0.5',
         body: 'relative min-h-0 flex-1',
@@ -34,7 +34,7 @@ export const timeGridVariants = tv({
         hourLabel: 'absolute right-2 -translate-y-1/2 leading-none select-none',
         columns: 'relative grid',
         column: 'border-outline-variant relative border-r last:border-r-0',
-        columnWeekend: 'bg-surface-container-low/60',
+        columnWeekend: 'bg-surface-container-low',
         columnToday: 'bg-primary/[0.035]',
         offHours: 'bg-surface-container-low pointer-events-none absolute right-0 left-0',
         background: [

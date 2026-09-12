@@ -10,9 +10,13 @@ export const vi: SchedulerLabels = {
     agenda: 'Lịch trình',
     allDay: 'Cả ngày',
     views: 'Chế độ xem',
+    menu: 'Ẩn hiện thanh bên',
+    actions: 'Thao tác khác',
     noEvents: 'Không có sự kiện',
     newEvent: 'Sự kiện mới',
     more: (count) => `+${count} nữa`,
+    dayCell: (date, count) =>
+        count === 0 ? `${date}, không có sự kiện` : `${date}, ${count} sự kiện`,
     grid: (view) => `Lịch, chế độ ${view}`,
     event: (event, start, end) => `${event.title}, từ ${start} đến ${end}`,
     announce: {

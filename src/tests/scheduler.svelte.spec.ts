@@ -234,3 +234,76 @@ describe('Scheduler with a bound events array', () => {
         expect(chips(screen.container)).toHaveLength(1)
     })
 })
+
+describe('Scheduler month view', () => {
+    const monthProps = { timeZone: ZONE, date: anchor, view: 'month', weekStartsOn: 1 as const }
+    const cells = (container: Element) => [
+        ...container.querySelectorAll<HTMLElement>('[data-sch-day]')
+    ]
+
+    it('renders whole weeks covering the month', () => {
+        const { container } = render(Scheduler, { props: monthProps })
+        const days = cells(container).map((c) => c.dataset.schDay)
+        expect(days.length % 7).toBe(0)
+        expect(days[0]).toBe('2026-08-31')
+        expect(days.at(-1)).toBe('2026-10-04')
+        expect(title(container)).toBe('September 2026')
+    })
+
+    it('starts the grid on the configured weekday', () => {
+        const { container } = render(Scheduler, { props: { ...monthProps, weekStartsOn: 0 } })
+        expect(cells(container)[0].dataset.schDay).toBe('2026-08-30')
+    })
+
+    it('dims the days of the neighbouring months', () => {
+        const { container } = render(Scheduler, { props: monthProps })
+        const [first, second] = cells(container)
+        expect(first.className).toContain('text-on-surface-variant/60')
+        expect(second.className).not.toContain('text-on-surface-variant/60')
+    })
+
+    it('marks today', () => {
+        const { container } = render(Scheduler, { props: { ...monthProps, date: undefined } })
+        expect(container.querySelector('[aria-current="date"]')).not.toBeNull()
+    })
+
+    it('names each cell for assistive tech, with its event count', () => {
+        const { container } = render(Scheduler, {
+            props: {
+                ...monthProps,
+                events: [input('a', '2026-09-09T09:00', '2026-09-09T10:00')]
+            }
+        })
+        const cell = container.querySelector('[data-sch-day="2026-09-09"]')
+        expect(cell?.getAttribute('aria-label')).toBe('Wednesday, September 9, 2026, 1 event')
+        const empty = container.querySelector('[data-sch-day="2026-09-10"]')
+        expect(empty?.getAttribute('aria-label')).toContain('no events')
+    })
+
+    it('spans a multi-day event across its columns and breaks it at the week boundary', () => {
+        const { container } = render(Scheduler, {
+            props: {
+                ...monthProps,
+                events: [input('trip', '2026-09-10', '2026-09-16', { allDay: true })]
+            }
+        })
+        const wrappers = chips(container).map((c) => c.parentElement as HTMLElement)
+        expect(wrappers).toHaveLength(2)
+        expect(wrappers[0].style.gridColumn).toBe('4 / 8')
+        expect(wrappers[1].style.gridColumn).toBe('1 / 3')
+    })
+
+    it('collapses what does not fit into a more link that opens a popover', async () => {
+        const many = Array.from({ length: 8 }, (_, i) =>
+            input(`e${i}`, `2026-09-09T0${i + 1}:00`, `2026-09-09T0${i + 1}:30`)
+        )
+        const screen = render(Scheduler, { props: { ...monthProps, events: many } })
+        const more = screen.container.querySelector<HTMLElement>('[data-sch-more="2026-09-09"]')
+        expect(more).not.toBeNull()
+        expect(more?.textContent).toMatch(/^\+\d+ more$/)
+
+        await screen.getByText(more!.textContent!.trim()).click()
+        await new Promise((resolve) => setTimeout(resolve, 150))
+        expect(document.body.textContent).toContain('Wednesday, September 9, 2026')
+    })
+})
