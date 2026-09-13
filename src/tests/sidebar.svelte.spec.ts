@@ -74,11 +74,76 @@ describe('Scheduler sidebar', () => {
 
         menu(root).click()
         await settle()
-        expect(sidebar(root)).toBeNull()
+        await expect.poll(() => sidebar(root)).toBeNull()
         expect(screen.component.isOpen()).toBe(false)
         menu(root).click()
         await settle()
         expect(sidebar(root)).not.toBeNull()
+    })
+
+    it('reports the panel state on the menu button', async () => {
+        const screen = render(SidebarScheduler, { date: anchor })
+        const root = screen.container
+        await settle()
+        expect(menu(root).getAttribute('aria-expanded')).toBe('true')
+        menu(root).click()
+        await settle()
+        expect(menu(root).getAttribute('aria-expanded')).toBe('false')
+    })
+
+    it('slides the docked panel closed and open instead of snapping', async () => {
+        const screen = render(SidebarScheduler, { date: anchor })
+        const root = screen.container
+        await settle()
+        const full = sidebar(root)!.getBoundingClientRect().width
+        menu(root).click()
+        await wait(90)
+        const closing = sidebar(root)
+        expect(closing).not.toBeNull()
+        const midway = closing!.getBoundingClientRect().width
+        expect(midway).toBeGreaterThan(0)
+        expect(midway).toBeLessThan(full)
+        const inner = closing!.querySelector<HTMLElement>(
+            '[data-sch-default-sidebar], [data-probe-docked]'
+        )!
+        expect(inner.getBoundingClientRect().width).toBeGreaterThan(midway)
+        await expect.poll(() => sidebar(root)).toBeNull()
+
+        menu(root).click()
+        await wait(90)
+        const opening = sidebar(root)!.getBoundingClientRect().width
+        expect(opening).toBeLessThan(full)
+        await expect.poll(() => sidebar(root)!.getBoundingClientRect().width).toBe(full)
+    })
+
+    it('snaps without sliding when the user asks for reduced motion', async () => {
+        const original = window.matchMedia
+        window.matchMedia = ((query: string) => ({
+            ...original.call(window, query),
+            matches: query.includes('prefers-reduced-motion'),
+            media: query,
+            addEventListener: () => {},
+            removeEventListener: () => {}
+        })) as typeof window.matchMedia
+        try {
+            const screen = render(SidebarScheduler, { date: anchor })
+            const root = screen.container
+            await settle()
+            menu(root).click()
+            await wait(40)
+            expect(sidebar(root)).toBeNull()
+        } finally {
+            window.matchMedia = original
+        }
+    })
+
+    it('reports the slide-over state on the menu button too', async () => {
+        const screen = render(SidebarScheduler, { date: anchor, width: 700 })
+        await settle()
+        expect(menu(screen.container).getAttribute('aria-expanded')).toBe('false')
+        menu(screen.container).click()
+        await settle()
+        expect(menu(screen.container).getAttribute('aria-expanded')).toBe('true')
     })
 
     it('docks to the end side when asked', () => {
@@ -102,7 +167,7 @@ describe('Scheduler sidebar', () => {
         expect(screen.component.getView()).toBe('agenda')
         root.querySelector<HTMLElement>('[data-probe-close]')!.click()
         await settle()
-        expect(sidebar(root)).toBeNull()
+        await expect.poll(() => sidebar(root)).toBeNull()
     })
 
     it('becomes a slide-over below the breakpoint', async () => {

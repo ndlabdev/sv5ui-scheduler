@@ -14,6 +14,7 @@
         onStep: (direction: 1 | -1) => void
         onView: (view: string) => void
         onMenu?: () => void
+        menuOpen?: boolean
         actions?: Snippet
     }
 
@@ -27,6 +28,7 @@
         onStep,
         onView,
         onMenu,
+        menuOpen,
         actions
     }: Props = $props()
 
@@ -43,6 +45,7 @@
                 square
                 icon="lucide:menu"
                 aria-label={labels.menu}
+                aria-expanded={menuOpen}
                 onclick={onMenu}
             />
         {/if}

@@ -94,7 +94,21 @@ const PUBLIC_VALUES = [
 ]
 
 const LOCALES_ENTRY = 'src/lib/locales.ts'
-const PUBLIC_LOCALES = ['en', 'vi']
+const PUBLIC_LOCALES = [
+    'ar',
+    'de',
+    'en',
+    'es',
+    'fr',
+    'it',
+    'ja',
+    'ko',
+    'nl',
+    'pt',
+    'ru',
+    'vi',
+    'zh'
+]
 
 const STAR_EXPORT = /export\s+\*\s+from\s+'([^']+)'/g
 const NAMED_EXPORT = /export\s+(type\s+)?\{([^}]*)\}/g

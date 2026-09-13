@@ -11,7 +11,7 @@ export const schedulerVariants = tv({
             'bg-surface-container-lowest border-outline-variant/60 flex w-72 shrink-0 flex-col',
             'border-e'
         ],
-        sidebarScroll: 'min-h-0 flex-1',
+        sidebarScroll: 'min-h-0 w-72 flex-1',
         sidebarEnd: 'border-s border-e-0',
         slideover: 'w-80 max-w-full',
         view: 'relative min-h-0 flex-1',

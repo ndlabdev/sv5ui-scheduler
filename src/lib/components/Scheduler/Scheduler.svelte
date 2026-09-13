@@ -7,8 +7,9 @@
 <script lang="ts" generics="T">
     import { getLocalTimeZone, type ZonedDateTime } from '@internationalized/date'
     import type { Attachment } from 'svelte/attachments'
-    import { ScrollArea, Skeleton, Slideover } from 'sv5ui'
+    import { ScrollArea, Skeleton, Slideover, useMediaQuery } from 'sv5ui'
     import { tick, untrack } from 'svelte'
+    import { slide } from 'svelte/transition'
     import { getComponentConfig } from '../../config.js'
     import { announceConflict, announceReverted } from '../../core/a11y/announce.js'
     import { mergeLabels, viewLabel } from '../../core/i18n/labels.js'
@@ -43,6 +44,8 @@
     import Toolbar from '../internal/Toolbar.svelte'
     import { createBuiltinViews } from './builtin-views.js'
     import { schedulerDefaults, schedulerVariants } from './scheduler.variants.js'
+
+    const SIDEBAR_DURATION = 200
 
     const config = getComponentConfig('scheduler', schedulerDefaults)
 
@@ -322,6 +325,7 @@
         })
     }
 
+    const reducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)')
     const docked = $derived(rootWidth === 0 || rootWidth >= sidebarBreakpoint)
     const allEvents = $derived.by(() => {
         void store.version
@@ -351,7 +355,7 @@
             if (!docked) overlayOpen = false
         },
         close: () => {
-            if (docked) sidebarOpen = false
+            if (docked) setSidebarOpen(false)
             else overlayOpen = false
         }
     }
@@ -359,9 +363,21 @@
         (sidebarSide === 'start') === (context.direction === 'ltr') ? 'left' : 'right'
     )
 
+    let sidebarAnimates = false
+
+    function sidebarTransition() {
+        const animated = sidebarAnimates && !reducedMotion.matches
+        return { axis: 'x' as const, duration: animated ? SIDEBAR_DURATION : 0 }
+    }
+
+    function setSidebarOpen(open: boolean) {
+        sidebarAnimates = true
+        sidebarOpen = open
+    }
+
     function toggleSidebar() {
         if (sidebar) {
-            if (docked) sidebarOpen = !sidebarOpen
+            if (docked) setSidebarOpen(!sidebarOpen)
             else overlayOpen = !overlayOpen
         }
         onMenu?.()
@@ -503,12 +519,19 @@
             onStep={step}
             onView={setView}
             onMenu={sidebar || onMenu ? toggleSidebar : undefined}
+            menuOpen={sidebar ? (docked ? sidebarOpen : overlayOpen) : undefined}
             actions={toolbarActions}
         />
     {/if}
     <div class={classes.body}>
         {#if sidebar && docked && sidebarOpen}
-            <aside class={classes.sidebar} data-sch-sidebar>
+            <aside
+                class={classes.sidebar}
+                data-sch-sidebar
+                transition:slide={sidebarTransition()}
+                onintroend={() => (sidebarAnimates = false)}
+                onoutroend={() => (sidebarAnimates = false)}
+            >
                 <ScrollArea class={classes.sidebarScroll} dir={context.direction}>
                     {@render sidebarContent()}
                 </ScrollArea>

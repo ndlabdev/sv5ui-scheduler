@@ -61,7 +61,7 @@
     const dayTemplate = $derived(`repeat(${days.length}, minmax(0, 1fr))`)
     const hourHeight = $derived(scale.slotHeight * (60 / scale.slotMinutes))
     const gridLines = $derived(
-        `repeating-linear-gradient(to bottom, color-mix(in oklab, var(--color-outline-variant) 45%, transparent) 0 1px, transparent 1px ${hourHeight}px)`
+        `repeating-linear-gradient(to bottom, transparent 0 ${hourHeight - 1}px, color-mix(in oklab, var(--color-outline-variant) 45%, transparent) ${hourHeight - 1}px ${hourHeight}px)`
     )
 
     const laidOutSpans = $derived(positioned.filter((p): p is SpanPosition<T> => p.kind === 'span'))

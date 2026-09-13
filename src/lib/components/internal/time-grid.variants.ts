@@ -44,7 +44,7 @@ export const timeGridVariants = tv({
         allDayGhost: 'pointer-events-none z-20 min-w-0 px-0.5',
         body: 'relative min-h-0 flex-1',
         scroll: 'h-full',
-        bodyGrid: 'grid py-2',
+        bodyGrid: 'grid pb-2',
         gutter: 'relative',
         hourLabel:
             'text-on-surface-variant absolute end-2 -translate-y-1/2 text-[11px] leading-none tabular-nums select-none',
