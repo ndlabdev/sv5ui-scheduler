@@ -7,13 +7,7 @@ export type {
     WeekDay
 } from './range.types.js'
 
-export type {
-    EventColor,
-    EventInput,
-    SchedulerCalendar,
-    SchedulerEvent,
-    SchedulerResource
-} from './event.types.js'
+export type { EventColor, EventInput, SchedulerCalendar, SchedulerEvent } from './event.types.js'
 
 export type {
     OrdinalWeekDay,
@@ -22,7 +16,7 @@ export type {
     RecurrenceRuleInput
 } from './recurrence.types.js'
 
-export type { EventSource, EventSourceFn, LoadContext } from './source.types.js'
+export type { EventSourceFn, LoadContext } from './source.types.js'
 
 export type {
     ConflictResolution,

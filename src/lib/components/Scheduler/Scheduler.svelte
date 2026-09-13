@@ -43,9 +43,8 @@
     import DefaultSidebar from '../internal/DefaultSidebar.svelte'
     import Toolbar from '../internal/Toolbar.svelte'
     import { createBuiltinViews } from './builtin-views.js'
+    import { SidebarState } from './sidebar-state.svelte.js'
     import { schedulerDefaults, schedulerVariants } from './scheduler.variants.js'
-
-    const SIDEBAR_DURATION = 200
 
     const config = getComponentConfig('scheduler', schedulerDefaults)
 
@@ -140,7 +139,6 @@
     let announceToggle = false
     let inheritedDirection = $state<'ltr' | 'rtl'>('ltr')
     let rootWidth = $state(0)
-    let overlayOpen = $state(false)
 
     const now = $derived(toZoned(clock, timeZone))
     let lastToday: ZonedDateTime | null = null
@@ -326,7 +324,13 @@
     }
 
     const reducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)')
-    const docked = $derived(rootWidth === 0 || rootWidth >= sidebarBreakpoint)
+    const panel = new SidebarState({
+        width: () => rootWidth,
+        breakpoint: () => sidebarBreakpoint,
+        open: () => sidebarOpen,
+        setOpen: (open) => (sidebarOpen = open),
+        reducedMotion: () => reducedMotion.matches
+    })
     const allEvents = $derived.by(() => {
         void store.version
         return store.all().filter(eventFilter)
@@ -348,38 +352,20 @@
             return context
         },
         get docked() {
-            return docked
+            return panel.docked
         },
         navigate: (next, name) => {
             navigate(next, name)
-            if (!docked) overlayOpen = false
+            panel.afterNavigate()
         },
-        close: () => {
-            if (docked) setSidebarOpen(false)
-            else overlayOpen = false
-        }
+        close: () => panel.close()
     }
     const slideoverSide = $derived(
         (sidebarSide === 'start') === (context.direction === 'ltr') ? 'left' : 'right'
     )
 
-    let sidebarAnimates = false
-
-    function sidebarTransition() {
-        const animated = sidebarAnimates && !reducedMotion.matches
-        return { axis: 'x' as const, duration: animated ? SIDEBAR_DURATION : 0 }
-    }
-
-    function setSidebarOpen(open: boolean) {
-        sidebarAnimates = true
-        sidebarOpen = open
-    }
-
     function toggleSidebar() {
-        if (sidebar) {
-            if (docked) setSidebarOpen(!sidebarOpen)
-            else overlayOpen = !overlayOpen
-        }
+        if (sidebar) panel.toggle()
         onMenu?.()
     }
 
@@ -519,18 +505,18 @@
             onStep={step}
             onView={setView}
             onMenu={sidebar || onMenu ? toggleSidebar : undefined}
-            menuOpen={sidebar ? (docked ? sidebarOpen : overlayOpen) : undefined}
+            menuOpen={sidebar ? panel.expanded : undefined}
             actions={toolbarActions}
         />
     {/if}
     <div class={classes.body}>
-        {#if sidebar && docked && sidebarOpen}
+        {#if sidebar && panel.docked && sidebarOpen}
             <aside
                 class={classes.sidebar}
                 data-sch-sidebar
-                transition:slide={sidebarTransition()}
-                onintroend={() => (sidebarAnimates = false)}
-                onoutroend={() => (sidebarAnimates = false)}
+                transition:slide={panel.transition()}
+                onintroend={() => panel.settled()}
+                onoutroend={() => panel.settled()}
             >
                 <ScrollArea class={classes.sidebarScroll} dir={context.direction}>
                     {@render sidebarContent()}
@@ -563,9 +549,9 @@
             {/if}
         </div>
     </div>
-    {#if sidebar && !docked}
+    {#if sidebar && !panel.docked}
         <Slideover
-            bind:open={overlayOpen}
+            bind:open={panel.overlayOpen}
             side={slideoverSide}
             title={labels.menu}
             ui={{ content: classes.slideover }}

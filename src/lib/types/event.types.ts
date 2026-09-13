@@ -40,8 +40,8 @@ export interface SchedulerEvent<T = unknown> {
     allDay?: boolean
 
     /**
-     * Identifier of a `SchedulerResource`. Stored and returned unchanged; the
-     * built-in views do not group by resource.
+     * Identifier of a resource such as a room or a person. Stored and returned
+     * unchanged; the built-in views do not group by resource.
      */
     resourceId?: string
 
@@ -116,29 +116,4 @@ export interface SchedulerCalendar {
      * @default 'primary'
      */
     color?: EventColor
-}
-
-/**
- * Something events can be assigned to: a room, a person, a machine. Declared
- * here so `resourceId` has a home; the built-in views do not render resources.
- */
-export interface SchedulerResource {
-    id: string
-
-    title: string
-
-    /**
-     * Identifier of the parent resource when resources form a tree.
-     */
-    parentId?: string
-
-    /**
-     * Hours available per day, for capacity overlays.
-     */
-    capacity?: number
-
-    /**
-     * Sort position among siblings. Lower first.
-     */
-    order?: number
 }
