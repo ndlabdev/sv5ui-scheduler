@@ -20,6 +20,7 @@ const PUBLIC_TYPES = [
     'CellSnippetProps',
     'ConflictResolution',
     'DateInput',
+    'DateNavigatorProps',
     'DateRange',
     'DragSourceData',
     'EventColor',
@@ -52,6 +53,7 @@ const PUBLIC_TYPES = [
     'SchedulerEvent',
     'SchedulerLabels',
     'SchedulerResource',
+    'SidebarSnippetProps',
     'SpanPosition',
     'StoreMiddleware',
     'TimePosition',
@@ -67,6 +69,7 @@ const PUBLIC_TYPES = [
 
 const PUBLIC_VALUES = [
     'AgendaView',
+    'DateNavigator',
     'DayView',
     'EventChip',
     'MonthView',

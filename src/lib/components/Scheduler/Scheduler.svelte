@@ -7,7 +7,7 @@
 <script lang="ts" generics="T">
     import { getLocalTimeZone, type ZonedDateTime } from '@internationalized/date'
     import type { Attachment } from 'svelte/attachments'
-    import { Skeleton } from 'sv5ui'
+    import { Skeleton, Slideover } from 'sv5ui'
     import { tick, untrack } from 'svelte'
     import { getComponentConfig } from '../../config.js'
     import { announceConflict, announceReverted } from '../../core/a11y/announce.js'
@@ -28,6 +28,7 @@
     import { collectColumnRects, resolveHit, type ColumnRect } from '../../interactions/hit-test.js'
     import { snapToSlot } from '../../interactions/snap.js'
     import type { SchedulerEvent } from '../../types/event.types.js'
+    import type { SidebarSnippetProps } from '../../types/snippet.types.js'
     import type {
         GridFocus,
         InteractionContext,
@@ -66,6 +67,10 @@
         middleware = [],
         interactions = [],
         toolbar = true,
+        sidebar,
+        sidebarOpen = $bindable(true),
+        sidebarSide = 'start',
+        sidebarBreakpoint = 1024,
         detailPopover = true,
         eventDetail,
         onMenu,
@@ -121,6 +126,8 @@
     let columnRects: ColumnRect[] | null = null
     let announceToggle = false
     let inheritedDirection = $state<'ltr' | 'rtl'>('ltr')
+    let rootWidth = $state(0)
+    let overlayOpen = $state(false)
 
     const now = $derived(toZoned(clock, timeZone))
     let lastToday: ZonedDateTime | null = null
@@ -300,6 +307,51 @@
         })
     }
 
+    const docked = $derived(rootWidth === 0 || rootWidth >= sidebarBreakpoint)
+    const allEvents = $derived.by(() => {
+        void store.version
+        return store.all()
+    })
+    const sidebarProps: SidebarSnippetProps<T> = {
+        get date() {
+            return anchor
+        },
+        get view() {
+            return view
+        },
+        get range() {
+            return range
+        },
+        get events() {
+            return allEvents
+        },
+        get scheduler() {
+            return context
+        },
+        get docked() {
+            return docked
+        },
+        navigate: (next, name) => {
+            navigate(next, name)
+            if (!docked) overlayOpen = false
+        },
+        close: () => {
+            if (docked) sidebarOpen = false
+            else overlayOpen = false
+        }
+    }
+    const slideoverSide = $derived(
+        (sidebarSide === 'start') === (context.direction === 'ltr') ? 'left' : 'right'
+    )
+
+    function toggleSidebar() {
+        if (sidebar) {
+            if (docked) sidebarOpen = !sidebarOpen
+            else overlayOpen = !overlayOpen
+        }
+        onMenu?.()
+    }
+
     function selectEvent(eventId: string | null) {
         selectedEventId = eventId
     }
@@ -322,6 +374,21 @@
         return {
             root: slots.root({ class: [config.slots.root, className, ui?.root] }),
             toolbar: slots.toolbar({ class: [config.slots.toolbar, ui?.toolbar] }),
+            body: slots.body({
+                class: [
+                    config.slots.body,
+                    ui?.body,
+                    sidebarSide === 'end' ? slots.bodyReversed() : ''
+                ]
+            }),
+            sidebar: slots.sidebar({
+                class: [
+                    config.slots.sidebar,
+                    ui?.sidebar,
+                    sidebarSide === 'end' ? slots.sidebarEnd() : ''
+                ]
+            }),
+            slideover: slots.slideover({ class: [config.slots.slideover, ui?.slideover] }),
             view: slots.view({ class: [config.slots.view, ui?.view] }),
             loading: slots.loading({ class: [config.slots.loading, ui?.loading] })
         }
@@ -399,6 +466,7 @@
     {...restProps}
     {dir}
     {@attach readDirection}
+    bind:clientWidth={rootWidth}
     class={classes.root}
     data-sch-scheduler
     data-sch-view={view}
@@ -414,34 +482,55 @@
             onToday={goToday}
             onStep={step}
             onView={setView}
-            {onMenu}
+            onMenu={sidebar || onMenu ? toggleSidebar : undefined}
             actions={toolbarActions}
         />
     {/if}
-    <div class={classes.view}>
-        <View
-            {view}
-            {anchor}
-            {range}
-            events={visibleEvents}
-            scheduler={context}
-            {scale}
-            {positioned}
-            {snippets}
-            preview={viewPreview}
-            {focus}
-            {selectedEventId}
-            onSelectEvent={selectEvent}
-            {detailPopover}
-            onDeleteEvent={deleteEvent}
-            {navigate}
-            interactions={viewInteractions}
-        />
-        {#if loading}
-            <div class={classes.loading} aria-busy="true">
-                <Skeleton class="h-full w-full" />
-            </div>
+    <div class={classes.body}>
+        {#if sidebar && docked && sidebarOpen}
+            <aside class={classes.sidebar} data-sch-sidebar>
+                {@render sidebar(sidebarProps)}
+            </aside>
         {/if}
+        <div class={classes.view}>
+            <View
+                {view}
+                {anchor}
+                {range}
+                events={visibleEvents}
+                scheduler={context}
+                {scale}
+                {positioned}
+                {snippets}
+                preview={viewPreview}
+                {focus}
+                {selectedEventId}
+                onSelectEvent={selectEvent}
+                {detailPopover}
+                onDeleteEvent={deleteEvent}
+                {navigate}
+                interactions={viewInteractions}
+            />
+            {#if loading}
+                <div class={classes.loading} aria-busy="true">
+                    <Skeleton class="h-full w-full" />
+                </div>
+            {/if}
+        </div>
     </div>
+    {#if sidebar && !docked}
+        <Slideover
+            bind:open={overlayOpen}
+            side={slideoverSide}
+            title={labels.menu}
+            ui={{ content: classes.slideover }}
+        >
+            {#snippet body()}
+                <div data-sch-sidebar>
+                    {@render sidebar(sidebarProps)}
+                </div>
+            {/snippet}
+        </Slideover>
+    {/if}
     <div class="sr-only" aria-live="polite" aria-atomic="true">{announcement}</div>
 </div>

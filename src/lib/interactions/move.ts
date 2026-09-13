@@ -1,4 +1,5 @@
-import type { InteractionPlugin } from '../types/extension.types.js'
+import type { HitTarget, InteractionPlugin } from '../types/extension.types.js'
+import { isEditable } from '../core/store/normalize.js'
 import type { GestureController } from './controller.svelte.js'
 import { edgeAt, isPrimaryButton, pointerDrag } from './pointer.js'
 
@@ -6,25 +7,32 @@ export function moveInteraction<T>(controller: GestureController<T>): Interactio
     return {
         name: 'move',
         attach: () => () => undefined,
-        attachEvent: (context, position) => (node) =>
-            pointerDrag(node, {
+        attachEvent: (context, position) => (node) => {
+            let anchor: HitTarget | null = null
+            return pointerDrag(node, {
                 onStart: ({ event }) => {
                     const rtl = context.scheduler.direction === 'rtl'
                     if (!isPrimaryButton(event) || edgeAt({ node, position, rtl }, event)) {
                         return false
                     }
-                    const hit = context.hitTest(event.clientX, event.clientY)
-                    if (!hit) return false
+                    if (!isEditable(position.event)) return false
+                    anchor = context.hitTest(event.clientX, event.clientY)
+                    if (!anchor) return false
                     context.select(position.event.id)
-                    return controller.beginMove(position.event, hit)
+                    return true
                 },
                 onMove: ({ x, y }) => {
+                    if (anchor && !controller.active) controller.beginMove(position.event, anchor)
+                    anchor = null
+                    if (!controller.active) return
                     const hit = context.hitTest(x, y)
                     if (hit) controller.update(hit)
                 },
                 onEnd: () => {
+                    anchor = null
                     controller.commit()
                 }
             })
+        }
     }
 }

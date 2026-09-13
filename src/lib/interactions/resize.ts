@@ -1,5 +1,7 @@
 import { useEventListener } from 'sv5ui'
-import type { InteractionPlugin } from '../types/extension.types.js'
+import type { HitTarget, InteractionPlugin } from '../types/extension.types.js'
+import { isEditable } from '../core/store/normalize.js'
+import type { ResizeEdge } from './gesture.js'
 import type { GestureController } from './controller.svelte.js'
 import { edgeAt, edgeAxis, isPrimaryButton, pointerDrag } from './pointer.js'
 
@@ -9,20 +11,27 @@ export function resizeInteraction<T>(controller: GestureController<T>): Interact
         attach: () => () => undefined,
         attachEvent: (context, position) => (node) => {
             const options = () => ({ node, position, rtl: context.scheduler.direction === 'rtl' })
+            let pending: { edge: ResizeEdge; hit: HitTarget } | null = null
             const stopDrag = pointerDrag(node, {
                 onStart: ({ event }) => {
-                    if (!isPrimaryButton(event)) return false
+                    if (!isPrimaryButton(event) || !isEditable(position.event)) return false
                     const edge = edgeAt(options(), event)
-                    if (!edge) return false
-                    const hit = context.hitTest(event.clientX, event.clientY)
-                    if (!hit) return false
-                    return controller.beginResize(position.event, edge, hit)
+                    const hit = edge && context.hitTest(event.clientX, event.clientY)
+                    if (!edge || !hit) return false
+                    pending = { edge, hit }
+                    return true
                 },
                 onMove: ({ x, y }) => {
+                    if (pending && !controller.active) {
+                        controller.beginResize(position.event, pending.edge, pending.hit)
+                    }
+                    pending = null
+                    if (!controller.active) return
                     const hit = context.hitTest(x, y)
                     if (hit) controller.update(hit)
                 },
                 onEnd: () => {
+                    pending = null
                     controller.commit()
                 }
             })

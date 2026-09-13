@@ -17,7 +17,8 @@ import type {
     CellSnippetProps,
     EventDetailSnippetProps,
     EventSnippetProps,
-    HeaderSnippetProps
+    HeaderSnippetProps,
+    SidebarSnippetProps
 } from '../../types/snippet.types.js'
 import type { SchedulerSlots } from './scheduler.variants.js'
 
@@ -156,8 +157,35 @@ export type SchedulerProps<T = unknown> = Omit<HTMLAttributes<HTMLDivElement>, '
         detailPopover?: boolean
 
         /**
-         * Called when the toolbar's menu button is pressed. The button is
-         * shown only when this is set; the scheduler does not own a sidebar.
+         * Content of a panel beside the view: a date navigator, filters, a
+         * create button. The toolbar gains a menu button that shows and hides
+         * it, and below `sidebarBreakpoint` it opens as a slide-over instead.
+         */
+        sidebar?: Snippet<[SidebarSnippetProps<T>]>
+
+        /**
+         * Whether the docked sidebar is shown. Bindable.
+         * @default true
+         */
+        sidebarOpen?: boolean
+
+        /**
+         * Which side of the view the sidebar docks to.
+         * @default 'start'
+         */
+        sidebarSide?: 'start' | 'end'
+
+        /**
+         * Scheduler width in pixels below which the sidebar leaves the layout
+         * and opens as a slide-over from the menu button.
+         * @default 1024
+         */
+        sidebarBreakpoint?: number
+
+        /**
+         * Called when the toolbar's menu button is pressed, after the sidebar
+         * has been toggled. Without a `sidebar` the button is shown only when
+         * this is set.
          */
         onMenu?: () => void
 

@@ -33,7 +33,8 @@ export type {
     CellSnippetProps,
     EventDetailSnippetProps,
     EventSnippetProps,
-    HeaderSnippetProps
+    HeaderSnippetProps,
+    SidebarSnippetProps
 } from './snippet.types.js'
 
 export type {

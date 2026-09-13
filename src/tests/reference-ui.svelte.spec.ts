@@ -1,5 +1,6 @@
 import { parseZonedDateTime } from '@internationalized/date'
 import { describe, expect, it, vi } from 'vitest'
+import { userEvent } from 'vitest/browser'
 import { createRawSnippet } from 'svelte'
 import { render } from 'vitest-browser-svelte'
 import { Scheduler } from '../lib/index.js'
@@ -144,6 +145,42 @@ describe('event detail popover', () => {
         await settle()
         expect(more.getAttribute('aria-expanded')).toBe('true')
         expect(document.querySelector('[data-sch-more-list="2026-09-09"]')).not.toBeNull()
+    })
+
+    it.each(['week', 'month'])('opens from a real click in the %s view', async (view) => {
+        const screen = render(BoundScheduler, {
+            initial: [input('a', '2026-09-09T09:00', '2026-09-09T10:00')],
+            date: anchor,
+            view
+        })
+        const chip = screen.container.querySelector<HTMLElement>('[data-sch-event-id="a"]')!
+        await userEvent.click(chip)
+        await expect.poll(() => document.querySelector('[data-sch-detail="a"]')).not.toBeNull()
+        expect(chip.getAttribute('aria-expanded')).toBe('true')
+        expect(screen.container.querySelector('[data-sch-ghost]')).toBeNull()
+    })
+
+    it('does not lift or dim the chip on a plain pointer down', async () => {
+        const screen = render(BoundScheduler, {
+            initial: [input('a', '2026-09-09T09:00', '2026-09-09T10:00')],
+            date: anchor,
+            view: 'month'
+        })
+        const wrapper = screen.container.querySelector<HTMLElement>('[data-sch-event="a"]')!
+        const rect = wrapper.getBoundingClientRect()
+        wrapper.dispatchEvent(
+            new PointerEvent('pointerdown', {
+                clientX: rect.left + rect.width / 2,
+                clientY: rect.top + rect.height / 2,
+                pointerId: 1,
+                bubbles: true,
+                isPrimary: true,
+                button: 0
+            })
+        )
+        await wait(30)
+        expect(getComputedStyle(wrapper).visibility).toBe('visible')
+        expect(screen.container.querySelector('[data-sch-ghost]')).toBeNull()
     })
 
     it('can be turned off', async () => {

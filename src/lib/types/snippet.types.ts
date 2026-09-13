@@ -1,7 +1,7 @@
 import type { ZonedDateTime } from '@internationalized/date'
 import type { SchedulerEvent } from './event.types.js'
-import type { PositionedEvent } from './extension.types.js'
-import type { Holiday } from './range.types.js'
+import type { PositionedEvent, SchedulerContext } from './extension.types.js'
+import type { DateRange, Holiday } from './range.types.js'
 
 /**
  * Argument of the `event` snippet, rendered once per visible event segment.
@@ -69,6 +69,44 @@ export interface HeaderSnippetProps {
      * The holiday on this day, if any.
      */
     holiday?: Holiday
+}
+
+/**
+ * Argument of the `sidebar` snippet, rendered beside the view or, below the
+ * sidebar breakpoint, inside a slide-over panel.
+ */
+export interface SidebarSnippetProps<T = unknown> {
+    /**
+     * Date the visible range is computed from.
+     */
+    date: ZonedDateTime
+
+    view: string
+
+    range: DateRange
+
+    /**
+     * Every event the scheduler holds, recurring series unexpanded. Feed it
+     * to `DateNavigator` for its dots.
+     */
+    events: SchedulerEvent<T>[]
+
+    scheduler: SchedulerContext
+
+    /**
+     * Move the scheduler to `date`, switching to `view` when given.
+     */
+    navigate: (date: ZonedDateTime, view?: string) => void
+
+    /**
+     * Hide the sidebar: closes the slide-over, or collapses the docked panel.
+     */
+    close: () => void
+
+    /**
+     * `true` while the sidebar sits beside the view, `false` in the slide-over.
+     */
+    docked: boolean
 }
 
 /**

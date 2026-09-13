@@ -25,7 +25,7 @@ export function createInteraction<T>(controller: GestureController<T>): Interact
                     return true
                 },
                 onMove: ({ x, y }) => {
-                    if (anchor) controller.beginCreate(anchor)
+                    if (anchor && !controller.active) controller.beginCreate(anchor)
                     anchor = null
                     if (!controller.active) return
                     const hit = context.hitTest(x, y)
