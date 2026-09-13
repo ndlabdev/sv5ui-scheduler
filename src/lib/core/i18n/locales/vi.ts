@@ -14,6 +14,9 @@ export const vi: SchedulerLabels = {
     menu: 'Ẩn hiện thanh bên',
     actions: 'Thao tác khác',
     noEvents: 'Không có sự kiện',
+    calendars: 'Lịch của tôi',
+    searchEvents: 'Tìm sự kiện',
+    unscheduled: 'Chưa xếp lịch',
     newEvent: 'Sự kiện mới',
     more: (count) => `+${count} nữa`,
     dayCell: (date, count) =>

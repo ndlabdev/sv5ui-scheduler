@@ -14,6 +14,7 @@
     import { mergeLabels, viewLabel } from '../../core/i18n/labels.js'
     import { createRegistry } from '../../core/registry/registry.js'
     import { EventStore } from '../../core/store/event-store.svelte.js'
+    import { createEventFilter } from '../../core/store/filters.js'
     import { MutationPipeline } from '../../core/store/mutations.svelte.js'
     import { isSameEvent, normalizeEvents } from '../../core/store/normalize.js'
     import { createSourceLoader } from '../../core/store/sources.js'
@@ -59,6 +60,10 @@
         businessHours,
         holidays = [],
         weekNumbers = false,
+        calendars = [],
+        hiddenCalendars = $bindable([]),
+        search = $bindable(''),
+        filter,
         labels: labelOverrides,
         slotMinutes = 30,
         slotHeight = 24,
@@ -176,6 +181,9 @@
         get holidays() {
             return holidays
         },
+        get calendars() {
+            return calendars
+        },
         get weekNumbers() {
             return weekNumbers
         },
@@ -195,7 +203,8 @@
     const title = $derived(
         definition.title?.(anchor, range, context) ?? formatDayRange(range, locale)
     )
-    const visibleEvents = $derived(store.query(range))
+    const eventFilter = $derived(createEventFilter({ hiddenCalendars, search, locale, filter }))
+    const visibleEvents = $derived(store.query(range).filter(eventFilter))
     const viewItems = $derived(
         registry.views.map((v) => ({ value: v.name, label: viewLabel(labels, v.name) }))
     )
@@ -311,7 +320,7 @@
     const docked = $derived(rootWidth === 0 || rootWidth >= sidebarBreakpoint)
     const allEvents = $derived.by(() => {
         void store.version
-        return store.all()
+        return store.all().filter(eventFilter)
     })
     const sidebarProps: SidebarSnippetProps<T> = {
         get date() {

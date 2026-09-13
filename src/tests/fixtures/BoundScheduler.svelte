@@ -1,6 +1,6 @@
 <script lang="ts">
     import type { ZonedDateTime } from '@internationalized/date'
-    import type { EventInput } from '../../lib/types/event.types.js'
+    import type { EventInput, SchedulerCalendar } from '../../lib/types/event.types.js'
     import type { InteractionPlugin } from '../../lib/types/extension.types.js'
     import type { MutationHandlers } from '../../lib/types/mutation.types.js'
     import { untrack } from 'svelte'
@@ -13,6 +13,7 @@
         date?: ZonedDateTime
         view?: string
         dir?: 'ltr' | 'rtl'
+        calendars?: SchedulerCalendar[]
     }
 
     let {
@@ -21,7 +22,8 @@
         onMutate,
         date,
         view: initialView = 'week',
-        dir
+        dir,
+        calendars
     }: Props = $props()
 
     let events = $state(untrack(() => initial))
@@ -49,5 +51,6 @@
         {interactions}
         {onMutate}
         {dir}
+        {calendars}
     />
 </div>

@@ -3,7 +3,7 @@ import type { Snippet } from 'svelte'
 import type { HTMLAttributes } from 'svelte/elements'
 import type { ClassNameValue } from 'tailwind-merge'
 import type { PartialLabels } from '../../core/i18n/labels.js'
-import type { EventInput } from '../../types/event.types.js'
+import type { EventInput, SchedulerCalendar, SchedulerEvent } from '../../types/event.types.js'
 import type {
     InteractionPlugin,
     LayoutStrategy,
@@ -106,6 +106,31 @@ export type SchedulerProps<T = unknown> = Omit<HTMLAttributes<HTMLDivElement>, '
          * @default false
          */
         weekNumbers?: boolean
+
+        /**
+         * Groups events can belong to through `calendarId`.
+         * @default []
+         */
+        calendars?: SchedulerCalendar[]
+
+        /**
+         * Ids of calendars whose events are hidden. Bindable.
+         * @default []
+         */
+        hiddenCalendars?: string[]
+
+        /**
+         * Show only events whose title contains this text, ignoring case and
+         * accents. Bindable.
+         * @default ''
+         */
+        search?: string
+
+        /**
+         * Extra predicate applied after `hiddenCalendars` and `search`; return
+         * `false` to hide an event.
+         */
+        filter?: (event: SchedulerEvent<T>) => boolean
 
         /**
          * Display strings. Missing keys fall back to English.

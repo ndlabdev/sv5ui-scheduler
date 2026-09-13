@@ -13,6 +13,7 @@
     import type { SchedulerContext } from '../../types/extension.types.js'
     import type { EventDetailSnippetProps } from '../../types/snippet.types.js'
     import { formatDayRange, formatLongDate, formatTimeRange } from '../../core/time/format.js'
+    import { eventColor } from '../../core/store/filters.js'
     import { isEditable } from '../../core/store/normalize.js'
     import { isSameDay } from '../../core/time/zone.js'
     import { EVENT_SWATCH } from '../EventChip/event-chip.variants.js'
@@ -57,6 +58,10 @@
             : formatTimeRange(event.start, event.end, scheduler.locale, scheduler.hour12)
     )
     const deletable = $derived(isEditable(event))
+    const color = $derived(eventColor(event, scheduler.calendars))
+    const calendar = $derived(
+        scheduler.calendars.find((candidate) => candidate.id === event.calendarId)
+    )
 
     function select() {
         onSelect(event.id)
@@ -85,9 +90,7 @@
         {/snippet}
         {#snippet panel()}
             <div class={classes.card()} data-sch-detail={event.id}>
-                <div
-                    class={classes.swatch({ class: EVENT_SWATCH[event.color ?? 'primary'] })}
-                ></div>
+                <div class={classes.swatch({ class: EVENT_SWATCH[color] })}></div>
                 <div class={classes.header()}>
                     <h3 class={classes.title()}>{event.title}</h3>
                     <div class={classes.actions()}>
@@ -120,6 +123,12 @@
                         <p class={classes.secondary()}>{secondary}</p>
                     </div>
                 </div>
+                {#if calendar}
+                    <div class={classes.row()} data-sch-detail-calendar>
+                        <span class={classes.calendarSwatch({ class: EVENT_SWATCH[color] })}></span>
+                        <p class={classes.secondary()}>{calendar.title}</p>
+                    </div>
+                {/if}
                 {@render detail?.({ event, close })}
             </div>
         {/snippet}

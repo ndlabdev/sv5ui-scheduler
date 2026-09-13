@@ -30,6 +30,7 @@ export const scheduler: SchedulerContext = {
     locale: 'en-US',
     weekStartsOn: 1,
     holidays: [],
+    calendars: [],
     weekNumbers: false,
     direction: 'ltr',
     labels: {} as SchedulerContext['labels'],

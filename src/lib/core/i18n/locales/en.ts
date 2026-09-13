@@ -14,6 +14,9 @@ export const en: SchedulerLabels = {
     menu: 'Toggle sidebar',
     actions: 'More actions',
     noEvents: 'No events',
+    calendars: 'My calendars',
+    searchEvents: 'Search events',
+    unscheduled: 'Unscheduled',
     newEvent: 'New event',
     more: (count) => `+${count} more`,
     dayCell: (date, count) =>

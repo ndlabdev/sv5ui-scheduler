@@ -43,6 +43,7 @@ function harness() {
             locale: 'en-US',
             weekStartsOn: 1,
             holidays: [],
+            calendars: [],
             weekNumbers: false,
             direction: 'ltr',
             labels: defaultLabels,

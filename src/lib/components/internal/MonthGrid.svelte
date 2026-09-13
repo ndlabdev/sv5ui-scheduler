@@ -12,6 +12,7 @@
     import { eachDay } from '../../core/time/range.js'
     import { dayFlags, holidaysByDate, isoDate } from '../../core/time/day-flags.js'
     import { isoWeekOfRow, weekDayOf } from '../../core/time/week.js'
+    import { eventColor } from '../../core/store/filters.js'
     import { isEditable } from '../../core/store/normalize.js'
     import { isSameDay } from '../../core/time/zone.js'
     import EventChip from '../EventChip/EventChip.svelte'
@@ -208,6 +209,10 @@
                                                 {#each spansOn(dayIndex) as span (span.event.id)}
                                                     <EventChip
                                                         event={span.event}
+                                                        color={eventColor(
+                                                            span.event,
+                                                            scheduler.calendars
+                                                        )}
                                                         position={span}
                                                         variant="solid"
                                                         size="sm"
@@ -270,6 +275,7 @@
                                         <EventChip
                                             {...trigger}
                                             event={span.event}
+                                            color={eventColor(span.event, scheduler.calendars)}
                                             position={span}
                                             variant="solid"
                                             size="sm"
@@ -297,6 +303,7 @@
             >
                 <EventChip
                     event={span.event}
+                    color={eventColor(span.event, scheduler.calendars)}
                     position={span}
                     variant="solid"
                     size="sm"

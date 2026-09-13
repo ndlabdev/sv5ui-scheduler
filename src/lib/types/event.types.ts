@@ -46,6 +46,13 @@ export interface SchedulerEvent<T = unknown> {
     resourceId?: string
 
     /**
+     * Identifier of the `SchedulerCalendar` the event belongs to. Events of a
+     * hidden calendar are not shown, and the calendar colour applies when
+     * `color` is unset.
+     */
+    calendarId?: string
+
+    /**
      * Repetition rule. See `RecurrenceRule` for what the built-in engine
      * evaluates. An event with a rule is a series; what the views show are
      * its occurrences, each carrying `seriesId`.
@@ -93,6 +100,22 @@ export type EventInput<T = unknown> = Omit<SchedulerEvent<T>, 'start' | 'end' | 
     start: DateInput
     end: DateInput
     recurrence?: RecurrenceRuleInput
+}
+
+/**
+ * A named group of events, such as Work or Personal. Events join one through
+ * `calendarId`.
+ */
+export interface SchedulerCalendar {
+    id: string
+
+    title: string
+
+    /**
+     * Colour of the chips of events that set no `color` of their own.
+     * @default 'primary'
+     */
+    color?: EventColor
 }
 
 /**

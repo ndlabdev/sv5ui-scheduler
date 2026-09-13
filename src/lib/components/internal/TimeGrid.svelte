@@ -22,6 +22,7 @@
         parseClock
     } from '../../core/time/day-flags.js'
     import { isoWeek, isoWeekOfRow } from '../../core/time/week.js'
+    import { eventColor } from '../../core/store/filters.js'
     import { isEditable } from '../../core/store/normalize.js'
     import { isSameDay } from '../../core/time/zone.js'
     import EventChip from '../EventChip/EventChip.svelte'
@@ -339,6 +340,7 @@
                                     <EventChip
                                         {...trigger}
                                         event={position.event}
+                                        color={eventColor(position.event, scheduler.calendars)}
                                         {position}
                                         variant="solid"
                                         size="sm"
@@ -362,6 +364,7 @@
                         >
                             <EventChip
                                 event={position.event}
+                                color={eventColor(position.event, scheduler.calendars)}
                                 {position}
                                 variant="solid"
                                 size="sm"
@@ -458,6 +461,10 @@
                                                     <EventChip
                                                         {...trigger}
                                                         event={position.event}
+                                                        color={eventColor(
+                                                            position.event,
+                                                            scheduler.calendars
+                                                        )}
                                                         {position}
                                                         locale={scheduler.locale}
                                                         hour12={scheduler.hour12}
@@ -501,6 +508,7 @@
                         >
                             <EventChip
                                 event={position.event}
+                                color={eventColor(position.event, scheduler.calendars)}
                                 {position}
                                 locale={scheduler.locale}
                                 hour12={scheduler.hour12}

@@ -1,7 +1,7 @@
 import type { ZonedDateTime } from '@internationalized/date'
 import type { Component, Snippet } from 'svelte'
 import type { Attachment } from 'svelte/attachments'
-import type { EventInput, SchedulerEvent } from './event.types.js'
+import type { EventInput, SchedulerCalendar, SchedulerEvent } from './event.types.js'
 import type { SchedulerLabels } from './labels.types.js'
 import type { EventPatch, Mutation } from './mutation.types.js'
 import type { BusinessHours, DateRange, Holiday, TimeZoneId, WeekDay } from './range.types.js'
@@ -70,6 +70,11 @@ export interface SchedulerContext {
     businessHours?: BusinessHours
 
     holidays: Holiday[]
+
+    /**
+     * Calendars events may belong to, as passed to the scheduler.
+     */
+    calendars: SchedulerCalendar[]
 
     /**
      * Days the week view shows when the application asked for a custom

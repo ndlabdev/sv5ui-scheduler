@@ -4,6 +4,7 @@
     import type { SchedulerEvent } from '../../types/event.types.js'
     import type { ViewProps } from '../../types/extension.types.js'
     import { isWholeDay } from '../../core/layout/segments.js'
+    import { eventColor } from '../../core/store/filters.js'
     import { formatAgendaDay, formatTime } from '../../core/time/format.js'
     import { eachDay, intersect } from '../../core/time/range.js'
     import { holidaysByDate, isoDate } from '../../core/time/day-flags.js'
@@ -161,7 +162,7 @@
                                                 <span
                                                     class={classes.bar({
                                                         class: EVENT_SWATCH[
-                                                            event.color ?? 'primary'
+                                                            eventColor(event, scheduler.calendars)
                                                         ]
                                                     })}
                                                 ></span>

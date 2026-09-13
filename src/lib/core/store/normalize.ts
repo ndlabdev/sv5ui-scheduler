@@ -35,6 +35,7 @@ const COMPARED_FIELDS = [
     'title',
     'allDay',
     'resourceId',
+    'calendarId',
     'editable',
     'background',
     'color'

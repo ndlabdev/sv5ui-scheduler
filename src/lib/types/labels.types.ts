@@ -30,6 +30,21 @@ export interface SchedulerLabels {
      */
     actions: string
     noEvents: string
+
+    /**
+     * Heading of the calendar list.
+     */
+    calendars: string
+
+    /**
+     * Placeholder and accessible name of the event search field.
+     */
+    searchEvents: string
+
+    /**
+     * Heading of the list of items waiting to be dragged onto the calendar.
+     */
+    unscheduled: string
     newEvent: string
 
     /**
