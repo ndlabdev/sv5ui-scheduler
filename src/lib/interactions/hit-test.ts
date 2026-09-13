@@ -58,5 +58,6 @@ export function collectColumnRects(grid: HTMLElement): ColumnRect[] {
 
 export function eventIdAt(target: EventTarget | null): string | null {
     if (!(target instanceof Element)) return null
-    return target.closest<HTMLElement>('[data-sch-event-id]')?.dataset.schEventId ?? null
+    const element = target.closest<HTMLElement>('[data-sch-event-id], [data-sch-event]')
+    return element?.dataset.schEventId ?? element?.dataset.schEvent ?? null
 }

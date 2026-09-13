@@ -32,6 +32,7 @@ export type { SchedulerLabels } from './labels.types.js'
 export type { CellSnippetProps, EventSnippetProps, HeaderSnippetProps } from './snippet.types.js'
 
 export type {
+    GridFocus,
     HitTarget,
     InteractionContext,
     InteractionPlugin,
@@ -45,6 +46,7 @@ export type {
     TimePosition,
     TimeScale,
     ViewDefinition,
+    ViewPreview,
     ViewProps,
     ViewSnippets
 } from './extension.types.js'

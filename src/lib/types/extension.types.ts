@@ -249,6 +249,11 @@ export interface ViewProps<T = unknown> {
     snippets: ViewSnippets<T>
 
     /**
+     * Keyboard focus to draw, or `null` when the grid is not focused.
+     */
+    focus: GridFocus | null
+
+    /**
      * Attachments to spread on the view's interactive surfaces. `grid` goes on
      * the element that receives pointer and keyboard input; `event` returns
      * one for each rendered event segment.
@@ -261,7 +266,7 @@ export interface ViewProps<T = unknown> {
     /**
      * Gesture in progress, to render as a ghost. `null` when idle.
      */
-    preview: InteractionPreview<T> | null
+    preview: ViewPreview<T> | null
 
     selectedEventId: string | null
 
@@ -318,6 +323,17 @@ export type StoreMiddleware<T = unknown> = (
 ) => (patch: EventPatch<T>) => void
 
 /**
+ * Where keyboard focus sits inside a grid: a day column and, in the time
+ * views, the minutes from midnight of the focused slot. `null` minutes means
+ * a whole-day cell.
+ */
+export interface GridFocus {
+    dayIndex: number
+
+    minutes: number | null
+}
+
+/**
  * What a pointer or keyboard position resolves to.
  */
 export interface HitTarget {
@@ -342,9 +358,33 @@ export interface InteractionContext<T = unknown> {
 
     range: DateRange
 
+    /**
+     * Start of each rendered day, in order. Index into it with
+     * `HitTarget.dayIndex` and `GridFocus.dayIndex`.
+     */
+    days: ZonedDateTime[]
+
     scale: TimeScale
 
     scheduler: SchedulerContext
+
+    selectedEventId: string | null
+
+    select: (eventId: string | null) => void
+
+    focus: GridFocus | null
+
+    setFocus: (focus: GridFocus | null) => void
+
+    /**
+     * Navigate one period back or forward, as the toolbar arrows do.
+     */
+    step: (direction: 1 | -1) => void
+
+    /**
+     * Identifier for an event the interaction is about to create.
+     */
+    newEventId: () => string
 
     /**
      * Resolve client coordinates to a grid position, or `null` outside the grid.
@@ -381,6 +421,14 @@ export interface InteractionPreview<T = unknown> {
     kind: 'create' | 'move' | 'resize'
 
     event: SchedulerEvent<T>
+}
+
+/**
+ * `InteractionPreview` with its placement already computed by the active
+ * layout, so a view draws the ghost the same way it draws events.
+ */
+export interface ViewPreview<T = unknown> extends InteractionPreview<T> {
+    positioned: PositionedEvent<T>[]
 }
 
 /**

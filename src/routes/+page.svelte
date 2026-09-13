@@ -13,9 +13,10 @@
         {
             id: 'standup',
             title: 'Daily standup',
-            start: day(0, '09:00'),
-            end: day(0, '09:30'),
-            color: 'primary'
+            start: day(-7, '09:00'),
+            end: day(-7, '09:30'),
+            color: 'primary',
+            recurrence: { freq: 'weekly', byDay: [1, 2, 3, 4, 5] }
         },
         {
             id: 'design',

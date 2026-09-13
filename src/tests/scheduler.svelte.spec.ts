@@ -310,7 +310,11 @@ describe('Scheduler month view', () => {
         expect(more).not.toBeNull()
         expect(more?.textContent).toMatch(/^\+\d+ more$/)
 
-        await screen.getByText(more!.textContent!.trim()).click()
+        const trigger = more!.closest('button') ?? more!
+        trigger.dispatchEvent(
+            new PointerEvent('pointerdown', { bubbles: true, pointerId: 1, button: 0 })
+        )
+        trigger.dispatchEvent(new MouseEvent('click', { bubbles: true }))
         await new Promise((resolve) => setTimeout(resolve, 150))
         expect(document.body.textContent).toContain('Wednesday, September 9, 2026')
     })
@@ -459,5 +463,43 @@ describe('Scheduler time grid details', () => {
             }
         })
         expect(container.querySelector('[data-sch-event-id="a"]')?.textContent).toContain('15:00')
+    })
+})
+
+describe('Scheduler with a recurring series', () => {
+    const weekdays: EventInput = {
+        id: 'standup',
+        title: 'Standup',
+        start: '2026-09-01T09:00',
+        end: '2026-09-01T09:30',
+        recurrence: { freq: 'weekly', byDay: [1, 2, 3, 4, 5], exDates: ['2026-09-09T09:00'] }
+    }
+
+    it('renders one occurrence per matching day, honouring exclusions', () => {
+        const { container } = render(Scheduler, {
+            props: { timeZone: ZONE, date: anchor, events: [weekdays] }
+        })
+        const days = chips(container).map((c) =>
+            c.closest('[data-sch-day]')?.getAttribute('data-sch-day')
+        )
+        expect(days).toEqual(['2026-09-07', '2026-09-08', '2026-09-10', '2026-09-11'])
+    })
+
+    it('keeps the series, not its occurrences, in the bound array', async () => {
+        const screen = render(BoundScheduler, { initial: [weekdays], date: anchor })
+        await tick()
+        expect(screen.component.getEvents().map((e) => e.id)).toEqual(['standup'])
+        expect(chips(screen.container).length).toBeGreaterThan(1)
+    })
+
+    it('lists occurrences in the agenda', () => {
+        const { container } = render(Scheduler, {
+            props: { timeZone: ZONE, date: anchor, view: 'agenda', events: [weekdays] }
+        })
+        const groups = [...container.querySelectorAll('[data-sch-day]')].map((g) =>
+            g.getAttribute('data-sch-day')
+        )
+        expect(groups).toContain('2026-09-07')
+        expect(groups).not.toContain('2026-09-09')
     })
 })

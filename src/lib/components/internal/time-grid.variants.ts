@@ -3,6 +3,7 @@ import { tv } from 'tailwind-variants'
 export const timeGridVariants = tv({
     slots: {
         root: 'bg-surface text-on-surface @container flex h-full min-h-0 flex-col overflow-hidden',
+        gridFocus: 'focus-visible:outline-none',
         header: 'border-outline-variant grid shrink-0 border-b',
         dayTitle: 'border-outline-variant flex shrink-0 flex-col gap-1 border-b px-4 py-3',
         dayTitleWeekday:
@@ -38,7 +39,7 @@ export const timeGridVariants = tv({
         bodyGrid: 'grid',
         gutter: 'border-outline-variant text-on-surface-variant relative border-r text-[11px] tabular-nums',
         hourLabel: 'absolute right-2 -translate-y-1/2 leading-none select-none',
-        columns: 'relative grid',
+        columns: 'relative grid select-none',
         column: 'border-outline-variant relative border-r last:border-r-0',
         columnWeekend: 'bg-surface-container-low',
         columnToday: 'bg-primary/[0.035]',
@@ -49,6 +50,11 @@ export const timeGridVariants = tv({
         ],
         events: 'absolute inset-0',
         event: 'absolute min-w-0 px-px pb-px',
+        ghost: 'pointer-events-none absolute z-20 min-w-0 px-px pb-px',
+        ghostChip: 'ring-primary shadow-lg ring-2',
+        focusRing:
+            'ring-primary pointer-events-none absolute inset-x-0 z-10 rounded-sm ring-2 ring-inset',
+        allDayGhost: 'pointer-events-none z-20 min-w-0 px-0.5',
         nowLine: 'bg-error pointer-events-none absolute right-0 left-0 z-10 h-px',
         nowDot: 'bg-error absolute top-1/2 -left-1 size-2 -translate-y-1/2 rounded-full',
         nowLabel: [

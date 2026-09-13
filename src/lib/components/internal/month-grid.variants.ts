@@ -9,13 +9,16 @@ export const monthGridVariants = tv({
             'text-[11px] font-semibold tracking-wide uppercase @max-md:text-center @max-md:text-[10px]'
         ],
         weekdayWeekend: 'bg-surface-container-low',
-        body: 'grid min-h-0 flex-1',
+        body: 'grid min-h-0 flex-1 select-none focus-visible:outline-none',
         row: 'border-outline-variant relative grid min-h-0 border-b last:border-b-0',
         cells: 'grid',
         cell: 'border-outline-variant flex min-w-0 flex-col border-r last:border-r-0',
         cellWeekend: 'bg-surface-container-low',
         cellOutside: 'text-on-surface-variant/60',
         cellToday: 'bg-primary/[0.035]',
+        cellFocus: 'ring-primary ring-2 ring-inset',
+        ghost: 'pointer-events-none z-20 min-w-0 px-1',
+        ghostChip: 'ring-primary shadow-lg ring-2',
         dayNumber: [
             'text-on-surface m-1 flex size-6 shrink-0 items-center justify-center self-start rounded-full',
             'text-xs font-semibold tabular-nums'

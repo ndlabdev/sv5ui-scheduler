@@ -21,10 +21,13 @@
     import { createTimeScale } from '../../core/time/scale.js'
     import { nowIn, toZoned } from '../../core/time/zone.js'
     import { composeAttachments } from '../../interactions/attachments.js'
+    import { createBuiltinInteractions } from '../../interactions/builtin.js'
+    import { GestureController } from '../../interactions/controller.svelte.js'
     import { collectColumnRects, resolveHit } from '../../interactions/hit-test.js'
     import { snapToSlot } from '../../interactions/snap.js'
     import type { SchedulerEvent } from '../../types/event.types.js'
     import type {
+        GridFocus,
         InteractionContext,
         InteractionPreview,
         PositionedEvent,
@@ -73,7 +76,10 @@
         ...restProps
     }: Props<T> = $props()
 
-    const store = new EventStore<T>(untrack(() => middleware))
+    const store = new EventStore<T>(
+        untrack(() => middleware),
+        () => ({ weekStartsOn })
+    )
     const pipeline = new MutationPipeline<T>({
         store,
         timeZone: () => timeZone,
@@ -88,6 +94,8 @@
     let clock = $state(nowIn(untrack(() => timeZone)))
     let selectedEventId = $state<string | null>(null)
     let preview = $state.raw<InteractionPreview<T> | null>(null)
+    let focus = $state.raw<GridFocus | null>(null)
+    let createdIds = 0
     let announcement = $state('')
     let loading = $state(false)
     let gridNode: HTMLElement | null = null
@@ -96,8 +104,17 @@
     const anchor = $derived(date ?? now)
     const labels = $derived(mergeLabels(labelOverrides))
     const builtinViews = createBuiltinViews<T>()
+    const gesture = new GestureController<T>(
+        () => interactionContext,
+        () => ({ defaultMinutes: slotMinutes * 2 })
+    )
+    const builtinInteractions = createBuiltinInteractions<T>(gesture)
     const registry = $derived(
-        createRegistry<T>({ views: [...builtinViews, ...views], layouts, interactions })
+        createRegistry<T>({
+            views: [...builtinViews, ...views],
+            layouts,
+            interactions: [...builtinInteractions, ...interactions]
+        })
     )
     const definition = $derived(registry.view(view))
     const View = $derived(definition.component)
@@ -118,25 +135,58 @@
         definition.title?.(anchor, range, context) ?? formatDayRange(range, locale)
     )
     const visibleEvents = $derived(store.query(range))
-    const positioned = $derived(
-        registry.layout(definition.layout).layout(visibleEvents, range, {
-            scale,
-            days,
-            columnsPerRow: definition.columnsPerRow ?? days.length,
-            maxLanes: 3,
-            scheduler: context
-        })
-    )
     const viewItems = $derived(
         registry.views.map((v) => ({ value: v.name, label: viewLabel(labels, v.name) }))
     )
     const loader = $derived(source ? createSourceLoader(source, timeZone) : null)
 
-    const interactionContext: InteractionContext<T> = $derived({
-        view,
-        range,
+    const layoutContext = $derived({
         scale,
-        scheduler: context,
+        days,
+        columnsPerRow: definition.columnsPerRow ?? days.length,
+        maxLanes: 3,
+        scheduler: context
+    })
+    const positioned = $derived(
+        registry.layout(definition.layout).layout(visibleEvents, range, layoutContext)
+    )
+    const viewPreview = $derived(
+        preview
+            ? {
+                  ...preview,
+                  positioned: registry
+                      .layout(definition.layout)
+                      .layout([preview.event], range, layoutContext)
+              }
+            : null
+    )
+
+    const interactionContext: InteractionContext<T> = {
+        get view() {
+            return view
+        },
+        get range() {
+            return range
+        },
+        get days() {
+            return days
+        },
+        get scale() {
+            return scale
+        },
+        get scheduler() {
+            return context
+        },
+        get selectedEventId() {
+            return selectedEventId
+        },
+        get focus() {
+            return focus
+        },
+        select: (eventId) => (selectedEventId = eventId),
+        setFocus: (next) => (focus = next),
+        step: (direction) => step(direction),
+        newEventId: () => `event-${Date.now().toString(36)}-${++createdIds}`,
         hitTest: (clientX, clientY) =>
             gridNode
                 ? resolveHit({
@@ -152,7 +202,7 @@
         commit: (request) => void pipeline.commit(request),
         setPreview: (next) => (preview = next),
         announce: (message) => (announcement = message)
-    })
+    }
 
     const rememberGrid: Attachment<HTMLElement> = (node) => {
         gridNode = node
@@ -190,7 +240,8 @@
         scale,
         positioned,
         snippets: { event: eventSnippet, cell, header, empty },
-        preview,
+        preview: viewPreview,
+        focus,
         selectedEventId,
         onSelectEvent: (eventId) => (selectedEventId = eventId)
     })
@@ -294,6 +345,7 @@
             positioned={viewProps.positioned}
             snippets={viewProps.snippets}
             preview={viewProps.preview}
+            focus={viewProps.focus}
             selectedEventId={viewProps.selectedEventId}
             onSelectEvent={viewProps.onSelectEvent}
             interactions={viewInteractions}

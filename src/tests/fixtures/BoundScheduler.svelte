@@ -1,4 +1,5 @@
 <script lang="ts">
+    import type { ZonedDateTime } from '@internationalized/date'
     import type { EventInput } from '../../lib/types/event.types.js'
     import type { InteractionPlugin } from '../../lib/types/extension.types.js'
     import type { Mutation } from '../../lib/types/mutation.types.js'
@@ -9,9 +10,10 @@
         initial: EventInput[]
         interactions?: InteractionPlugin[]
         onMutate?: (mutation: Mutation) => void | Promise<void>
+        date?: ZonedDateTime
     }
 
-    let { initial, interactions = [], onMutate }: Props = $props()
+    let { initial, interactions = [], onMutate, date }: Props = $props()
 
     let events = $state(untrack(() => initial))
     let view = $state('week')
@@ -30,5 +32,5 @@
 </script>
 
 <div style="height: 600px">
-    <Scheduler bind:events bind:view timeZone="Asia/Ho_Chi_Minh" {interactions} {onMutate} />
+    <Scheduler bind:events bind:view timeZone="Asia/Ho_Chi_Minh" {date} {interactions} {onMutate} />
 </div>

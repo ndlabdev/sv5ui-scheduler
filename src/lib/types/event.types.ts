@@ -47,9 +47,17 @@ export interface SchedulerEvent<T = unknown> {
 
     /**
      * Repetition rule. See `RecurrenceRule` for what the built-in engine
-     * evaluates.
+     * evaluates. An event with a rule is a series; what the views show are
+     * its occurrences, each carrying `seriesId`.
      */
     recurrence?: RecurrenceRule
+
+    /**
+     * Set on an occurrence of a recurring series: the id of the event that
+     * holds the rule. Occurrences are derived, never stored, and the built-in
+     * engine renders them read-only.
+     */
+    seriesId?: string
 
     /**
      * Whether the event may be moved, resized or deleted through the UI.

@@ -25,6 +25,8 @@
         positioned,
         snippets,
         interactions,
+        preview,
+        focus,
         selectedEventId,
         onSelectEvent
     }: ViewProps<T> = $props()
@@ -52,12 +54,25 @@
         })
     )
 
+    const ghostTimed = $derived(
+        (preview?.positioned ?? []).filter((p): p is TimePosition<T> => p.kind === 'time')
+    )
+    const ghostSpans = $derived(
+        (preview?.positioned ?? []).filter((p): p is SpanPosition<T> => p.kind === 'span')
+    )
+    const draggingId = $derived(preview?.kind === 'create' ? null : (preview?.event.id ?? null))
+    const focusTop = $derived(
+        focus && focus.minutes !== null
+            ? (focus.minutes / scale.slotMinutes) * scale.slotHeight
+            : null
+    )
+
     const todayIndex = $derived(days.findIndex((day) => isSameDay(day, scheduler.now)))
     const nowTop = $derived(scale.toPixel(scheduler.now))
     const holidays = $derived(new Set(scheduler.holidays.map((h) => h.date)))
     const hours = Array.from({ length: 23 }, (_, i) => i + 1)
     const single = $derived(days.length === 1)
-    const hasAllDay = $derived(spans.length > 0)
+    const hasAllDay = $derived(spans.length > 0 || ghostSpans.length > 0)
     const isEmpty = $derived(positioned.length === 0)
 
     let viewport = $state<HTMLDivElement | null>(null)
@@ -200,7 +215,14 @@
                         style:min-height="{Math.max(laneCount, 1) * 1.5 + 0.5}rem"
                         data-sch-day-index={dayIndex}
                         data-sch-all-day
-                    ></div>
+                    >
+                        {#if focus && focus.minutes === null && focus.dayIndex === dayIndex}
+                            <div
+                                class={classes.focusRing({ class: 'inset-y-0' })}
+                                data-sch-focus
+                            ></div>
+                        {/if}
+                    </div>
                 {/each}
                 <div
                     class={classes.allDayEvents()}
@@ -213,6 +235,7 @@
                             style:grid-column="{position.startColumn + 1} / {position.endColumn +
                                 1}"
                             style:grid-row={position.lane + 1}
+                            data-sch-event={position.event.id}
                             {@attach interactions.event(position)}
                         >
                             <EventChip
@@ -223,7 +246,26 @@
                                 locale={scheduler.locale}
                                 hour12={scheduler.hour12}
                                 selected={selectedEventId === position.event.id}
+                                dragging={draggingId === position.event.id}
                                 onclick={() => onSelectEvent(position.event.id)}
+                            />
+                        </div>
+                    {/each}
+                    {#each ghostSpans as position (position.event.id + position.row)}
+                        <div
+                            class={classes.allDayGhost()}
+                            style:grid-column="{position.startColumn + 1} / {position.endColumn +
+                                1}"
+                            style:grid-row={position.lane + 1}
+                            data-sch-ghost
+                        >
+                            <EventChip
+                                event={position.event}
+                                {position}
+                                size="sm"
+                                class={classes.ghostChip({ class: 'h-full' })}
+                                locale={scheduler.locale}
+                                hour12={scheduler.hour12}
                             />
                         </div>
                     {/each}
@@ -249,7 +291,7 @@
                     {/each}
                 </div>
                 <div
-                    class={classes.columns()}
+                    class={classes.columns({ class: classes.gridFocus() })}
                     style:grid-template-columns={dayTemplate}
                     style:height="{scale.dayHeight}px"
                     style:background-image={gridLines}
@@ -298,6 +340,7 @@
                                         )}px"
                                         style:left="{position.left * 100}%"
                                         style:width="{position.width * 100}%"
+                                        data-sch-event={position.event.id}
                                         {@attach interactions.event(position)}
                                     >
                                         {#if snippets.event}
@@ -311,6 +354,7 @@
                                                 size={compact ? 'sm' : 'md'}
                                                 showTime={!compact}
                                                 selected={selectedEventId === position.event.id}
+                                                dragging={draggingId === position.event.id}
                                                 class="h-full"
                                                 onclick={() => onSelectEvent(position.event.id)}
                                             />
@@ -318,6 +362,39 @@
                                     </div>
                                 {/each}
                             </div>
+                            {#each ghostTimed.filter((p) => p.dayIndex === dayIndex) as position (position.event.id)}
+                                <div
+                                    class={classes.ghost()}
+                                    style:top="{position.top}px"
+                                    style:height="{Math.max(
+                                        position.height,
+                                        scale.slotHeight / 2
+                                    )}px"
+                                    style:left="{position.left * 100}%"
+                                    style:width="{position.width * 100}%"
+                                    data-sch-ghost
+                                >
+                                    <EventChip
+                                        event={position.event}
+                                        {position}
+                                        locale={scheduler.locale}
+                                        hour12={scheduler.hour12}
+                                        size={position.height < scale.slotHeight * 1.5
+                                            ? 'sm'
+                                            : 'md'}
+                                        showTime={position.height >= scale.slotHeight * 1.5}
+                                        class={classes.ghostChip({ class: 'h-full' })}
+                                    />
+                                </div>
+                            {/each}
+                            {#if focusTop !== null && focus?.dayIndex === dayIndex}
+                                <div
+                                    class={classes.focusRing()}
+                                    style:top="{focusTop}px"
+                                    style:height="{scale.slotHeight}px"
+                                    data-sch-focus
+                                ></div>
+                            {/if}
                             {#if dayIndex === todayIndex}
                                 <div class={classes.nowLine()} style:top="{nowTop}px" data-sch-now>
                                     <span class={classes.nowDot()}></span>

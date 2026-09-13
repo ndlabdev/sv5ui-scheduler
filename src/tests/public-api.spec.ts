@@ -22,6 +22,7 @@ const PUBLIC_TYPES = [
     'EventSnippetProps',
     'EventSource',
     'EventSourceFn',
+    'GridFocus',
     'HeaderSnippetProps',
     'HitTarget',
     'Holiday',
@@ -51,6 +52,7 @@ const PUBLIC_TYPES = [
     'TimeScaleOptions',
     'TimeZoneId',
     'ViewDefinition',
+    'ViewPreview',
     'ViewProps',
     'ViewSnippets',
     'WeekDay'

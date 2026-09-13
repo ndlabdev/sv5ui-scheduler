@@ -23,6 +23,8 @@
         positioned,
         snippets,
         interactions,
+        preview,
+        focus,
         selectedEventId,
         onSelectEvent
     }: ViewProps<T> = $props()
@@ -40,6 +42,10 @@
     const visible = $derived(spans.filter((span) => span.lane < maxLanes))
     const overflow = $derived(overflowByCell(spans, maxLanes, COLUMNS))
     const hidden = $derived(spans.filter((span) => span.lane >= maxLanes))
+    const ghosts = $derived(
+        (preview?.positioned ?? []).filter((p): p is SpanPosition<T> => p.kind === 'span')
+    )
+    const draggingId = $derived(preview?.kind === 'create' ? null : (preview?.event.id ?? null))
 
     const holidays = $derived(new Set(scheduler.holidays.map((h) => h.date)))
     const isoDate = (day: ZonedDateTime) => day.toString().slice(0, 10)
@@ -104,9 +110,11 @@
                                 class: [
                                     isWeekend(day) ? classes.cellWeekend() : '',
                                     isOutside(day) ? classes.cellOutside() : '',
-                                    isToday(day) ? classes.cellToday() : ''
+                                    isToday(day) ? classes.cellToday() : '',
+                                    focus?.dayIndex === dayIndex ? classes.cellFocus() : ''
                                 ]
                             })}
+                            data-sch-focus={focus?.dayIndex === dayIndex ? '' : undefined}
                             data-sch-day={isoDate(day)}
                             data-sch-day-index={dayIndex}
                             data-sch-all-day
@@ -144,6 +152,7 @@
                             class={classes.event()}
                             style:grid-column="{span.startColumn + 1} / {span.endColumn + 1}"
                             style:grid-row={span.lane + 1}
+                            data-sch-event={span.event.id}
                             {@attach interactions.event(span)}
                         >
                             {#if snippets.event}
@@ -163,9 +172,26 @@
                                     class="h-full"
                                     locale={scheduler.locale}
                                     selected={selectedEventId === span.event.id}
+                                    dragging={draggingId === span.event.id}
                                     onclick={() => onSelectEvent(span.event.id)}
                                 />
                             {/if}
+                        </div>
+                    {/each}
+                    {#each ghosts.filter((span) => span.row === row) as span (span.event.id)}
+                        <div
+                            class={classes.ghost()}
+                            style:grid-column="{span.startColumn + 1} / {span.endColumn + 1}"
+                            style:grid-row={Math.min(span.lane, maxLanes - 1) + 1}
+                            data-sch-ghost
+                        >
+                            <EventChip
+                                event={span.event}
+                                position={span}
+                                size="sm"
+                                class={classes.ghostChip({ class: 'h-full' })}
+                                locale={scheduler.locale}
+                            />
                         </div>
                     {/each}
                 </div>
