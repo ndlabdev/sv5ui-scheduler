@@ -6,6 +6,7 @@
     import { isWholeDay } from '../../core/layout/segments.js'
     import { formatAgendaDay, formatTime } from '../../core/time/format.js'
     import { eachDay, intersect } from '../../core/time/range.js'
+    import { holidaysByDate, isoDate } from '../../core/time/day-flags.js'
     import { isSameDay, minutesBetween } from '../../core/time/zone.js'
     import { EVENT_SWATCH } from '../EventChip/event-chip.variants.js'
     import EventPopover from './EventPopover.svelte'
@@ -26,7 +27,7 @@
     }: ViewProps<T> = $props()
 
     const classes = agendaListVariants()
-    const holidays = $derived(new Map(scheduler.holidays.map((holiday) => [holiday.date, holiday])))
+    const holidays = $derived(holidaysByDate(scheduler.holidays))
 
     interface Group {
         readonly key: string
@@ -41,7 +42,7 @@
                 const dayRange = { start: day, end: day.add({ days: 1 }) }
                 const onDay = events.filter((event) => intersect(event, dayRange) !== null)
                 return {
-                    key: day.toString().slice(0, 10),
+                    key: isoDate(day),
                     day,
                     events: onDay,
                     minutes: onDay.reduce(

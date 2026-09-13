@@ -3,41 +3,13 @@ import { describe, expect, it, vi } from 'vitest'
 import { createRawSnippet } from 'svelte'
 import { render } from 'vitest-browser-svelte'
 import { Scheduler } from '../lib/index.js'
-import type { EventInput } from '../lib/types/event.types.js'
 import BoundScheduler from './fixtures/BoundScheduler.svelte'
+import { ZONE, anchor, input, press, tap, wait } from './fixtures/dom.js'
 
-const ZONE = 'Asia/Ho_Chi_Minh'
-const anchor = parseZonedDateTime('2026-09-09T12:00[Asia/Ho_Chi_Minh]')
-const settle = () => new Promise((resolve) => setTimeout(resolve, 60))
-const input = (
-    id: string,
-    start: string,
-    end: string,
-    extra: Partial<EventInput> = {}
-): EventInput => ({ id, title: id, start, end, ...extra })
-
+const settle = () => wait(60)
 const title = (container: Element) => container.querySelector('h2')?.textContent?.trim()
 const viewOf = (container: Element) =>
     container.querySelector('[data-sch-view]')?.getAttribute('data-sch-view')
-
-function press(target: Element, key: string, init: KeyboardEventInit = {}) {
-    target.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true, ...init }))
-}
-
-function tap(target: Element) {
-    const rect = target.getBoundingClientRect()
-    const at = {
-        pointerId: 1,
-        bubbles: true,
-        isPrimary: true,
-        button: 0,
-        clientX: rect.left + rect.width / 2,
-        clientY: rect.top + rect.height / 2
-    }
-    target.dispatchEvent(new PointerEvent('pointerdown', at))
-    target.dispatchEvent(new PointerEvent('pointerup', at))
-    target.dispatchEvent(new MouseEvent('click', at))
-}
 
 describe('year view', () => {
     const events = [

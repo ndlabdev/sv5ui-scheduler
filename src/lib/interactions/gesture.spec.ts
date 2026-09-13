@@ -251,6 +251,40 @@ describe('moveDraft on a day cell that keeps time', () => {
     })
 })
 
+describe('resizeDraft on whole-day cells', () => {
+    const cell = (iso: string): GesturePoint => ({ date: at(iso), allDay: true, keepsTime: true })
+
+    it('extends a timed event by whole days and keeps its clock times', () => {
+        const draft = resizeDraft(
+            event('2026-09-09T13:15', '2026-09-09T14:45'),
+            'end',
+            cell('2026-09-11T00:00'),
+            30
+        )
+        expect(iso(draft.start)).toBe('2026-09-09T13:15')
+        expect(iso(draft.end)).toBe('2026-09-11T14:45')
+        expect(draft.allDay).toBe(false)
+    })
+
+    it('pulls the start of a timed event to another day and never past its end', () => {
+        const base = event('2026-09-09T13:15', '2026-09-11T14:45')
+        const earlier = resizeDraft(base, 'start', cell('2026-09-07T00:00'), 30)
+        expect(iso(earlier.start)).toBe('2026-09-07T13:15')
+        const tooFar = resizeDraft(base, 'start', cell('2026-09-13T00:00'), 30)
+        expect(iso(tooFar.start)).toBe('2026-09-11T14:15')
+    })
+
+    it('never lets the end of a timed event fall before its start', () => {
+        const draft = resizeDraft(
+            event('2026-09-09T13:15', '2026-09-11T14:45'),
+            'end',
+            cell('2026-09-01T00:00'),
+            30
+        )
+        expect(iso(draft.end)).toBe('2026-09-09T13:45')
+    })
+})
+
 describe('resizeDraft', () => {
     const slot = 30
     const base = event('2026-09-09T09:00', '2026-09-09T10:00')

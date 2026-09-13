@@ -1,77 +1,25 @@
 import { parseZonedDateTime } from '@internationalized/date'
 import { describe, expect, it, vi } from 'vitest'
 import { render } from 'vitest-browser-svelte'
-import type { EventInput } from '../lib/types/event.types.js'
 import type { Mutation } from '../lib/types/mutation.types.js'
 import { RETURN_ANIMATION_ID } from '../lib/interactions/motion.js'
 import BoundScheduler from './fixtures/BoundScheduler.svelte'
+import {
+    anchor,
+    centre,
+    column,
+    drag,
+    frame,
+    grid,
+    input,
+    iso,
+    pointAt,
+    pointer,
+    settle,
+    wait
+} from './fixtures/dom.js'
 
-const anchor = parseZonedDateTime('2026-09-09T12:00[Asia/Ho_Chi_Minh]')
 const quietWeek = parseZonedDateTime('2026-09-23T12:00[Asia/Ho_Chi_Minh]')
-const input = (
-    id: string,
-    start: string,
-    end: string,
-    extra: Partial<EventInput> = {}
-): EventInput => ({
-    id,
-    title: id,
-    start,
-    end,
-    ...extra
-})
-const frame = () => new Promise((resolve) => requestAnimationFrame(resolve))
-const settle = () => new Promise((resolve) => setTimeout(resolve, 30))
-const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
-
-function grid(container: Element) {
-    return container.querySelector<HTMLElement>('[data-sch-time-grid] [role="application"]')!
-}
-
-function column(container: Element, day: string) {
-    return container.querySelector<HTMLElement>(
-        `[data-sch-day="${day}"][data-sch-day-index]:not([data-sch-all-day])`
-    )!
-}
-
-function pointAt(element: HTMLElement, minutes: number, slotHeight = 24, slotMinutes = 30) {
-    const rect = element.getBoundingClientRect()
-    return {
-        clientX: rect.left + rect.width / 2,
-        clientY: rect.top + (minutes / slotMinutes) * slotHeight + 1
-    }
-}
-
-function pointer(type: string, at: { clientX: number; clientY: number }) {
-    return new PointerEvent(type, {
-        ...at,
-        pointerId: 1,
-        bubbles: true,
-        isPrimary: true,
-        button: 0
-    })
-}
-
-async function drag(
-    target: HTMLElement,
-    from: { clientX: number; clientY: number },
-    to: { clientX: number; clientY: number }
-) {
-    target.dispatchEvent(pointer('pointerdown', from))
-    target.dispatchEvent(
-        pointer('pointermove', {
-            clientX: (from.clientX + to.clientX) / 2,
-            clientY: (from.clientY + to.clientY) / 2
-        })
-    )
-    await frame()
-    target.dispatchEvent(pointer('pointermove', to))
-    await frame()
-    target.dispatchEvent(pointer('pointerup', to))
-    await settle()
-}
-
-const iso = (date: { toString(): string }) => date.toString().slice(0, 16)
 
 describe('drag to create', () => {
     it('creates an event spanning the dragged slots and persists it', async () => {
@@ -233,10 +181,6 @@ describe('drag to move', () => {
         })
         const cell = (day: string) =>
             screen.container.querySelector<HTMLElement>(`[data-sch-day="${day}"]`)!
-        const centre = (element: HTMLElement) => {
-            const rect = element.getBoundingClientRect()
-            return { clientX: rect.left + rect.width / 2, clientY: rect.top + rect.height / 2 }
-        }
         const wrapper = screen.container.querySelector<HTMLElement>('[data-sch-event="trip"]')!
         wrapper.dispatchEvent(pointer('pointerdown', centre(wrapper)))
         wrapper.dispatchEvent(pointer('pointermove', centre(cell('2026-09-11'))))
@@ -274,10 +218,6 @@ describe('drag to move', () => {
         })
         const cell = (day: string) =>
             screen.container.querySelector<HTMLElement>(`[data-sch-day="${day}"]`)!
-        const centre = (element: HTMLElement) => {
-            const rect = element.getBoundingClientRect()
-            return { clientX: rect.left + rect.width / 2, clientY: rect.top + rect.height / 2 }
-        }
         const top = (id: string) =>
             screen.container
                 .querySelector<HTMLElement>(`[data-sch-event="${id}"]`)!
@@ -804,6 +744,92 @@ describe('drag to resize', () => {
         expect(mutation.kind).toBe('resize')
         expect(iso(mutation.after!.start)).toBe('2026-09-09T09:00')
         expect(iso(mutation.after!.end)).toBe('2026-09-09T11:30')
+    })
+})
+
+describe('resize across days', () => {
+    const rightEdge = (element: Element) => {
+        const rect = element.getBoundingClientRect()
+        return { clientX: rect.right - 3, clientY: rect.top + rect.height / 2 }
+    }
+    const leftEdge = (element: Element) => {
+        const rect = element.getBoundingClientRect()
+        return { clientX: rect.left + 3, clientY: rect.top + rect.height / 2 }
+    }
+
+    it('extends an all-day event in the all-day row by dragging its end edge', async () => {
+        const onMutate = vi.fn()
+        const screen = render(BoundScheduler, {
+            initial: [input('trip', '2026-09-08', '2026-09-10', { allDay: true })],
+            onMutate,
+            date: anchor
+        })
+        const wrapper = screen.container.querySelector<HTMLElement>('[data-sch-event="trip"]')!
+        wrapper.dispatchEvent(pointer('pointermove', rightEdge(wrapper)))
+        expect(wrapper.dataset.schEdge).toBe('x')
+        expect(getComputedStyle(wrapper.querySelector('button')!).cursor).toBe('ew-resize')
+        const thu = screen.container.querySelector<HTMLElement>(
+            '[data-sch-day-index="3"][data-sch-all-day]'
+        )!
+        await drag(wrapper, rightEdge(wrapper), centre(thu))
+        const mutation: Mutation = onMutate.mock.calls[0][0]
+        expect(mutation.kind).toBe('resize')
+        expect(iso(mutation.after!.start)).toBe('2026-09-08T00:00')
+        expect(iso(mutation.after!.end)).toBe('2026-09-11T00:00')
+        expect(mutation.after!.allDay).toBe(true)
+    })
+
+    it('moves the start edge of a month span and keeps a timed event on the clock', async () => {
+        const onMutate = vi.fn()
+        const screen = render(BoundScheduler, {
+            initial: [input('a', '2026-09-09T13:15', '2026-09-10T14:45')],
+            onMutate,
+            date: anchor,
+            view: 'month'
+        })
+        const wrapper = screen.container.querySelector<HTMLElement>('[data-sch-event="a"]')!
+        const mon = screen.container.querySelector<HTMLElement>('[data-sch-day="2026-09-07"]')!
+        await drag(wrapper, leftEdge(wrapper), centre(mon))
+        const mutation: Mutation = onMutate.mock.calls[0][0]
+        expect(mutation.kind).toBe('resize')
+        expect(iso(mutation.after!.start)).toBe('2026-09-07T13:15')
+        expect(iso(mutation.after!.end)).toBe('2026-09-10T14:45')
+        expect(mutation.after!.allDay).not.toBe(true)
+    })
+
+    it('offers no edge where a span continues into the next row', async () => {
+        const screen = render(BoundScheduler, {
+            initial: [input('long', '2026-09-12', '2026-09-16', { allDay: true })],
+            date: anchor,
+            view: 'month'
+        })
+        const [first, second] = [
+            ...screen.container.querySelectorAll<HTMLElement>('[data-sch-event="long"]')
+        ]
+        first.dispatchEvent(pointer('pointermove', rightEdge(first)))
+        expect(first.dataset.schEdge).toBeUndefined()
+        second.dispatchEvent(pointer('pointermove', leftEdge(second)))
+        expect(second.dataset.schEdge).toBeUndefined()
+        second.dispatchEvent(pointer('pointermove', rightEdge(second)))
+        expect(second.dataset.schEdge).toBe('x')
+    })
+
+    it('treats the left edge as the end of the event in a right to left grid', async () => {
+        const onMutate = vi.fn()
+        const screen = render(BoundScheduler, {
+            initial: [input('trip', '2026-09-08', '2026-09-10', { allDay: true })],
+            onMutate,
+            date: anchor,
+            dir: 'rtl'
+        })
+        const wrapper = screen.container.querySelector<HTMLElement>('[data-sch-event="trip"]')!
+        const thu = screen.container.querySelector<HTMLElement>(
+            '[data-sch-day-index="3"][data-sch-all-day]'
+        )!
+        await drag(wrapper, leftEdge(wrapper), centre(thu))
+        const mutation: Mutation = onMutate.mock.calls[0][0]
+        expect(mutation.kind).toBe('resize')
+        expect(iso(mutation.after!.end)).toBe('2026-09-11T00:00')
     })
 })
 

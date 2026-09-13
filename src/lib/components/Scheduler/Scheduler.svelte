@@ -118,7 +118,6 @@
     let createdIds = 0
     let announcement = $state('')
     let loading = $state(false)
-    let gridNode: HTMLElement | null = null
     let columnRects: ColumnRect[] | null = null
     let announceToggle = false
     let inheritedDirection = $state<'ltr' | 'rtl'>('ltr')
@@ -246,7 +245,7 @@
         step: (direction) => step(direction),
         newEventId: () => `event-${Date.now().toString(36)}-${++createdIds}`,
         hitTest: (clientX, clientY) => {
-            if (!gridNode || !ref) return null
+            if (!ref) return null
             if (!gesture.active || !columnRects) columnRects = collectColumnRects(ref)
             return resolveHit({ clientX, clientY, columns: columnRects, days, scale })
         },
@@ -267,18 +266,8 @@
         inheritedDirection = getComputedStyle(node).direction === 'rtl' ? 'rtl' : 'ltr'
     }
 
-    const rememberGrid: Attachment<HTMLElement> = (node) => {
-        gridNode = node
-        return () => {
-            if (gridNode === node) gridNode = null
-        }
-    }
-
     const gridAttachment = $derived(
-        composeAttachments([
-            rememberGrid,
-            ...registry.interactions.map((plugin) => plugin.attach(interactionContext))
-        ])
+        composeAttachments(registry.interactions.map((plugin) => plugin.attach(interactionContext)))
     )
 
     const eventAttachment = $derived((position: PositionedEvent<T>): Attachment<HTMLElement> =>

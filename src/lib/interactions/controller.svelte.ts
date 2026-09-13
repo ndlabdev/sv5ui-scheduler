@@ -2,6 +2,7 @@ import type { SchedulerEvent } from '../types/event.types.js'
 import type { InteractionContext } from '../types/extension.types.js'
 import type { MutationKind } from '../types/mutation.types.js'
 import { announceMutation } from '../core/a11y/announce.js'
+import { isEditable } from '../core/store/normalize.js'
 import {
     applyDraft,
     createDraft,
@@ -194,8 +195,4 @@ function sameDraft(a: DraftRange, b: DraftRange): boolean {
 
 function previewKind(session: GestureSession): GestureMode {
     return session.external ? 'create' : session.mode
-}
-
-function isEditable(event: SchedulerEvent): boolean {
-    return event.editable !== false && event.background !== true
 }

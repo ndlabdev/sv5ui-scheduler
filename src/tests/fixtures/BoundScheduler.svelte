@@ -12,9 +12,17 @@
         onMutate?: MutationHandlers['onMutate']
         date?: ZonedDateTime
         view?: string
+        dir?: 'ltr' | 'rtl'
     }
 
-    let { initial, interactions = [], onMutate, date, view: initialView = 'week' }: Props = $props()
+    let {
+        initial,
+        interactions = [],
+        onMutate,
+        date,
+        view: initialView = 'week',
+        dir
+    }: Props = $props()
 
     let events = $state(untrack(() => initial))
     let view = $state(untrack(() => initialView))
@@ -33,5 +41,13 @@
 </script>
 
 <div style="height: 1400px">
-    <Scheduler bind:events bind:view timeZone="Asia/Ho_Chi_Minh" {date} {interactions} {onMutate} />
+    <Scheduler
+        bind:events
+        bind:view
+        timeZone="Asia/Ho_Chi_Minh"
+        {date}
+        {interactions}
+        {onMutate}
+        {dir}
+    />
 </div>

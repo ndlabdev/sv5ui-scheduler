@@ -13,6 +13,7 @@
     import type { SchedulerContext } from '../../types/extension.types.js'
     import type { EventDetailSnippetProps } from '../../types/snippet.types.js'
     import { formatDayRange, formatLongDate, formatTimeRange } from '../../core/time/format.js'
+    import { isEditable } from '../../core/store/normalize.js'
     import { isSameDay } from '../../core/time/zone.js'
     import { EVENT_SWATCH } from '../EventChip/event-chip.variants.js'
     import AnchoredPopover from './AnchoredPopover.svelte'
@@ -55,7 +56,7 @@
             ? scheduler.labels.allDay
             : formatTimeRange(event.start, event.end, scheduler.locale, scheduler.hour12)
     )
-    const deletable = $derived(event.editable !== false && event.background !== true)
+    const deletable = $derived(isEditable(event))
 
     function select() {
         onSelect(event.id)

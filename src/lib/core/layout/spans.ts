@@ -23,7 +23,7 @@ export function layoutSpans<T>(
     const positions: SpanPosition<T>[] = []
 
     for (const rowSpans of groupByRow(rows)) {
-        const lanes = assignLanes(rowSpans)
+        const lanes = assignLanes(rowSpans.map((span) => ({ ...span, order: startMs(span) })))
         rowSpans.forEach((span, i) => {
             positions.push({ kind: 'span', ...span, lane: lanes[i] })
         })
@@ -115,19 +115,17 @@ export function insertSpans<T>(
     excludeId: string | null,
     maxLanes = Infinity
 ): InsertedSpans<T> {
-    const ghostSet = new Set(ghosts)
     const kept = spans.filter((span) => span.event.id !== excludeId)
     const rows = new Set([...kept, ...ghosts].map((span) => span.row))
     const result: InsertedSpans<T> = { spans: [], ghosts: [] }
     for (const row of rows) {
-        const lanes: Span[][] = []
-        const inRow = [...ghosts, ...kept].filter((span) => span.row === row)
-        for (const span of sortForLanes(inRow)) {
-            let lane = lanes.findIndex((occupied) => fits(occupied, span))
-            if (lane === -1) lane = lanes.push([]) - 1
-            lanes[lane].push(span)
-            ;(ghostSet.has(span) ? result.ghosts : result.spans).push({ ...span, lane })
-        }
+        const rowGhosts = ghosts.filter((span) => span.row === row)
+        const inRow = [...rowGhosts, ...kept.filter((span) => span.row === row)]
+        const lanes = assignLanes(inRow.map((span) => ({ ...span, order: startMs(span) })))
+        inRow.forEach((span, index) => {
+            const target = index < rowGhosts.length ? result.ghosts : result.spans
+            target.push({ ...span, lane: lanes[index] })
+        })
     }
     return keepGhostsVisible(result, maxLanes)
 }
@@ -140,28 +138,17 @@ function keepGhostsVisible<T>(inserted: InsertedSpans<T>, maxLanes: number): Ins
         ghost.lane > last ? { ...ghost, lane: last } : ghost
     )
     const spans = inserted.spans.map((span) =>
-        span.lane === last && sunk.some((ghost) => ghost.row === span.row && !fits([ghost], span))
+        span.lane === last && sunk.some((ghost) => ghost.row === span.row && overlaps(ghost, span))
             ? { ...span, lane: maxLanes }
             : span
     )
     return { spans, ghosts }
 }
 
-function fits(occupied: readonly Span[], span: Span): boolean {
-    return occupied.every(
-        (other) => other.endColumn <= span.startColumn || other.startColumn >= span.endColumn
-    )
+function overlaps(a: Span, b: Span): boolean {
+    return a.startColumn < b.endColumn && b.startColumn < a.endColumn
 }
 
-function sortForLanes<T>(spans: SpanPosition<T>[]): SpanPosition<T>[] {
-    return spans
-        .map((span, index) => ({ span, index }))
-        .sort(
-            (a, b) =>
-                a.span.startColumn - b.span.startColumn ||
-                b.span.endColumn - b.span.startColumn - (a.span.endColumn - a.span.startColumn) ||
-                a.span.event.start.compare(b.span.event.start) ||
-                a.index - b.index
-        )
-        .map(({ span }) => span)
+function startMs(span: { readonly event: SchedulerEvent }): number {
+    return span.event.start.toDate().getTime()
 }

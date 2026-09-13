@@ -1,48 +1,30 @@
-import { parseZonedDateTime } from '@internationalized/date'
 import { describe, expect, it, vi } from 'vitest'
 import { render } from 'vitest-browser-svelte'
 import type { Mutation } from '../lib/types/mutation.types.js'
 import DragSourceScheduler from './fixtures/DragSourceScheduler.svelte'
+import {
+    anchor,
+    centre,
+    column as timeColumn,
+    frame,
+    iso,
+    pointAt,
+    pointer,
+    settle,
+    wait
+} from './fixtures/dom.js'
 
-const anchor = parseZonedDateTime('2026-09-09T12:00[Asia/Ho_Chi_Minh]')
 const item = { title: 'Site visit', color: 'warning' as const, data: { crew: 3 } }
 const HOLD = 350
-const frame = () => new Promise((resolve) => requestAnimationFrame(resolve))
-const settle = () => new Promise((resolve) => setTimeout(resolve, 30))
-const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
-const iso = (date: { toString(): string }) => date.toString().slice(0, 16)
 
 const source = (container: Element) => container.querySelector<HTMLElement>('[data-source]')!
+const ghost = (root: Element) => root.querySelector('[data-sch-ghost]')
+
 function column(root: Element, day: string) {
-    const cell = root.querySelector<HTMLElement>(
-        `[data-sch-day="${day}"][data-sch-day-index]:not([data-sch-all-day])`
-    )!
+    const cell = timeColumn(root, day)
     const viewport = cell.closest<HTMLElement>('[data-scroll-area-viewport]')
     if (viewport) viewport.scrollTop = 0
     return cell
-}
-const ghost = (root: Element) => root.querySelector('[data-sch-ghost]')
-
-function pointAt(element: HTMLElement, minutes: number) {
-    const rect = element.getBoundingClientRect()
-    return { clientX: rect.left + rect.width / 2, clientY: rect.top + (minutes / 30) * 24 + 1 }
-}
-
-function centre(element: HTMLElement) {
-    const rect = element.getBoundingClientRect()
-    return { clientX: rect.left + rect.width / 2, clientY: rect.top + rect.height / 2 }
-}
-
-function pointer(type: string, at: { clientX: number; clientY: number }, pointerType = 'mouse') {
-    return new PointerEvent(type, {
-        ...at,
-        pointerId: pointerType === 'touch' ? 7 : 1,
-        pointerType,
-        bubbles: true,
-        cancelable: true,
-        isPrimary: true,
-        button: 0
-    })
 }
 
 describe('drag from outside', () => {

@@ -1,27 +1,13 @@
-import { parseZonedDateTime } from '@internationalized/date'
 import { createRawSnippet } from 'svelte'
 import { describe, expect, it } from 'vitest'
 import { render } from 'vitest-browser-svelte'
 import { Scheduler } from '../lib/index.js'
 import { vi as viLabels } from '../lib/locales.js'
-import type { EventInput } from '../lib/types/event.types.js'
 import type { CellSnippetProps, HeaderSnippetProps } from '../lib/types/snippet.types.js'
+import { ZONE, anchor, column, input } from './fixtures/dom.js'
 
-const ZONE = 'Asia/Ho_Chi_Minh'
-const anchor = parseZonedDateTime('2026-09-09T12:00[Asia/Ho_Chi_Minh]')
 const holidays = [{ date: '2026-09-10', title: 'Mid-Autumn' }, { date: '2026-09-11' }]
 const base = { timeZone: ZONE, date: anchor, holidays, weekStartsOn: 1 as const }
-const input = (id: string, start: string, end: string): EventInput => ({
-    id,
-    title: id,
-    start,
-    end
-})
-
-const column = (container: Element, day: string) =>
-    container.querySelector<HTMLElement>(
-        `[data-sch-day="${day}"][data-sch-day-index]:not([data-sch-all-day])`
-    )!
 const header = (container: Element, day: string) =>
     container.querySelector<HTMLElement>(`[data-sch-day="${day}"]:not([data-sch-day-index])`)!
 const background = (element: Element) => getComputedStyle(element).backgroundColor

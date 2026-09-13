@@ -14,7 +14,15 @@
         formatWeekday,
         formatWeekdayLong
     } from '../../core/time/format.js'
-    import { isoWeek, isoWeekOfRow, weekDayOf } from '../../core/time/week.js'
+    import {
+        dayFlags,
+        holidaysByDate,
+        isBusinessDay,
+        isoDate,
+        parseClock
+    } from '../../core/time/day-flags.js'
+    import { isoWeek, isoWeekOfRow } from '../../core/time/week.js'
+    import { isEditable } from '../../core/store/normalize.js'
     import { isSameDay } from '../../core/time/zone.js'
     import EventChip from '../EventChip/EventChip.svelte'
     import EventPopover from './EventPopover.svelte'
@@ -92,7 +100,7 @@
     const todayIndex = $derived(days.findIndex((day) => isSameDay(day, scheduler.now)))
     const nowTop = $derived(scale.toPixel(scheduler.now))
     const nowLabel = $derived(formatTime(scheduler.now, scheduler.locale, scheduler.hour12))
-    const holidays = $derived(new Map(scheduler.holidays.map((holiday) => [holiday.date, holiday])))
+    const holidays = $derived(holidaysByDate(scheduler.holidays))
     const week = $derived(single ? isoWeek(days[0]) : isoWeekOfRow(days[0]))
     const hourLabels = $derived(
         Array.from({ length: 23 }, (_, i) => {
@@ -135,8 +143,6 @@
         return single ? (first ?? now ?? fallback) : (now ?? first ?? fallback)
     }
 
-    const isoDate = (day: ZonedDateTime) => day.toString().slice(0, 10)
-    const isWeekend = (day: ZonedDateTime) => weekDayOf(day) === 0 || weekDayOf(day) === 6
     const columnTint = (day: ZonedDateTime, dayIndex: number) => [
         holidays.has(isoDate(day)) ? classes.holidayColumn() : '',
         dayIndex === todayIndex && !single ? classes.todayColumn() : ''
@@ -144,7 +150,7 @@
 
     function offHours(day: ZonedDateTime): { top: number; height: number }[] {
         const hours = scheduler.businessHours
-        if (!hours || holidays.has(isoDate(day)) || !hours.days.includes(weekDayOf(day))) return []
+        if (!hours || holidays.has(isoDate(day)) || !isBusinessDay(day, hours)) return []
         const open = scale.toPixel(day.set(parseClock(hours.start)))
         const close = scale.toPixel(day.set(parseClock(hours.end)))
         return [
@@ -153,25 +159,14 @@
         ].filter((block) => block.height > 0)
     }
 
-    function parseClock(value: string): { hour: number; minute: number } {
-        const [hour, minute] = value.split(':').map(Number)
-        return { hour, minute }
-    }
-
     function cellProps(day: ZonedDateTime, dayIndex: number) {
         return {
             date: day,
             view,
             isToday: dayIndex === todayIndex,
-            isWeekend: isWeekend(day),
-            isHoliday: holidays.has(isoDate(day)),
-            isBusinessHours: !holidays.has(isoDate(day)) && isBusinessDay(day),
+            ...dayFlags(day, holidays, scheduler.businessHours),
             isOutside: false
         }
-    }
-
-    function isBusinessDay(day: ZonedDateTime): boolean {
-        return scheduler.businessHours?.days.includes(weekDayOf(day)) ?? !isWeekend(day)
     }
 
     const columnOffset = (position: TimePosition<T>) =>
@@ -179,7 +174,9 @@
     const columnWidth = (position: TimePosition<T>) => `${(position.width * 100) / days.length}%`
 
     const draggable = (event: SchedulerEvent<T>) =>
-        event.editable !== false && event.background !== true ? classes.eventDraggable() : ''
+        isEditable(event) ? classes.eventDraggable() : ''
+    const draggableSpan = (event: SchedulerEvent<T>) =>
+        isEditable(event) ? classes.allDayEventDraggable() : ''
 
     function eventProps(position: TimePosition<T>) {
         return {
@@ -309,7 +306,7 @@
                         <div
                             class={classes.allDayEvent({
                                 class: [
-                                    draggable(position.event),
+                                    draggableSpan(position.event),
                                     position.event.id === draggingId
                                         ? classes.allDayEventLifted()
                                         : ''

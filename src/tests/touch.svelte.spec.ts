@@ -1,46 +1,12 @@
-import { parseZonedDateTime } from '@internationalized/date'
 import { describe, expect, it, vi } from 'vitest'
 import { render } from 'vitest-browser-svelte'
-import type { EventInput } from '../lib/types/event.types.js'
 import type { Mutation } from '../lib/types/mutation.types.js'
 import BoundScheduler from './fixtures/BoundScheduler.svelte'
+import { anchor, column, frame, grid, input, iso, pointAt, pointer, wait } from './fixtures/dom.js'
 
-const anchor = parseZonedDateTime('2026-09-09T12:00[Asia/Ho_Chi_Minh]')
 const HOLD = 350
-const input = (id: string, start: string, end: string): EventInput => ({
-    id,
-    title: id,
-    start,
-    end
-})
-const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
-const frame = () => new Promise((resolve) => requestAnimationFrame(resolve))
-const iso = (date: { toString(): string }) => date.toString().slice(0, 16)
-
-const grid = (container: Element) =>
-    container.querySelector<HTMLElement>('[data-sch-time-grid] [role="application"]')!
-const column = (container: Element, day: string) =>
-    container.querySelector<HTMLElement>(
-        `[data-sch-day="${day}"][data-sch-day-index]:not([data-sch-all-day])`
-    )!
 const ghost = (container: Element) => container.querySelector('[data-sch-ghost]')
-
-function pointAt(element: HTMLElement, minutes: number) {
-    const rect = element.getBoundingClientRect()
-    return { clientX: rect.left + rect.width / 2, clientY: rect.top + (minutes / 30) * 24 + 1 }
-}
-
-function touch(type: string, at: { clientX: number; clientY: number }) {
-    return new PointerEvent(type, {
-        ...at,
-        pointerId: 7,
-        pointerType: 'touch',
-        bubbles: true,
-        cancelable: true,
-        isPrimary: true,
-        button: 0
-    })
-}
+const touch = (type: string, at: { clientX: number; clientY: number }) => pointer(type, at, 'touch')
 
 function touchMove(target: HTMLElement) {
     const event = new TouchEvent('touchmove', { bubbles: true, cancelable: true })

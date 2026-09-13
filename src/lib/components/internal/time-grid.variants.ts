@@ -35,6 +35,10 @@ export const timeGridVariants = tv({
         allDayCell: 'border-outline-variant/60 relative border-s',
         allDayEvents: 'pointer-events-none absolute inset-0 grid gap-y-1 p-1',
         allDayEvent: 'pointer-events-auto min-w-0 cursor-pointer **:cursor-pointer',
+        allDayEventDraggable: [
+            'cursor-grab **:cursor-grab',
+            'data-[sch-edge=x]:cursor-ew-resize data-[sch-edge=x]:**:cursor-ew-resize'
+        ],
         allDayEventLifted: 'invisible',
         allDayGhost: 'pointer-events-none z-20 min-w-0',
         body: 'relative min-h-0 flex-1',
@@ -56,7 +60,7 @@ export const timeGridVariants = tv({
         event: 'absolute min-w-0 cursor-pointer px-0.5 pb-0.5 **:cursor-pointer',
         eventDraggable: [
             'cursor-grab **:cursor-grab',
-            'data-[sch-edge]:cursor-ns-resize data-[sch-edge]:**:cursor-ns-resize'
+            'data-[sch-edge=y]:cursor-ns-resize data-[sch-edge=y]:**:cursor-ns-resize'
         ],
         ghost: [
             'pointer-events-none absolute z-20 min-w-0 px-0.5 pb-0.5',

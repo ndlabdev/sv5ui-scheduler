@@ -7,21 +7,7 @@ import type { InteractionPlugin } from '../lib/types/extension.types.js'
 import type { EventSourceFn } from '../lib/types/source.types.js'
 import BoundScheduler from './fixtures/BoundScheduler.svelte'
 import SourceScheduler from './fixtures/SourceScheduler.svelte'
-
-const ZONE = 'Asia/Ho_Chi_Minh'
-const anchor = parseZonedDateTime('2026-09-09T12:00[Asia/Ho_Chi_Minh]')
-const input = (
-    id: string,
-    start: string,
-    end: string,
-    extra: Partial<EventInput> = {}
-): EventInput => ({
-    id,
-    title: id,
-    start,
-    end,
-    ...extra
-})
+import { ZONE, anchor, input } from './fixtures/dom.js'
 
 const columns = (container: Element) => [
     ...container.querySelectorAll<HTMLElement>('[data-sch-day-index]:not([data-sch-all-day])')

@@ -10,7 +10,9 @@
         formatWeekdayLong
     } from '../../core/time/format.js'
     import { eachDay } from '../../core/time/range.js'
+    import { dayFlags, holidaysByDate, isoDate } from '../../core/time/day-flags.js'
     import { isoWeekOfRow, weekDayOf } from '../../core/time/week.js'
+    import { isEditable } from '../../core/store/normalize.js'
     import { isSameDay } from '../../core/time/zone.js'
     import EventChip from '../EventChip/EventChip.svelte'
     import AnchoredPopover from './AnchoredPopover.svelte'
@@ -67,10 +69,8 @@
     const counts = $derived(countByCell(spans, COLUMNS))
     const todayWeekDay = $derived(weekDayOf(scheduler.now))
     const showTodayColumn = $derived(days.some((day) => isSameDay(day, scheduler.now)))
-    const holidays = $derived(new Map(scheduler.holidays.map((holiday) => [holiday.date, holiday])))
+    const holidays = $derived(holidaysByDate(scheduler.holidays))
 
-    const isoDate = (day: ZonedDateTime) => day.toString().slice(0, 10)
-    const isWeekend = (day: ZonedDateTime) => weekDayOf(day) === 0 || weekDayOf(day) === 6
     const isOutside = (day: ZonedDateTime) => day.month !== anchor.month
     const isToday = (day: ZonedDateTime) => isSameDay(day, scheduler.now)
 
@@ -78,7 +78,7 @@
         span.row * cellHeight + HEADER_HEIGHT + span.lane * LANE_HEIGHT
 
     const draggable = (event: SchedulerEvent<T>) =>
-        event.editable !== false && event.background !== true ? classes.eventDraggable() : ''
+        isEditable(event) ? classes.eventDraggable() : ''
 
     function spansOn(dayIndex: number) {
         const row = Math.floor(dayIndex / COLUMNS)
@@ -88,10 +88,6 @@
                 (span) => span.row === row && span.startColumn <= column && span.endColumn > column
             )
             .sort((a, b) => a.lane - b.lane)
-    }
-
-    function isBusinessDay(day: ZonedDateTime): boolean {
-        return scheduler.businessHours?.days.includes(weekDayOf(day)) ?? !isWeekend(day)
     }
 
     function cellLabel(day: ZonedDateTime, dayIndex: number): string {
@@ -106,9 +102,7 @@
             date: day,
             view,
             isToday: isToday(day),
-            isWeekend: isWeekend(day),
-            isHoliday: holidays.has(isoDate(day)),
-            isBusinessHours: !holidays.has(isoDate(day)) && isBusinessDay(day),
+            ...dayFlags(day, holidays, scheduler.businessHours),
             isOutside: isOutside(day)
         }
     }

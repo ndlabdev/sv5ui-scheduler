@@ -1,5 +1,6 @@
 import type { ZonedDateTime } from '@internationalized/date'
 import type { SchedulerEvent } from '../../types/event.types.js'
+import { isoDate } from '../time/day-flags.js'
 import type { DateRange } from '../../types/range.types.js'
 import { intersect, splitByDay, type DaySegment } from '../time/range.js'
 
@@ -56,8 +57,7 @@ export function daysWithEvents(
     for (const event of events) {
         const visible = intersect({ start: event.start, end: event.end }, range)
         if (!visible) continue
-        for (const segment of splitByDay(visible))
-            days.add(segment.dayStart.toString().slice(0, 10))
+        for (const segment of splitByDay(visible)) days.add(isoDate(segment.dayStart))
     }
     return days
 }

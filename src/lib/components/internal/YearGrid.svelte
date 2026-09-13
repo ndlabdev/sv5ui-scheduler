@@ -11,6 +11,7 @@
     } from '../../core/time/format.js'
     import { eachDay } from '../../core/time/range.js'
     import { monthRange } from '../../core/time/view-ranges.js'
+    import { holidaysByDate, isoDate } from '../../core/time/day-flags.js'
     import { isoWeekOfRow } from '../../core/time/week.js'
     import { isSameDay } from '../../core/time/zone.js'
     import WeekNumber from './WeekNumber.svelte'
@@ -32,9 +33,7 @@
             return { first, weeks }
         })
     )
-    const holidays = $derived(new Map(scheduler.holidays.map((holiday) => [holiday.date, holiday])))
-
-    const isoDate = (day: ZonedDateTime) => day.toString().slice(0, 10)
+    const holidays = $derived(holidaysByDate(scheduler.holidays))
 
     function dayLabel(day: ZonedDateTime): string {
         const date = formatLongDate(day, scheduler.locale)

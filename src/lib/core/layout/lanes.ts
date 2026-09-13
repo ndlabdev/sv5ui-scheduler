@@ -1,6 +1,7 @@
 export interface Span {
     readonly startColumn: number
     readonly endColumn: number
+    readonly order?: number
 }
 
 export function assignLanes(spans: readonly Span[]): number[] {
@@ -10,6 +11,7 @@ export function assignLanes(spans: readonly Span[]): number[] {
             (a, b) =>
                 a.span.startColumn - b.span.startColumn ||
                 b.span.endColumn - b.span.startColumn - (a.span.endColumn - a.span.startColumn) ||
+                (a.span.order ?? 0) - (b.span.order ?? 0) ||
                 a.index - b.index
         )
 

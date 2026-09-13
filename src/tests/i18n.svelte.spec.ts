@@ -1,4 +1,5 @@
 import { parseZonedDateTime } from '@internationalized/date'
+import { tap, wait } from './fixtures/dom.js'
 import { createRawSnippet } from 'svelte'
 import { describe, expect, it } from 'vitest'
 import { render } from 'vitest-browser-svelte'
@@ -10,7 +11,7 @@ import type { SchedulerLabels } from '../lib/types/labels.types.js'
 const MARK = 'qx'
 const ZONE = 'Asia/Tokyo'
 const anchor = parseZonedDateTime('2026-09-09T12:00[Asia/Tokyo]')
-const settle = () => new Promise((resolve) => setTimeout(resolve, 60))
+const settle = () => wait(60)
 const ATTRIBUTES = [
     'aria-label',
     'aria-description',
@@ -55,13 +56,6 @@ const events = [
         input(`busy${i}`, '2026-09-15T08:00', '2026-09-15T09:00')
     )
 ]
-
-function tap(target: Element) {
-    const at = { pointerId: 1, bubbles: true, isPrimary: true, button: 0 }
-    target.dispatchEvent(new PointerEvent('pointerdown', at))
-    target.dispatchEvent(new PointerEvent('pointerup', at))
-    target.dispatchEvent(new MouseEvent('click', { bubbles: true }))
-}
 
 function strings(root: Element): string[] {
     const found: string[] = []

@@ -43,7 +43,10 @@ export const monthGridVariants = tv({
         popoverList: 'flex flex-col gap-1',
         events: 'pointer-events-none absolute inset-x-0 grid',
         event: 'pointer-events-auto min-w-0 cursor-pointer px-1.5 pt-1 **:cursor-pointer',
-        eventDraggable: 'cursor-grab **:cursor-grab',
+        eventDraggable: [
+            'cursor-grab **:cursor-grab',
+            'data-[sch-edge=x]:cursor-ew-resize data-[sch-edge=x]:**:cursor-ew-resize'
+        ],
         eventLifted: 'invisible',
         ghost: [
             'pointer-events-none absolute z-20 min-w-0 px-1.5 pt-1',

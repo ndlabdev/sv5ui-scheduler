@@ -9,7 +9,10 @@ export function moveInteraction<T>(controller: GestureController<T>): Interactio
         attachEvent: (context, position) => (node) =>
             pointerDrag(node, {
                 onStart: ({ event }) => {
-                    if (!isPrimaryButton(event) || edgeAt(node, event.clientY)) return false
+                    const rtl = context.scheduler.direction === 'rtl'
+                    if (!isPrimaryButton(event) || edgeAt({ node, position, rtl }, event)) {
+                        return false
+                    }
                     const hit = context.hitTest(event.clientX, event.clientY)
                     if (!hit) return false
                     context.select(position.event.id)

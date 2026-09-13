@@ -40,6 +40,10 @@ const COMPARED_FIELDS = [
     'color'
 ] as const
 
+export function isEditable(event: Pick<SchedulerEvent, 'editable' | 'background'>): boolean {
+    return event.editable !== false && event.background !== true
+}
+
 export function isSameEvent(a: SchedulerEvent, b: SchedulerEvent): boolean {
     if (a.id !== b.id) return false
     if (a.start.compare(b.start) !== 0 || a.end.compare(b.end) !== 0) return false

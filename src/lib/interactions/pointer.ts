@@ -1,4 +1,5 @@
 import { useEventListener, usePointerDrag, type PointerDragContext } from 'sv5ui'
+import type { PositionedEvent } from '../types/extension.types.js'
 import { createAutoScroller } from './autoscroll.js'
 import type { ResizeEdge } from './gesture.js'
 
@@ -116,12 +117,46 @@ function longPress(node: HTMLElement, options: LongPressOptions) {
     return { begin, cancel }
 }
 
-export function edgeAt(node: HTMLElement, clientY: number, size = EDGE_SIZE): ResizeEdge | null {
-    const rect = node.getBoundingClientRect()
+export interface EdgeOptions {
+    readonly node: HTMLElement
+    readonly position: PositionedEvent
+    readonly rtl: boolean
+}
+
+export function edgeAt(
+    options: EdgeOptions,
+    point: { clientX: number; clientY: number },
+    size = EDGE_SIZE
+): ResizeEdge | null {
+    const rect = options.node.getBoundingClientRect()
+    if (options.position.kind === 'time') return verticalEdge(rect, point.clientY, size)
+    const edge = horizontalEdge(rect, point.clientX, size, options.rtl)
+    if (edge === 'start' && options.position.continuesBefore) return null
+    if (edge === 'end' && options.position.continuesAfter) return null
+    return edge
+}
+
+function verticalEdge(rect: DOMRect, clientY: number, size: number): ResizeEdge | null {
     if (rect.height < size * 3) return null
     if (clientY - rect.top <= size) return 'start'
     if (rect.bottom - clientY <= size) return 'end'
     return null
+}
+
+function horizontalEdge(
+    rect: DOMRect,
+    clientX: number,
+    size: number,
+    rtl: boolean
+): ResizeEdge | null {
+    if (rect.width < size * 3) return null
+    if (clientX - rect.left <= size) return rtl ? 'end' : 'start'
+    if (rect.right - clientX <= size) return rtl ? 'start' : 'end'
+    return null
+}
+
+export function edgeAxis(position: PositionedEvent): 'x' | 'y' {
+    return position.kind === 'span' ? 'x' : 'y'
 }
 
 export function isPrimaryButton(event: PointerEvent): boolean {

@@ -149,6 +149,7 @@ export function resizeDraft(
     slotMinutes: number
 ): DraftRange {
     const allDay = event.allDay === true
+    if (!allDay && current.allDay) return resizeByDays(event, edge, current, slotMinutes)
     if (edge === 'end') {
         const floor = allDay ? endOfDay(event.start) : event.start.add({ minutes: slotMinutes })
         const target = allDay ? endOfDay(current.date) : snapToSlot(current.date, slotMinutes)
@@ -159,6 +160,24 @@ export function resizeDraft(
         : event.end.subtract({ minutes: slotMinutes })
     const target = allDay ? startOfDay(current.date) : snapToSlot(current.date, slotMinutes)
     return { start: earliest(target, ceiling), end: event.end, allDay }
+}
+
+function resizeByDays(
+    event: Pick<SchedulerEvent, 'start' | 'end'>,
+    edge: ResizeEdge,
+    current: GesturePoint,
+    slotMinutes: number
+): DraftRange {
+    if (edge === 'end') {
+        const days = wallOffset(startOfDay(event.end), startOfDay(current.date)).days
+        const target = shiftWall(event.end, { days, minutes: 0 })
+        const floor = event.start.add({ minutes: slotMinutes })
+        return { start: event.start, end: latest(target, floor), allDay: false }
+    }
+    const days = wallOffset(startOfDay(event.start), startOfDay(current.date)).days
+    const target = shiftWall(event.start, { days, minutes: 0 })
+    const ceiling = event.end.subtract({ minutes: slotMinutes })
+    return { start: earliest(target, ceiling), end: event.end, allDay: false }
 }
 
 export function applyDraft<T>(event: SchedulerEvent<T>, draft: DraftRange): SchedulerEvent<T> {

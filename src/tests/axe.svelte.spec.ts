@@ -1,20 +1,11 @@
-import { parseZonedDateTime } from '@internationalized/date'
 import axe from 'axe-core'
 import { createRawSnippet } from 'svelte'
 import { describe, expect, it } from 'vitest'
 import { render } from 'vitest-browser-svelte'
 import { Scheduler } from '../lib/index.js'
-import type { EventInput } from '../lib/types/event.types.js'
+import { ZONE, anchor, input, tap, wait } from './fixtures/dom.js'
 
-const ZONE = 'Asia/Ho_Chi_Minh'
-const anchor = parseZonedDateTime('2026-09-09T12:00[Asia/Ho_Chi_Minh]')
-const settle = () => new Promise((resolve) => setTimeout(resolve, 60))
-const input = (
-    id: string,
-    start: string,
-    end: string,
-    extra: Partial<EventInput> = {}
-): EventInput => ({ id, title: id, start, end, ...extra })
+const settle = () => wait(60)
 
 const events = [
     input('standup', '2026-09-09T09:00', '2026-09-09T09:30', { color: 'secondary' }),
@@ -26,13 +17,6 @@ const events = [
         input(`busy-${i}`, '2026-09-15T08:00', '2026-09-15T09:00', { color: 'tertiary' })
     )
 ]
-
-function tap(target: Element) {
-    const at = { pointerId: 1, bubbles: true, isPrimary: true, button: 0 }
-    target.dispatchEvent(new PointerEvent('pointerdown', at))
-    target.dispatchEvent(new PointerEvent('pointerup', at))
-    target.dispatchEvent(new MouseEvent('click', { bubbles: true }))
-}
 
 const actions = createRawSnippet(() => ({
     render: () => '<button type="button">Share</button>'
