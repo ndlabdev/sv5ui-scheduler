@@ -35,6 +35,11 @@ export interface CellSnippetProps {
 
     isToday: boolean
 
+    /**
+     * The day the scheduler's `date` points at.
+     */
+    isAnchor: boolean
+
     isWeekend: boolean
 
     isHoliday: boolean
@@ -64,6 +69,11 @@ export interface HeaderSnippetProps {
     label: string
 
     isToday: boolean
+
+    /**
+     * The day the scheduler's `date` points at.
+     */
+    isAnchor: boolean
 
     /**
      * The holiday on this day, if any.

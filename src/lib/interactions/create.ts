@@ -1,4 +1,3 @@
-import { useEventListener } from 'sv5ui'
 import type { HitTarget, InteractionPlugin } from '../types/extension.types.js'
 import type { GestureController } from './controller.svelte.js'
 import { minutesOfDay } from './gesture.js'
@@ -32,14 +31,15 @@ export function createInteraction<T>(controller: GestureController<T>): Interact
                     if (hit) controller.update(hit)
                 },
                 onEnd: () => {
+                    if (anchor?.keepsTime) context.navigate(anchor.date)
                     anchor = null
                     controller.commit()
+                },
+                onTap: (event) => {
+                    if (eventIdAt(event.target) || isInteractiveTarget(event.target, node)) return
+                    const hit = context.hitTest(event.clientX, event.clientY)
+                    if (hit?.keepsTime) context.navigate(hit.date)
                 }
-            })
-            useEventListener(node, 'dblclick', (event) => {
-                if (eventIdAt(event.target) || isInteractiveTarget(event.target, node)) return
-                const hit = context.hitTest(event.clientX, event.clientY)
-                if (hit) controller.createAt(hit)
             })
             return stopDrag
         }

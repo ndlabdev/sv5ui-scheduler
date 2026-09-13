@@ -436,6 +436,11 @@ export interface InteractionContext<T = unknown> {
     step: (direction: 1 | -1) => void
 
     /**
+     * Move the scheduler to `date`, switching to `view` when given.
+     */
+    navigate: (date: ZonedDateTime, view?: string) => void
+
+    /**
      * Identifier for an event the interaction is about to create.
      */
     newEventId: () => string

@@ -3,7 +3,8 @@ import { describe, expect, it, vi } from 'vitest'
 import { render } from 'vitest-browser-svelte'
 import { DateNavigator, Scheduler } from '../lib/index.js'
 import SidebarScheduler from './fixtures/SidebarScheduler.svelte'
-import { ZONE, anchor, column, input, wait } from './fixtures/dom.js'
+import { userEvent } from 'vitest/browser'
+import { ZONE, anchor, centre, column, drag, input, pointer, wait } from './fixtures/dom.js'
 
 const settle = () => wait(60)
 const sidebar = (root: Element) => root.querySelector<HTMLElement>('[data-sch-sidebar]')
@@ -144,6 +145,77 @@ describe('Scheduler sidebar', () => {
         expect(
             withMenu.container.querySelector('button[aria-label="Toggle sidebar"]')
         ).not.toBeNull()
+    })
+})
+
+describe('selected day sync', () => {
+    const selectedInNavigator = (root: Element) =>
+        root.querySelector('[data-sch-date-navigator] [data-selected]')?.getAttribute('data-value')
+    const anchorCell = (root: Element) =>
+        root.querySelector('[data-sch-month-grid] [data-sch-anchor]')?.getAttribute('data-sch-day')
+
+    it('marks the picked day in the month grid when the navigator changes it', async () => {
+        const screen = render(SidebarScheduler, { props: { date: anchor, view: 'month' } })
+        const root = screen.container
+        expect(anchorCell(root)).toBe('2026-09-09')
+        await screen.getByRole('button', { name: /September 18/ }).click()
+        await settle()
+        expect(anchorCell(root)).toBe('2026-09-18')
+        expect(selectedInNavigator(root)).toBe('2026-09-18')
+        const number = root.querySelector('[data-sch-anchor] span')!
+        expect(number.className).toContain('ring-primary')
+    })
+
+    it('selects the day in the navigator when a month cell is clicked, and only then', async () => {
+        const screen = render(SidebarScheduler, {
+            props: {
+                date: anchor,
+                view: 'month',
+                events: [input('a', '2026-09-16T09:00', '2026-09-16T10:00')]
+            }
+        })
+        const root = screen.container
+        const cell = root.querySelector<HTMLElement>('[data-sch-day="2026-09-22"]')!
+        await userEvent.click(cell, { position: { x: 20, y: cell.clientHeight - 10 } })
+        await settle()
+        expect(selectedInNavigator(root)).toBe('2026-09-22')
+        expect(anchorCell(root)).toBe('2026-09-22')
+
+        await userEvent.click(root.querySelector<HTMLElement>('[data-sch-event-id="a"]')!)
+        await settle()
+        expect(selectedInNavigator(root)).toBe('2026-09-22')
+
+        const target = root.querySelector<HTMLElement>('[data-sch-day="2026-09-24"]')!
+        const from = centre(target)
+        const to = centre(root.querySelector<HTMLElement>('[data-sch-day="2026-09-25"]')!)
+        await drag(
+            root.querySelector<HTMLElement>('[data-sch-month-grid] [role="application"]')!,
+            from,
+            to
+        )
+        expect(selectedInNavigator(root)).toBe('2026-09-22')
+    })
+
+    it('selects the day from a quick touch tap too', async () => {
+        const screen = render(SidebarScheduler, { props: { date: anchor, view: 'month' } })
+        const root = screen.container
+        const grid = root.querySelector<HTMLElement>('[data-sch-month-grid] [role="application"]')!
+        const cell = root.querySelector<HTMLElement>('[data-sch-day="2026-09-23"]')!
+        const at = centre(cell)
+        grid.dispatchEvent(pointer('pointerdown', at, 'touch'))
+        await wait(40)
+        grid.dispatchEvent(pointer('pointerup', at, 'touch'))
+        await settle()
+        expect(selectedInNavigator(root)).toBe('2026-09-23')
+    })
+
+    it('outlines the picked day in the week header', async () => {
+        const screen = render(SidebarScheduler, { props: { date: anchor } })
+        const root = screen.container
+        await screen.getByRole('button', { name: /September 11/ }).click()
+        await settle()
+        const header = root.querySelector('[data-sch-time-grid] [data-sch-anchor]')
+        expect(header?.getAttribute('data-sch-day')).toBe('2026-09-11')
     })
 })
 

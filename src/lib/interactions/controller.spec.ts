@@ -53,6 +53,7 @@ function harness() {
         focus: null,
         setFocus: vi.fn(),
         step: vi.fn(),
+        navigate: vi.fn(),
         newEventId: () => `new-${++ids}`,
         hitTest: () => null,
         snap: (date) => date,

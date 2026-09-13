@@ -250,6 +250,7 @@
         select: (eventId) => (selectedEventId = eventId),
         setFocus: (next) => (focus = next),
         step: (direction) => step(direction),
+        navigate: (next, name) => navigate(next, name),
         newEventId: () => `event-${Date.now().toString(36)}-${++createdIds}`,
         hitTest: (clientX, clientY) => {
             if (!ref) return null

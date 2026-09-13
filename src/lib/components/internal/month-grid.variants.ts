@@ -27,6 +27,9 @@ export const monthGridVariants = tv({
         holidayTitle: 'text-tertiary truncate text-[10px] leading-6 font-medium',
         dayNumber: 'text-on-surface inline-flex px-1 text-xs leading-6 font-semibold tabular-nums',
         dayNumberOutside: 'text-outline',
+        dayNumberAnchor: [
+            'text-primary ring-primary flex size-6 items-center justify-center rounded-full px-0 ring-1 ring-inset'
+        ],
         dayNumberToday: [
             'bg-primary text-on-primary flex size-6 items-center justify-center rounded-full px-0'
         ],

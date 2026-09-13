@@ -3,7 +3,7 @@ import { render } from 'vitest-browser-svelte'
 import { Scheduler } from '../lib/index.js'
 import { RETURN_ANIMATION_ID } from '../lib/interactions/motion.js'
 import type { Mutation } from '../lib/types/mutation.types.js'
-import { ZONE, anchor, column, input, settle } from './fixtures/dom.js'
+import { ZONE, anchor, column, drag, input, pointAt, settle } from './fixtures/dom.js'
 
 const base = { timeZone: ZONE, date: anchor, weekStartsOn: 1 as const }
 
@@ -104,16 +104,9 @@ describe('right to left', () => {
         const { container } = rtl({
             onMutate: () => new Promise<void>((_, r) => (reject = r))
         })
-        const day = rect(column(container, '2026-09-10'))
+        const day = column(container, '2026-09-10')
         const grid = container.querySelector<HTMLElement>('[role="application"]')!
-        grid.dispatchEvent(
-            new MouseEvent('dblclick', {
-                clientX: day.left + day.width / 2,
-                clientY: day.top + 20 * 24 + 1,
-                bubbles: true
-            })
-        )
-        await settle()
+        await drag(grid, pointAt(day, 600), pointAt(day, 660))
         const optimistic = rect(container.querySelector('[data-sch-event]')!)
 
         reject(new Error('offline'))
@@ -132,16 +125,9 @@ describe('right to left', () => {
     it('creates an event in the column under the pointer', async () => {
         const onMutate = vi.fn()
         const { container } = rtl({ onMutate })
-        const day = rect(column(container, '2026-09-10'))
+        const day = column(container, '2026-09-10')
         const grid = container.querySelector<HTMLElement>('[role="application"]')!
-        grid.dispatchEvent(
-            new MouseEvent('dblclick', {
-                clientX: day.left + day.width / 2,
-                clientY: day.top + 20 * 24 + 1,
-                bubbles: true
-            })
-        )
-        await settle()
+        await drag(grid, pointAt(day, 600), pointAt(day, 660))
         const mutation: Mutation = onMutate.mock.calls[0][0]
         expect(mutation.after!.start.toString().slice(0, 16)).toBe('2026-09-10T10:00')
     })

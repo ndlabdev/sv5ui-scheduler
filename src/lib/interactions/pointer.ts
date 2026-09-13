@@ -7,6 +7,7 @@ export interface PointerDragOptions {
     onStart: (context: PointerDragContext) => boolean
     onMove: (context: PointerDragContext) => void
     onEnd: (context: PointerDragContext) => void
+    onTap?: (event: PointerEvent) => void
     moveThreshold?: number
     longPressMs?: number
 }
@@ -46,7 +47,8 @@ export function pointerDrag(node: HTMLElement, options: PointerDragOptions): () 
     const press = longPress(node, {
         delay: options.longPressMs ?? DEFAULT_LONG_PRESS,
         threshold,
-        isActive: () => drag.active
+        isActive: () => drag.active,
+        onTap: (event) => options.onTap?.(event)
     })
     useEventListener(node, 'pointerdown', (event) => {
         if (event.pointerType !== 'touch' || held.has(event)) drag.handlers.onpointerdown(event)
@@ -66,6 +68,7 @@ interface LongPressOptions {
     delay: number
     threshold: number
     isActive: () => boolean
+    onTap: (event: PointerEvent) => void
 }
 
 function longPress(node: HTMLElement, options: LongPressOptions) {
@@ -101,7 +104,12 @@ function longPress(node: HTMLElement, options: LongPressOptions) {
         )
         if (distance >= options.threshold) cancel()
     })
-    useEventListener(node, ['pointerup', 'pointercancel'], cancel)
+    useEventListener(node, 'pointerup', (event) => {
+        const tapped = pending !== null && event.pointerId === pending.pointerId
+        cancel()
+        if (tapped) options.onTap(event)
+    })
+    useEventListener(node, 'pointercancel', cancel)
     useEventListener(
         node,
         'touchmove',

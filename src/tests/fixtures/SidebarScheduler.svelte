@@ -11,12 +11,21 @@
         side?: 'start' | 'end'
         open?: boolean
         dir?: 'ltr' | 'rtl'
+        view?: string
     }
 
-    let { events = [], date, width = 1200, side = 'start', open = true, dir }: Props = $props()
+    let {
+        events = [],
+        date,
+        width = 1200,
+        side = 'start',
+        open = true,
+        dir,
+        view: initialView = 'week'
+    }: Props = $props()
 
     let sidebarOpen = $state(untrack(() => open))
-    let view = $state('week')
+    let view = $state(untrack(() => initialView))
     let current = $state(untrack(() => date))
 
     export function isOpen() {

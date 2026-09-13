@@ -27,6 +27,7 @@ export const timeGridVariants = tv({
             '@max-md:size-7 @max-md:text-xs'
         ],
         dayNumberToday: 'bg-primary text-on-primary',
+        dayNumberAnchor: 'text-primary ring-primary ring-1 ring-inset',
         allDayRow: 'border-outline-variant/60 bg-surface-container-low/40 grid shrink-0 border-b',
         allDayLabel: [
             'text-on-surface-variant flex items-center justify-end pe-2 text-[10px] font-medium tracking-wide uppercase'

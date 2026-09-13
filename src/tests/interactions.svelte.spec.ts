@@ -77,16 +77,22 @@ describe('drag to create', () => {
         expect(getComputedStyle(ring).visibility).toBe('visible')
     })
 
-    it('creates one slot on double click', async () => {
+    it('creates nothing on double click', async () => {
         const onMutate = vi.fn()
         const screen = render(BoundScheduler, { initial: [], onMutate, date: anchor })
         const wed = column(screen.container, '2026-09-09')
         const at = pointAt(wed, 600)
-        grid(screen.container).dispatchEvent(new MouseEvent('dblclick', { ...at, bubbles: true }))
+        const target = grid(screen.container)
+        for (let i = 0; i < 2; i += 1) {
+            target.dispatchEvent(pointer('pointerdown', at))
+            target.dispatchEvent(pointer('pointerup', at))
+            target.dispatchEvent(new MouseEvent('click', { ...at, bubbles: true, detail: i + 1 }))
+        }
+        target.dispatchEvent(new MouseEvent('dblclick', { ...at, bubbles: true }))
         await settle()
-        const mutation: Mutation = onMutate.mock.calls[0][0]
-        expect(iso(mutation.after!.start)).toBe('2026-09-09T10:00')
-        expect(iso(mutation.after!.end)).toBe('2026-09-09T10:30')
+        expect(onMutate).not.toHaveBeenCalled()
+        expect(screen.component.getEvents()).toHaveLength(0)
+        expect(screen.container.querySelector('[data-sch-event]')).toBeNull()
     })
 
     it('shows a ghost while dragging and removes it on Escape without creating', async () => {

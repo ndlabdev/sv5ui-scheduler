@@ -37,6 +37,7 @@
 
     let {
         view,
+        anchor,
         range,
         scheduler,
         scale,
@@ -164,6 +165,7 @@
             date: day,
             view,
             isToday: dayIndex === todayIndex,
+            isAnchor: isSameDay(day, anchor),
             ...dayFlags(day, holidays, scheduler.businessHours),
             isOutside: false
         }
@@ -242,12 +244,14 @@
             </div>
             {#each days as day, dayIndex (isoDate(day))}
                 {@const isToday = dayIndex === todayIndex}
+                {@const isAnchor = isSameDay(day, anchor)}
                 {@const weekday = formatWeekday(day, scheduler.locale)}
                 {@const number = formatDayNumber(day, scheduler.locale)}
                 {@const holiday = holidays.get(isoDate(day))}
                 <div
                     class={classes.dayHeader({ class: columnTint(day, dayIndex) })}
                     data-sch-day={isoDate(day)}
+                    data-sch-anchor={isAnchor ? '' : undefined}
                     aria-current={isToday ? 'date' : undefined}
                 >
                     {#if snippets.header}
@@ -256,13 +260,17 @@
                             view,
                             label: `${weekday} ${number}`,
                             isToday,
+                            isAnchor,
                             holiday
                         })}
                     {:else}
                         <span class={classes.weekday()}>{weekday}</span>
                         <span
                             class={classes.dayNumber({
-                                class: isToday ? classes.dayNumberToday() : ''
+                                class: [
+                                    isAnchor && !isToday ? classes.dayNumberAnchor() : '',
+                                    isToday ? classes.dayNumberToday() : ''
+                                ]
                             })}
                         >
                             {number}

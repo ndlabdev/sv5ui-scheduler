@@ -73,6 +73,7 @@
 
     const isOutside = (day: ZonedDateTime) => day.month !== anchor.month
     const isToday = (day: ZonedDateTime) => isSameDay(day, scheduler.now)
+    const isAnchor = (day: ZonedDateTime) => isSameDay(day, anchor)
 
     const ghostTop = (span: SpanPosition<T>) =>
         span.row * cellHeight + HEADER_HEIGHT + span.lane * LANE_HEIGHT
@@ -102,6 +103,7 @@
             date: day,
             view,
             isToday: isToday(day),
+            isAnchor: isAnchor(day),
             ...dayFlags(day, holidays, scheduler.businessHours),
             isOutside: isOutside(day)
         }
@@ -144,6 +146,7 @@
                             data-sch-all-day
                             data-sch-day-cell
                             data-sch-focus={focus?.dayIndex === dayIndex ? '' : undefined}
+                            data-sch-anchor={isAnchor(day) ? '' : undefined}
                             role="group"
                             aria-label={cellLabel(day, dayIndex)}
                         >
@@ -153,6 +156,9 @@
                                         class={classes.dayNumber({
                                             class: [
                                                 isOutside(day) ? classes.dayNumberOutside() : '',
+                                                isAnchor(day) && !isToday(day)
+                                                    ? classes.dayNumberAnchor()
+                                                    : '',
                                                 isToday(day) ? classes.dayNumberToday() : ''
                                             ]
                                         })}
