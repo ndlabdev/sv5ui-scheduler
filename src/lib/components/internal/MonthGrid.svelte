@@ -2,7 +2,7 @@
     import type { ZonedDateTime } from '@internationalized/date'
     import { Popover } from 'sv5ui'
     import type { SpanPosition, ViewProps } from '../../types/extension.types.js'
-    import { overflowByCell } from '../../core/layout/spans.js'
+    import { countByCell, overflowByCell } from '../../core/layout/spans.js'
     import { formatDayNumber, formatLongDate, formatWeekday } from '../../core/time/format.js'
     import { eachDay } from '../../core/time/range.js'
     import { weekDayOf } from '../../core/time/week.js'
@@ -18,7 +18,6 @@
         view,
         anchor,
         range,
-        events,
         scheduler,
         positioned,
         snippets,
@@ -53,13 +52,7 @@
     const isOutside = (day: ZonedDateTime) => day.month !== anchor.month
     const isToday = (day: ZonedDateTime) => isSameDay(day, scheduler.now)
 
-    function eventsOn(day: ZonedDateTime) {
-        const start = day.toDate().getTime()
-        const end = day.add({ days: 1 }).toDate().getTime()
-        return events.filter(
-            (event) => event.start.toDate().getTime() < end && event.end.toDate().getTime() > start
-        )
-    }
+    const counts = $derived(countByCell(spans, COLUMNS))
 
     function hiddenOn(dayIndex: number) {
         const row = Math.floor(dayIndex / COLUMNS)
@@ -104,7 +97,7 @@
                 <div class={classes.cells()} style:grid-template-columns={columnTemplate}>
                     {#each days.slice(row * COLUMNS, row * COLUMNS + COLUMNS) as day, column (isoDate(day))}
                         {@const dayIndex = row * COLUMNS + column}
-                        {@const count = eventsOn(day).length}
+                        {@const count = counts.get(dayIndex) ?? 0}
                         <div
                             class={classes.cell({
                                 class: [

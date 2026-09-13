@@ -587,3 +587,48 @@ describe('Scheduler with an async source', () => {
         expect(moved?.closest('[data-sch-day]')?.getAttribute('data-sch-day')).toBe('2026-09-11')
     })
 })
+
+describe('Scheduler verification fixes', () => {
+    const settle = () => new Promise((resolve) => setTimeout(resolve, 30))
+
+    it('shows the loading skeleton while a source loads and removes it afterwards', async () => {
+        let resolve!: (value: EventInput[]) => void
+        const source: EventSourceFn = () => new Promise((r) => (resolve = r))
+        const screen = render(SourceScheduler, { source, date: anchor })
+        await settle()
+        expect(screen.container.querySelector('[aria-busy="true"]')).not.toBeNull()
+        resolve([input('a', '2026-09-09T09:00', '2026-09-09T10:00')])
+        await settle()
+        expect(screen.container.querySelector('[aria-busy="true"]')).toBeNull()
+        expect(chips(screen.container)).toHaveLength(1)
+    })
+
+    it('keeps the skeleton when a stale load settles after a newer one started', async () => {
+        const pending: ((value: EventInput[]) => void)[] = []
+        const source: EventSourceFn = () => new Promise((r) => pending.push(r))
+        const screen = render(SourceScheduler, { source, date: anchor })
+        await settle()
+        screen.component.next()
+        await settle()
+        pending[0]([])
+        await settle()
+        expect(screen.container.querySelector('[aria-busy="true"]')).not.toBeNull()
+        pending[1]([])
+        await settle()
+        expect(screen.container.querySelector('[aria-busy="true"]')).toBeNull()
+    })
+
+    it('re-announces an identical message so screen readers hear it twice', async () => {
+        const screen = render(BoundScheduler, { initial: [], date: anchor })
+        const grid = screen.container.querySelector<HTMLElement>('[role="application"]')!
+        const live = screen.container.querySelector('[aria-live="polite"][aria-atomic]')!
+        grid.focus()
+        grid.dispatchEvent(new KeyboardEvent('keydown', { key: 'Home', bubbles: true }))
+        await settle()
+        const first = live.textContent
+        grid.dispatchEvent(new KeyboardEvent('keydown', { key: 'Home', bubbles: true }))
+        await settle()
+        expect(live.textContent?.trim()).toBe(first?.trim())
+        expect(live.textContent).not.toBe(first)
+    })
+})

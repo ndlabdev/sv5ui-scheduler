@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { DateRange } from '../../types/range.types.js'
 import { at, contextFor, event } from '../../../tests/fixtures/layout.js'
-import { layoutSpans, overflowByCell } from './spans.js'
+import { countByCell, layoutSpans, overflowByCell } from './spans.js'
 
 const monthRange: DateRange = { start: at('2026-08-31T00:00'), end: at('2026-10-12T00:00') }
 const month = contextFor(monthRange, 7)
@@ -118,5 +118,22 @@ describe('overflowByCell', () => {
             month
         )
         expect(overflowByCell(positions, 3, 7).size).toBe(0)
+    })
+})
+
+describe('countByCell', () => {
+    it('counts every span covering a cell, whatever its lane', () => {
+        const positions = layoutSpans(
+            [
+                event('a', '2026-09-09T08:00', '2026-09-09T09:00'),
+                event('b', '2026-09-09T00:00', '2026-09-11T00:00', { allDay: true })
+            ],
+            monthRange,
+            month
+        )
+        const counts = countByCell(positions, 7)
+        expect(counts.get(1 * 7 + 2)).toBe(2)
+        expect(counts.get(1 * 7 + 3)).toBe(1)
+        expect(counts.get(1 * 7 + 4)).toBeUndefined()
     })
 })

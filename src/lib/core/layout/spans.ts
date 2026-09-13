@@ -31,20 +31,29 @@ export function layoutSpans<T>(
     return positions
 }
 
-export function overflowByCell(
+export function countByCell(
     positions: readonly SpanPosition[],
-    maxLanes: number,
     columnsPerRow: number
 ): Map<number, number> {
     const counts = new Map<number, number>()
     for (const position of positions) {
-        if (position.lane < maxLanes) continue
         for (let column = position.startColumn; column < position.endColumn; column++) {
             const cell = position.row * columnsPerRow + column
             counts.set(cell, (counts.get(cell) ?? 0) + 1)
         }
     }
     return counts
+}
+
+export function overflowByCell(
+    positions: readonly SpanPosition[],
+    maxLanes: number,
+    columnsPerRow: number
+): Map<number, number> {
+    return countByCell(
+        positions.filter((position) => position.lane >= maxLanes),
+        columnsPerRow
+    )
 }
 
 function mergeIntoRows<T>(segments: EventSegment<T>[], columnsPerRow: number): RowSpan<T>[] {

@@ -5,7 +5,7 @@
 </script>
 
 <script lang="ts" generics="T">
-    import { getLocalTimeZone } from '@internationalized/date'
+    import { getLocalTimeZone, type ZonedDateTime } from '@internationalized/date'
     import type { Attachment } from 'svelte/attachments'
     import { Skeleton } from 'sv5ui'
     import { untrack } from 'svelte'
@@ -19,11 +19,11 @@
     import { formatDayRange } from '../../core/time/format.js'
     import { eachDay } from '../../core/time/range.js'
     import { createTimeScale } from '../../core/time/scale.js'
-    import { nowIn, toZoned } from '../../core/time/zone.js'
+    import { isSameDay, nowIn, startOfDay, toZoned } from '../../core/time/zone.js'
     import { composeAttachments } from '../../interactions/attachments.js'
     import { createBuiltinInteractions } from '../../interactions/builtin.js'
     import { GestureController } from '../../interactions/controller.svelte.js'
-    import { collectColumnRects, resolveHit } from '../../interactions/hit-test.js'
+    import { collectColumnRects, resolveHit, type ColumnRect } from '../../interactions/hit-test.js'
     import { snapToSlot } from '../../interactions/snap.js'
     import type { SchedulerEvent } from '../../types/event.types.js'
     import type {
@@ -103,9 +103,18 @@
     let announcement = $state('')
     let loading = $state(false)
     let gridNode: HTMLElement | null = null
+    let columnRects: ColumnRect[] | null = null
+    let announceToggle = false
 
     const now = $derived(toZoned(clock, timeZone))
-    const anchor = $derived(date ?? now)
+    let lastToday: ZonedDateTime | null = null
+    const todayAnchor = $derived.by(() => {
+        const day = startOfDay(now)
+        if (lastToday && isSameDay(lastToday, day)) return lastToday
+        lastToday = day
+        return day
+    })
+    const anchor = $derived(date ?? todayAnchor)
     const labels = $derived(mergeLabels(labelOverrides))
     const builtinViews = createBuiltinViews<T>()
     const gesture = new GestureController<T>(
@@ -122,16 +131,32 @@
     )
     const definition = $derived(registry.view(view))
     const View = $derived(definition.component)
-    const context: SchedulerContext = $derived({
-        timeZone,
-        locale,
-        weekStartsOn,
-        hour12,
-        businessHours,
-        holidays,
-        labels,
-        now
-    })
+    const context: SchedulerContext = {
+        get timeZone() {
+            return timeZone
+        },
+        get locale() {
+            return locale
+        },
+        get weekStartsOn() {
+            return weekStartsOn
+        },
+        get hour12() {
+            return hour12
+        },
+        get businessHours() {
+            return businessHours
+        },
+        get holidays() {
+            return holidays
+        },
+        get labels() {
+            return labels
+        },
+        get now() {
+            return now
+        }
+    }
     const range = $derived(definition.range(anchor, context))
     const days = $derived(eachDay(range))
     const scale = $derived(createTimeScale({ slotMinutes, slotHeight }))
@@ -191,21 +216,22 @@
         setFocus: (next) => (focus = next),
         step: (direction) => step(direction),
         newEventId: () => `event-${Date.now().toString(36)}-${++createdIds}`,
-        hitTest: (clientX, clientY) =>
-            gridNode
-                ? resolveHit({
-                      clientX,
-                      clientY,
-                      columns: collectColumnRects(gridNode),
-                      days,
-                      scale
-                  })
-                : null,
+        hitTest: (clientX, clientY) => {
+            if (!gridNode) return null
+            if (!gesture.active || !columnRects) columnRects = collectColumnRects(gridNode)
+            return resolveHit({ clientX, clientY, columns: columnRects, days, scale })
+        },
         snap: (value) => snapToSlot(value, slotMinutes),
         getEvent: (eventId) => store.get(eventId),
         commit: (request) => void pipeline.commit(request),
-        setPreview: (next) => (preview = next),
-        announce: (message) => (announcement = message)
+        setPreview: (next) => {
+            preview = next
+            if (!next) columnRects = null
+        },
+        announce: (message) => {
+            announceToggle = !announceToggle
+            announcement = announceToggle ? message : `${message} `
+        }
     }
 
     const rememberGrid: Attachment<HTMLElement> = (node) => {
@@ -235,20 +261,16 @@
         event: eventAttachment
     })
 
-    const viewProps: Omit<ViewProps<T>, 'interactions'> = $derived({
-        view,
-        anchor,
-        range,
-        events: visibleEvents,
-        scheduler: context,
-        scale,
-        positioned,
-        snippets: { event: eventSnippet, cell, header, empty },
-        preview: viewPreview,
-        focus,
-        selectedEventId,
-        onSelectEvent: (eventId) => (selectedEventId = eventId)
+    const snippets: ViewProps<T>['snippets'] = $derived({
+        event: eventSnippet,
+        cell,
+        header,
+        empty
     })
+
+    function selectEvent(eventId: string | null) {
+        selectedEventId = eventId
+    }
 
     const classes = $derived.by(() => {
         const slots = schedulerVariants()
@@ -294,12 +316,17 @@
         const current = loader
         const visible = range
         if (!current) return
+        loading = true
         current.load(visible).then(
             (result) => {
-                if (result.status === 'loaded')
-                    store.apply({ type: 'reset', events: result.events })
+                if (result.status === 'superseded') return
+                loading = false
+                store.apply({ type: 'reset', events: result.events })
             },
-            (error) => onLoadError?.(error)
+            (error) => {
+                loading = false
+                onLoadError?.(error)
+            }
         )
     })
 
@@ -313,8 +340,8 @@
         date = definition.step(anchor, direction, context)
     }
 
-    function today() {
-        date = now
+    function goToday() {
+        date = todayAnchor
     }
 
     function setView(name: string) {
@@ -330,7 +357,7 @@
             views={viewItems}
             {labels}
             class={classes.toolbar}
-            onToday={today}
+            onToday={goToday}
             onStep={step}
             onView={setView}
             {onMenu}
@@ -340,18 +367,18 @@
     {@render banner?.()}
     <div class={classes.view}>
         <View
-            view={viewProps.view}
-            anchor={viewProps.anchor}
-            range={viewProps.range}
-            events={viewProps.events}
-            scheduler={viewProps.scheduler}
-            scale={viewProps.scale}
-            positioned={viewProps.positioned}
-            snippets={viewProps.snippets}
-            preview={viewProps.preview}
-            focus={viewProps.focus}
-            selectedEventId={viewProps.selectedEventId}
-            onSelectEvent={viewProps.onSelectEvent}
+            {view}
+            {anchor}
+            {range}
+            events={visibleEvents}
+            scheduler={context}
+            {scale}
+            {positioned}
+            {snippets}
+            preview={viewPreview}
+            {focus}
+            {selectedEventId}
+            onSelectEvent={selectEvent}
             interactions={viewInteractions}
         />
         {#if loading}
