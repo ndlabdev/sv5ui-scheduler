@@ -499,9 +499,12 @@ describe('drag to move', () => {
         await frame()
         const ghost = screen.container.querySelector<HTMLElement>('[data-sch-ghost]')!
         const before = { scroll: viewport.scrollTop, top: parseFloat(ghost.style.top) }
-        await wait(120)
-        expect(viewport.scrollTop).toBeGreaterThan(before.scroll + 48)
-        expect(parseFloat(ghost.style.top)).toBeGreaterThan(before.top + 48)
+        await expect
+            .poll(() => viewport.scrollTop, { timeout: 2000 })
+            .toBeGreaterThan(before.scroll + 48)
+        await expect
+            .poll(() => parseFloat(ghost.style.top), { timeout: 2000 })
+            .toBeGreaterThan(before.top + 48)
         expect(viewport.scrollTop + viewport.clientHeight).toBeLessThan(viewport.scrollHeight - 100)
         wrapper.dispatchEvent(pointer('pointerup', edge))
         await settle()
@@ -523,8 +526,7 @@ describe('drag to move', () => {
         const edge = { clientX: start.clientX, clientY: box.bottom - 8 }
         target.dispatchEvent(pointer('pointerdown', start))
         target.dispatchEvent(pointer('pointermove', edge))
-        await wait(120)
-        expect(viewport.scrollTop).toBeGreaterThan(8 * 48 + 48)
+        await expect.poll(() => viewport.scrollTop, { timeout: 2000 }).toBeGreaterThan(8 * 48 + 48)
         target.dispatchEvent(pointer('pointerup', edge))
         await settle()
         const settledScroll = viewport.scrollTop

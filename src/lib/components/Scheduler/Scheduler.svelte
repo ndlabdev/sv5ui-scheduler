@@ -7,7 +7,7 @@
 <script lang="ts" generics="T">
     import { getLocalTimeZone, type ZonedDateTime } from '@internationalized/date'
     import type { Attachment } from 'svelte/attachments'
-    import { Skeleton, Slideover } from 'sv5ui'
+    import { ScrollArea, Skeleton, Slideover } from 'sv5ui'
     import { tick, untrack } from 'svelte'
     import { getComponentConfig } from '../../config.js'
     import { announceConflict, announceReverted } from '../../core/a11y/announce.js'
@@ -39,6 +39,7 @@
         StoreMiddleware,
         ViewProps
     } from '../../types/extension.types.js'
+    import DefaultSidebar from '../internal/DefaultSidebar.svelte'
     import Toolbar from '../internal/Toolbar.svelte'
     import { createBuiltinViews } from './builtin-views.js'
     import { schedulerDefaults, schedulerVariants } from './scheduler.variants.js'
@@ -72,7 +73,11 @@
         middleware = [],
         interactions = [],
         toolbar = true,
-        sidebar,
+        creatable = true,
+        sidebar = false,
+        sidebarHeader,
+        sidebarFooter,
+        dragSources = [],
         sidebarOpen = $bindable(true),
         sidebarSide = 'start',
         sidebarBreakpoint = 1024,
@@ -147,7 +152,7 @@
     const builtinViews = createBuiltinViews<T>()
     const gesture = new GestureController<T>(
         () => interactionContext,
-        () => ({ defaultMinutes: slotMinutes * 2 })
+        () => ({ defaultMinutes: slotMinutes * 2, creatable })
     )
     const builtinInteractions = createBuiltinInteractions<T>(gesture)
     const registry = $derived(
@@ -379,28 +384,33 @@
         if (name && registry.hasView(name)) view = name
     }
 
+    const overrides = $derived(ui ?? {})
+
     const classes = $derived.by(() => {
         const slots = schedulerVariants()
         return {
-            root: slots.root({ class: [config.slots.root, className, ui?.root] }),
-            toolbar: slots.toolbar({ class: [config.slots.toolbar, ui?.toolbar] }),
+            root: slots.root({ class: [config.slots.root, className, overrides.root] }),
+            toolbar: slots.toolbar({ class: [config.slots.toolbar, overrides.toolbar] }),
             body: slots.body({
                 class: [
                     config.slots.body,
-                    ui?.body,
+                    overrides.body,
                     sidebarSide === 'end' ? slots.bodyReversed() : ''
                 ]
             }),
             sidebar: slots.sidebar({
                 class: [
                     config.slots.sidebar,
-                    ui?.sidebar,
+                    overrides.sidebar,
                     sidebarSide === 'end' ? slots.sidebarEnd() : ''
                 ]
             }),
-            slideover: slots.slideover({ class: [config.slots.slideover, ui?.slideover] }),
-            view: slots.view({ class: [config.slots.view, ui?.view] }),
-            loading: slots.loading({ class: [config.slots.loading, ui?.loading] })
+            sidebarScroll: slots.sidebarScroll({
+                class: [config.slots.sidebarScroll, overrides.sidebarScroll]
+            }),
+            slideover: slots.slideover({ class: [config.slots.slideover, overrides.slideover] }),
+            view: slots.view({ class: [config.slots.view, overrides.view] }),
+            loading: slots.loading({ class: [config.slots.loading, overrides.loading] })
         }
     })
 
@@ -499,7 +509,9 @@
     <div class={classes.body}>
         {#if sidebar && docked && sidebarOpen}
             <aside class={classes.sidebar} data-sch-sidebar>
-                {@render sidebar(sidebarProps)}
+                <ScrollArea class={classes.sidebarScroll} dir={context.direction}>
+                    {@render sidebarContent()}
+                </ScrollArea>
             </aside>
         {/if}
         <div class={classes.view}>
@@ -537,10 +549,26 @@
         >
             {#snippet body()}
                 <div data-sch-sidebar>
-                    {@render sidebar(sidebarProps)}
+                    {@render sidebarContent()}
                 </div>
             {/snippet}
         </Slideover>
     {/if}
     <div class="sr-only" aria-live="polite" aria-atomic="true">{announcement}</div>
 </div>
+
+{#snippet sidebarContent()}
+    {#if sidebar === true}
+        <DefaultSidebar
+            sidebar={sidebarProps}
+            {calendars}
+            bind:hiddenCalendars
+            bind:search
+            {dragSources}
+            header={sidebarHeader}
+            footer={sidebarFooter}
+        />
+    {:else if sidebar}
+        {@render sidebar(sidebarProps)}
+    {/if}
+{/snippet}

@@ -6,7 +6,7 @@ import type { MutationRequest } from '../core/store/mutations.svelte.js'
 import { defaultLabels } from '../core/i18n/labels.js'
 import { eachDay } from '../core/time/range.js'
 import { createTimeScale } from '../core/time/scale.js'
-import { GestureController } from './controller.svelte.js'
+import { GestureController, type GestureOptions } from './controller.svelte.js'
 import type { GesturePoint } from './gesture.js'
 
 const ZONE = 'UTC'
@@ -26,7 +26,7 @@ const event = (
     ...extra
 })
 
-function harness() {
+function harness(options: GestureOptions = {}) {
     const range = { start: at('2026-09-07T00:00'), end: at('2026-09-14T00:00') }
     const commits: MutationRequest[] = []
     const previews: (InteractionPreview | null)[] = []
@@ -63,9 +63,37 @@ function harness() {
         setPreview: (preview) => void previews.push(preview),
         announce: (message) => void announcements.push(message)
     }
-    const controller = new GestureController(() => context)
+    const controller = new GestureController(
+        () => context,
+        () => options
+    )
     return { controller, commits, previews, announcements }
 }
+
+describe('creation turned off', () => {
+    it('neither previews nor commits a drag or a keyboard create', () => {
+        const { controller, commits, previews, announcements } = harness({ creatable: false })
+        controller.beginCreate(point('2026-09-09T09:00'))
+        controller.update(point('2026-09-09T11:00'))
+        expect(controller.active).toBe(false)
+        expect(controller.commit()).toBe(false)
+        controller.createAt(point('2026-09-09T09:00'))
+        expect(commits).toEqual([])
+        expect(previews).toEqual([])
+        expect(announcements).toEqual([])
+    })
+
+    it('still moves existing events', () => {
+        const { controller, commits } = harness({ creatable: false })
+        controller.beginMove(
+            event('a', '2026-09-09T09:00', '2026-09-09T10:00'),
+            point('2026-09-09T09:00')
+        )
+        controller.update(point('2026-09-09T11:00'))
+        expect(controller.commit()).toBe(true)
+        expect(commits[0].kind).toBe('move')
+    })
+})
 
 describe('create gesture', () => {
     it('previews one slot immediately and grows with the pointer', () => {

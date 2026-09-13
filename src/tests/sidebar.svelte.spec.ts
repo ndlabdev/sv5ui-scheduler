@@ -1,3 +1,4 @@
+import { createRawSnippet } from 'svelte'
 import axe from 'axe-core'
 import { describe, expect, it, vi } from 'vitest'
 import { render } from 'vitest-browser-svelte'
@@ -242,5 +243,143 @@ describe('sidebar accessibility', () => {
         await wait(400)
         expect(document.querySelector('[role="dialog"] [data-sch-sidebar]')).not.toBeNull()
         expect(await audit(document.body)).toEqual([])
+    })
+})
+
+describe('built-in sidebar', () => {
+    const calendars = [
+        { id: 'work', title: 'Work', color: 'info' as const },
+        { id: 'home', title: 'Personal', color: 'success' as const }
+    ]
+    const events = [
+        input('standup', '2026-09-09T09:00', '2026-09-09T09:30', { calendarId: 'work' }),
+        input('gym', '2026-09-09T18:00', '2026-09-09T19:00', { calendarId: 'home' })
+    ]
+    const shownIds = (root: Element) =>
+        [...root.querySelectorAll<HTMLElement>('[data-sch-event-id]')]
+            .map((chip) => chip.dataset.schEventId)
+            .sort()
+
+    async function boot(props: Record<string, unknown> = {}, width = 1200) {
+        const screen = render(Scheduler, {
+            props: {
+                timeZone: ZONE,
+                date: anchor,
+                sidebar: true,
+                events,
+                calendars,
+                dragSources: [{ title: 'Dentist', durationMinutes: 45 }],
+                ...props
+            }
+        })
+        screen.container.style.width = `${width}px`
+        screen.container.style.height = '800px'
+        await settle()
+        return screen
+    }
+
+    it('stacks the navigator, search, calendars and drag list in the docked panel', async () => {
+        const { container } = await boot()
+        const panel = sidebar(container)!
+        const parts = [
+            '[data-sch-date-navigator]',
+            '[data-sch-search-box]',
+            '[data-sch-calendar-list]',
+            '[data-sch-drag-source-list]'
+        ].map((selector) => panel.querySelector(selector)!)
+        expect(parts.every(Boolean)).toBe(true)
+        for (let i = 1; i < parts.length; i += 1) {
+            expect(
+                parts[i - 1].compareDocumentPosition(parts[i]) & Node.DOCUMENT_POSITION_FOLLOWING
+            ).toBeTruthy()
+        }
+    })
+
+    it('hides calendars and searches without any binding in the app', async () => {
+        const screen = await boot()
+        expect(shownIds(screen.container)).toEqual(['gym', 'standup'])
+        await screen.getByRole('checkbox', { name: 'Work' }).click()
+        await settle()
+        expect(shownIds(screen.container)).toEqual(['gym'])
+        await screen.getByRole('checkbox', { name: 'Work' }).click()
+        await userEvent.fill(screen.getByRole('textbox', { name: 'Search events' }), 'stand')
+        await settle()
+        expect(shownIds(screen.container)).toEqual(['standup'])
+    })
+
+    it('leaves out the calendar list and the drag list when there is nothing to list', async () => {
+        const { container } = await boot({ calendars: [], dragSources: [] })
+        const panel = sidebar(container)!
+        expect(panel.querySelector('[data-sch-date-navigator]')).not.toBeNull()
+        expect(panel.querySelector('[data-sch-calendar-list]')).toBeNull()
+        expect(panel.querySelector('[data-sch-drag-source-list]')).toBeNull()
+    })
+
+    it('renders the header and footer snippets around the built-in parts', async () => {
+        const sidebarHeader = createRawSnippet(() => ({
+            render: () => '<button type="button" data-probe-header>Create</button>'
+        }))
+        const sidebarFooter = createRawSnippet(() => ({
+            render: () => '<p data-probe-footer>foot</p>'
+        }))
+        const { container } = await boot({ sidebarHeader, sidebarFooter })
+        const panel = sidebar(container)!
+        const head = panel.querySelector('[data-probe-header]')!
+        const foot = panel.querySelector('[data-probe-footer]')!
+        const navigator = panel.querySelector('[data-sch-date-navigator]')!
+        expect(
+            head.compareDocumentPosition(navigator) & Node.DOCUMENT_POSITION_FOLLOWING
+        ).toBeTruthy()
+        expect(
+            navigator.compareDocumentPosition(foot) & Node.DOCUMENT_POSITION_FOLLOWING
+        ).toBeTruthy()
+    })
+
+    it('opens the same built-in panel as a slide-over when narrow', async () => {
+        const { container } = await boot({}, 700)
+        expect(sidebar(container)).toBeNull()
+        menu(container).click()
+        await wait(400)
+        const panel = document.querySelector('[role="dialog"] [data-sch-default-sidebar]')
+        expect(panel).not.toBeNull()
+        expect(panel!.querySelector('[data-sch-calendar-list]')).not.toBeNull()
+        const result = await axe.run(document.body, {
+            resultTypes: ['violations'],
+            rules: { region: { enabled: false } }
+        })
+        expect(result.violations.map((violation) => violation.id)).toEqual([])
+    })
+
+    it('scrolls the docked panel inside the sv5ui ScrollArea, not the aside itself', async () => {
+        const many = Array.from({ length: 30 }, (_, i) => ({
+            id: `c${i}`,
+            title: `Calendar ${i}`
+        }))
+        const { container } = await boot({ calendars: many })
+        container.style.height = '500px'
+        await settle()
+        const aside = sidebar(container)!
+        const viewport = aside.querySelector<HTMLElement>('[data-scroll-area-viewport]')!
+        expect(viewport).not.toBeNull()
+        expect(viewport.querySelector('[data-sch-default-sidebar]')).not.toBeNull()
+        expect(['auto', 'scroll']).not.toContain(getComputedStyle(aside).overflowY)
+        expect(aside.scrollHeight).toBeLessThanOrEqual(aside.clientHeight + 1)
+        expect(viewport.scrollHeight).toBeGreaterThan(viewport.clientHeight)
+        viewport.scrollTop = 200
+        expect(viewport.scrollTop).toBeGreaterThan(0)
+    })
+
+    it('gives the sidebar scroll area the scheduler direction', async () => {
+        const { container } = await boot({ dir: 'rtl' })
+        expect(sidebar(container)!.querySelector('[dir]')?.getAttribute('dir')).toBe('rtl')
+    })
+
+    it('has no axe violations when docked', async () => {
+        const { container } = await boot()
+        const result = await axe.run(container, {
+            resultTypes: ['violations'],
+            rules: { region: { enabled: false } }
+        })
+        expect(result.violations.map((violation) => violation.id)).toEqual([])
     })
 })

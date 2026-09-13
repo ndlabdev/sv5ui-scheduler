@@ -27,6 +27,7 @@ export interface GestureSession<T = unknown> {
 
 export interface GestureOptions {
     readonly defaultMinutes?: number
+    readonly creatable?: boolean
 }
 
 const MUTATION_KIND: Record<GestureMode, MutationKind> = {
@@ -54,6 +55,7 @@ export class GestureController<T = unknown> {
     }
 
     beginCreate(anchor: GesturePoint): void {
+        if (this.#options().creatable === false) return
         const context = this.#context()
         const draft = createDraft(anchor, anchor, context.scale.slotMinutes)
         const event: SchedulerEvent<T> = {

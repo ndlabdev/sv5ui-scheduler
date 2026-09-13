@@ -5,6 +5,7 @@ import type { ClassNameValue } from 'tailwind-merge'
 import type { PartialLabels } from '../../core/i18n/labels.js'
 import type { EventInput, SchedulerCalendar, SchedulerEvent } from '../../types/event.types.js'
 import type {
+    DragSourceData,
     InteractionPlugin,
     LayoutStrategy,
     StoreMiddleware,
@@ -176,17 +177,45 @@ export type SchedulerProps<T = unknown> = Omit<HTMLAttributes<HTMLDivElement>, '
         toolbar?: boolean
 
         /**
+         * Let users create events by dragging over empty slots or pressing
+         * Enter on a focused slot. Selecting a day and dropping `dragSources`
+         * keep working when this is `false`.
+         * @default true
+         */
+        creatable?: boolean
+
+        /**
          * Open a popover with an event's details when it is clicked.
          * @default true
          */
         detailPopover?: boolean
 
         /**
-         * Content of a panel beside the view: a date navigator, filters, a
-         * create button. The toolbar gains a menu button that shows and hides
-         * it, and below `sidebarBreakpoint` it opens as a slide-over instead.
+         * Panel beside the view. `true` renders the built-in sidebar: a date
+         * navigator, event search, the calendar list when `calendars` is set
+         * and the drag list when `dragSources` is set. A snippet replaces it
+         * entirely. The toolbar gains a menu button that shows and hides the
+         * panel, and below `sidebarBreakpoint` it opens as a slide-over.
+         * @default false
          */
-        sidebar?: Snippet<[SidebarSnippetProps<T>]>
+        sidebar?: boolean | Snippet<[SidebarSnippetProps<T>]>
+
+        /**
+         * Content above the built-in sidebar, such as a create button.
+         */
+        sidebarHeader?: Snippet<[SidebarSnippetProps<T>]>
+
+        /**
+         * Content below the built-in sidebar.
+         */
+        sidebarFooter?: Snippet<[SidebarSnippetProps<T>]>
+
+        /**
+         * Items the built-in sidebar lists; dropping one on the grid creates
+         * an event there.
+         * @default []
+         */
+        dragSources?: DragSourceData<T>[]
 
         /**
          * Whether the docked sidebar is shown. Bindable.
