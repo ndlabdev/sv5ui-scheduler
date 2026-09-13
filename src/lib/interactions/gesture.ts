@@ -3,7 +3,7 @@ import type { SchedulerEvent } from '../types/event.types.js'
 import { endOfDay, startOfDay } from '../core/time/zone.js'
 import { snapToSlot } from './snap.js'
 
-export const DEFAULT_DURATION_MINUTES = 60
+const DEFAULT_DURATION_MINUTES = 60
 
 export type GestureMode = 'create' | 'move' | 'resize'
 
@@ -12,6 +12,7 @@ export type ResizeEdge = 'start' | 'end'
 export interface GesturePoint {
     readonly date: ZonedDateTime
     readonly allDay: boolean
+    readonly keepsTime?: boolean
 }
 
 export interface DraftRange {
@@ -78,6 +79,7 @@ export function moveDraft(
             options.defaultMinutes ?? DEFAULT_DURATION_MINUTES
         )
     }
+    if (current.allDay && current.keepsTime) return moveByDays(event, anchor, current)
     if (current.allDay) return dropIntoAllDay(event, anchor, current)
     return moveTimed(event, anchor, current, options.slotMinutes)
 }
@@ -102,6 +104,19 @@ function dropIntoTimeGrid(
 ): DraftRange {
     const start = snapToSlot(current.date, slotMinutes)
     return { start, end: start.add({ minutes: defaultMinutes }), allDay: false }
+}
+
+function moveByDays(
+    event: Pick<SchedulerEvent, 'start' | 'end'>,
+    anchor: GesturePoint,
+    current: GesturePoint
+): DraftRange {
+    const days = wallOffset(anchor.date, current.date).days
+    return {
+        start: shiftWall(event.start, { days, minutes: 0 }),
+        end: shiftWall(event.end, { days, minutes: 0 }),
+        allDay: false
+    }
 }
 
 function dropIntoAllDay(

@@ -3,6 +3,7 @@ import { formatDate, formatDayRange, formatMonthYear, formatYear } from '../../c
 import {
     calendarMonthRange,
     dayRange,
+    daysRange,
     monthRange,
     stepDays,
     stepMonths,
@@ -15,6 +16,8 @@ import DayView from '../DayView/DayView.svelte'
 import MonthView from '../MonthView/MonthView.svelte'
 import WeekView from '../WeekView/WeekView.svelte'
 import YearView from '../YearView/YearView.svelte'
+
+const DAYS_PER_WEEK = 7
 
 export function createBuiltinViews<T>(): ViewDefinition<T>[] {
     return [
@@ -29,8 +32,12 @@ export function createBuiltinViews<T>(): ViewDefinition<T>[] {
         {
             name: 'week',
             layout: 'time-grid',
-            range: (anchor, context) => weekRange(anchor, context.weekStartsOn),
-            step: (anchor, direction) => stepDays(anchor, 7 * direction),
+            range: (anchor, context) =>
+                context.dayCount
+                    ? daysRange(anchor, context.dayCount)
+                    : weekRange(anchor, context.weekStartsOn),
+            step: (anchor, direction, context) =>
+                stepDays(anchor, (context.dayCount ?? DAYS_PER_WEEK) * direction),
             title: (_anchor, range, context) => formatDayRange(range, context.locale),
             component: WeekView
         },

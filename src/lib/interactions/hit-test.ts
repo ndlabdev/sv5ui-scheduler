@@ -7,7 +7,9 @@ export interface ColumnRect {
     readonly right: number
     readonly top: number
     readonly bottom: number
+    readonly originTop: number
     readonly allDay: boolean
+    readonly keepsTime: boolean
 }
 
 export interface HitTestInput {
@@ -31,29 +33,46 @@ export function resolveHit(input: HitTestInput): HitTarget | null {
     if (!column) return null
     const dayStart = input.days[column.dayIndex]
     if (!dayStart) return null
-    const date = column.allDay ? dayStart : input.scale.toDate(clientY - column.top, dayStart)
+    const date = column.allDay ? dayStart : input.scale.toDate(clientY - column.originTop, dayStart)
     return {
         date,
         dayIndex: column.dayIndex,
         allDay: column.allDay,
+        keepsTime: column.keepsTime,
         eventId: input.eventId ?? null
     }
 }
 
-export function collectColumnRects(grid: HTMLElement): ColumnRect[] {
+export function collectColumnRects(root: HTMLElement): ColumnRect[] {
     const rects: ColumnRect[] = []
-    for (const element of grid.querySelectorAll<HTMLElement>('[data-sch-day-index]')) {
-        const rect = element.getBoundingClientRect()
+    for (const element of root.querySelectorAll<HTMLElement>('[data-sch-day-index]')) {
+        const rect = visibleRect(element, root)
+        if (rect.bottom <= rect.top || rect.right <= rect.left) continue
         rects.push({
             dayIndex: Number(element.dataset.schDayIndex),
-            left: rect.left,
-            right: rect.right,
-            top: rect.top,
-            bottom: rect.bottom,
-            allDay: element.dataset.schAllDay !== undefined
+            ...rect,
+            originTop: element.getBoundingClientRect().top,
+            allDay: element.dataset.schAllDay !== undefined,
+            keepsTime: element.dataset.schDayCell !== undefined
         })
     }
     return rects
+}
+
+function visibleRect(element: HTMLElement, root: HTMLElement) {
+    const rect = element.getBoundingClientRect()
+    let clip = { left: rect.left, right: rect.right, top: rect.top, bottom: rect.bottom }
+    for (let node = element.parentElement; node && node !== root; node = node.parentElement) {
+        if (getComputedStyle(node).overflowY === 'visible') continue
+        const bounds = node.getBoundingClientRect()
+        clip = {
+            left: Math.max(clip.left, bounds.left),
+            right: Math.min(clip.right, bounds.right),
+            top: Math.max(clip.top, bounds.top),
+            bottom: Math.min(clip.bottom, bounds.bottom)
+        }
+    }
+    return clip
 }
 
 export function eventIdAt(target: EventTarget | null): string | null {

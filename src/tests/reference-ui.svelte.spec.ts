@@ -328,3 +328,52 @@ describe('toolbar layout', () => {
         }
     })
 })
+
+describe('pointer affordances', () => {
+    it('shows a grab cursor on draggable chips and a pointer on locked ones', () => {
+        const { container } = render(Scheduler, {
+            props: {
+                timeZone: ZONE,
+                date: anchor,
+                events: [
+                    input('free', '2026-09-09T09:00', '2026-09-09T10:00'),
+                    input('locked', '2026-09-10T09:00', '2026-09-10T10:00', { editable: false }),
+                    input('trip', '2026-09-08', '2026-09-10', { allDay: true })
+                ]
+            }
+        })
+        const cursor = (id: string) =>
+            getComputedStyle(container.querySelector(`[data-sch-event-id="${id}"]`)!).cursor
+        expect(cursor('free')).toBe('grab')
+        expect(cursor('trip')).toBe('grab')
+        expect(cursor('locked')).toBe('pointer')
+
+        const wrapper = container.querySelector<HTMLElement>('[data-sch-event="free"]')!
+        const rect = wrapper.getBoundingClientRect()
+        wrapper.dispatchEvent(
+            new PointerEvent('pointermove', {
+                clientX: rect.left + rect.width / 2,
+                clientY: rect.bottom - 2,
+                bubbles: true
+            })
+        )
+        expect(cursor('free')).toBe('ns-resize')
+        wrapper.dispatchEvent(new PointerEvent('pointerleave', { bubbles: true }))
+        expect(cursor('free')).toBe('grab')
+    })
+
+    it('outlines a selected chip in its own colour with a gap, not a primary inset ring', async () => {
+        const screen = render(BoundScheduler, {
+            initial: [input('a', '2026-09-09T09:00', '2026-09-09T10:00', { color: 'success' })],
+            date: anchor
+        })
+        const chip = screen.container.querySelector<HTMLElement>('[data-sch-event-id="a"]')!
+        tap(chip)
+        await settle()
+        expect(chip.getAttribute('aria-pressed')).toBe('true')
+        expect(chip.className).toContain('ring-success')
+        expect(chip.className).toContain('ring-offset-1')
+        expect(chip.className.split(' ')).not.toContain('ring-inset')
+        expect(chip.className.split(' ')).not.toContain('ring-primary')
+    })
+})

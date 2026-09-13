@@ -9,7 +9,7 @@ export interface EventSnapshot {
     readonly clone: HTMLElement
 }
 
-export function eventElements(root: ParentNode, eventId: string): HTMLElement[] {
+function eventElements(root: ParentNode, eventId: string): HTMLElement[] {
     return [...root.querySelectorAll<HTMLElement>('[data-sch-event]')].filter(
         (element) => element.dataset.schEvent === eventId
     )

@@ -1,8 +1,14 @@
-import { viewLabel } from '../core/i18n/labels.js'
+import { useEventListener } from 'sv5ui'
 import type { GridFocus, InteractionContext, InteractionPlugin } from '../types/extension.types.js'
-import { isInteractiveTarget, isTextField } from './hit-test.js'
 import { describeEvent } from '../core/a11y/announce.js'
-import { isNavigationKey, navigate, type GridShape } from '../core/a11y/grid-navigation.js'
+import {
+    clampFocus,
+    isNavigationKey,
+    navigate,
+    type GridShape
+} from '../core/a11y/grid-navigation.js'
+import { viewLabel } from '../core/i18n/labels.js'
+import { isInteractiveTarget, isTextField } from './hit-test.js'
 import { formatLongDate, formatTime } from '../core/time/format.js'
 import { isSameDay } from '../core/time/zone.js'
 import type { GestureController } from './controller.svelte.js'
@@ -10,7 +16,7 @@ import type { GesturePoint } from './gesture.js'
 
 const MINUTES_PER_DAY = 1440
 const DEFAULT_MINUTES = 540
-const MONTH_COLUMNS = 7
+const TIMED_CELL = '[data-sch-day-index]:not([data-sch-all-day])'
 
 export function keyboardInteraction<T>(controller: GestureController<T>): InteractionPlugin<T> {
     return {
@@ -23,24 +29,16 @@ export function keyboardInteraction<T>(controller: GestureController<T>): Intera
                 context.scheduler.labels.grid(viewLabel(context.scheduler.labels, context.view))
             )
 
-            const onKeyDown = (event: KeyboardEvent) => {
+            useEventListener(node, 'keydown', (event) => {
                 if (belongsToChild(event, node)) return
                 if (handleKey(event, context, controller, node)) event.preventDefault()
-            }
-            const onFocus = () => {
-                if (!context.focus) context.setFocus(defaultFocus(context))
-            }
-            const onBlur = () => {
+            })
+            useEventListener(node, 'focus', () => {
+                context.setFocus(currentFocus(context, node))
+            })
+            useEventListener(node, 'blur', () => {
                 if (!controller.active) context.setFocus(null)
-            }
-            node.addEventListener('keydown', onKeyDown)
-            node.addEventListener('focus', onFocus)
-            node.addEventListener('blur', onBlur)
-            return () => {
-                node.removeEventListener('keydown', onKeyDown)
-                node.removeEventListener('focus', onFocus)
-                node.removeEventListener('blur', onBlur)
-            }
+            })
         }
     }
 }
@@ -62,7 +60,7 @@ function handleKey<T>(
     if (event.key === 'Delete' || event.key === 'Backspace') return remove(context)
     if (isNavigationKey(event.key)) {
         const shape = shapeOf(context, node)
-        const result = navigate(context.focus ?? defaultFocus(context), event.key, shape)
+        const result = navigate(currentFocus(context, node), event.key, shape)
         context.setFocus(result.focus)
         if (result.step !== 0) context.step(result.step)
         context.announce(describeFocus(result.focus, context))
@@ -100,21 +98,24 @@ function remove<T>(context: InteractionContext<T>): boolean {
 }
 
 function shapeOf<T>(context: InteractionContext<T>, node: HTMLElement): GridShape {
-    const whole = context.focus?.minutes === null
     return {
         days: context.days.length,
-        columnsPerRow:
-            whole && context.days.length > MONTH_COLUMNS ? MONTH_COLUMNS : context.days.length,
+        columnsPerRow: context.columnsPerRow,
         slotMinutes: context.scale.slotMinutes,
         minutesPerDay: MINUTES_PER_DAY,
         rtl: getComputedStyle(node).direction === 'rtl'
     }
 }
 
-function defaultFocus<T>(context: InteractionContext<T>): GridFocus {
+function currentFocus<T>(context: InteractionContext<T>, node: HTMLElement): GridFocus {
+    const shape = shapeOf(context, node)
+    const timed = node.querySelector(TIMED_CELL) !== null
+    if (context.focus) {
+        const kept = timed ? context.focus : { ...context.focus, minutes: null }
+        return clampFocus(kept, shape)
+    }
     const today = context.days.findIndex((day) => isSameDay(day, context.scheduler.now))
-    const whole = context.days.length > MONTH_COLUMNS
-    return { dayIndex: Math.max(today, 0), minutes: whole ? null : DEFAULT_MINUTES }
+    return clampFocus({ dayIndex: today, minutes: timed ? DEFAULT_MINUTES : null }, shape)
 }
 
 function pointFor<T>(focus: GridFocus, context: InteractionContext<T>): GesturePoint {

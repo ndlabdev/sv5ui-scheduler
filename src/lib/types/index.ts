@@ -37,6 +37,7 @@ export type {
 } from './snippet.types.js'
 
 export type {
+    DragSourceData,
     GridFocus,
     HitTarget,
     InteractionContext,

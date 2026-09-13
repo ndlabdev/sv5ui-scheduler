@@ -80,6 +80,13 @@ export type SchedulerProps<T = unknown> = Omit<HTMLAttributes<HTMLDivElement>, '
         weekStartsOn?: WeekDay
 
         /**
+         * Number of days the week view shows, starting on the anchor day, for
+         * example `4` or `14`. Leave unset for a calendar week that starts on
+         * `weekStartsOn`.
+         */
+        days?: number
+
+        /**
          * Force 12 or 24 hour clocks in every time label. Follows the locale
          * when left unset.
          */

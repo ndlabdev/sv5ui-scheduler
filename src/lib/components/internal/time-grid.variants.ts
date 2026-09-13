@@ -2,7 +2,10 @@ import { tv } from 'tailwind-variants'
 
 export const timeGridVariants = tv({
     slots: {
-        root: 'bg-surface text-on-surface @container flex h-full min-h-0 flex-col overflow-hidden',
+        root: [
+            'bg-surface text-on-surface @container flex h-full min-h-0 flex-col overflow-hidden',
+            'data-[sch-gesture=move]:**:cursor-grabbing data-[sch-gesture=move]:cursor-grabbing'
+        ],
         dayTitle:
             'border-outline-variant/60 flex shrink-0 flex-col gap-0.5 border-b px-4 py-3 sm:px-6',
         dayTitleWeekday: 'text-on-surface-variant text-xs font-medium tracking-wide uppercase',
@@ -31,7 +34,8 @@ export const timeGridVariants = tv({
         allDayCells: 'relative grid',
         allDayCell: 'border-outline-variant/60 relative border-s',
         allDayEvents: 'pointer-events-none absolute inset-0 grid gap-y-1 p-1',
-        allDayEvent: 'pointer-events-auto min-w-0',
+        allDayEvent: 'pointer-events-auto min-w-0 cursor-pointer **:cursor-pointer',
+        allDayEventLifted: 'invisible',
         allDayGhost: 'pointer-events-none z-20 min-w-0',
         body: 'relative min-h-0 flex-1',
         scroll: 'h-full',
@@ -49,11 +53,20 @@ export const timeGridVariants = tv({
             'truncate px-2 py-1 text-[11px] leading-none'
         ],
         events: 'absolute inset-0',
-        event: 'absolute min-w-0 px-0.5 pb-0.5',
-        ghost: 'pointer-events-none absolute z-20 min-w-0 px-0.5 pb-0.5',
+        event: 'absolute min-w-0 cursor-pointer px-0.5 pb-0.5 **:cursor-pointer',
+        eventDraggable: [
+            'cursor-grab **:cursor-grab',
+            'data-[sch-edge]:cursor-ns-resize data-[sch-edge]:**:cursor-ns-resize'
+        ],
+        ghost: [
+            'pointer-events-none absolute z-20 min-w-0 px-0.5 pb-0.5',
+            'transition-[top,height,inset-inline-start,width] duration-75 ease-out motion-reduce:transition-none'
+        ],
         ghostChip: 'ring-primary shadow-lg ring-2',
-        focusRing:
-            'ring-primary pointer-events-none absolute inset-x-0 z-10 rounded-sm ring-2 ring-inset',
+        focusRing: [
+            'ring-primary pointer-events-none invisible absolute inset-x-0 z-10 rounded-sm ring-2 ring-inset',
+            '[[role=application]:focus-visible_&]:visible'
+        ],
         nowLine: 'pointer-events-none absolute inset-x-0 z-20 flex items-center',
         nowDot: 'bg-error -ms-1 size-2 shrink-0 rounded-full',
         nowRule: 'bg-error h-px flex-1',

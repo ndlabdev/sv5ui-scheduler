@@ -44,27 +44,6 @@ describe('EventStore', () => {
         expect(store.query(createRange(at('08:00'), at('12:00'))).map((e) => e.id)).toEqual(['a'])
     })
 
-    it('restores a snapshot and bumps the version so readers refresh', () => {
-        const store = new EventStore()
-        store.apply({ type: 'upsert', event: event('a') })
-        const snapshot = store.snapshot()
-        store.apply({ type: 'upsert', event: event('b') })
-        store.apply({ type: 'remove', eventId: 'a' })
-        expect(store.all().map((e) => e.id)).toEqual(['b'])
-
-        store.restore(snapshot)
-        expect(store.all().map((e) => e.id)).toEqual(['a'])
-        expect(store.version).toBe(4)
-    })
-
-    it('leaves a snapshot untouched by later patches', () => {
-        const store = new EventStore()
-        store.apply({ type: 'upsert', event: event('a') })
-        const snapshot = store.snapshot()
-        store.apply({ type: 'remove', eventId: 'a' })
-        expect(snapshot.index.byId.has('a')).toBe(true)
-    })
-
     it('routes every patch through the middleware chain', () => {
         const seen = vi.fn()
         const observe: StoreMiddleware = (next) => (patch) => {

@@ -19,7 +19,14 @@
         ThemeModeButton,
         useKbd
     } from 'sv5ui'
-    import { Scheduler, type EventColor, type EventInput, type Mutation } from '$lib/index.js'
+    import {
+        Scheduler,
+        dragSource,
+        type DragSourceData,
+        type EventColor,
+        type EventInput,
+        type Mutation
+    } from '$lib/index.js'
     import { vi } from '$lib/locales.js'
 
     interface Source {
@@ -59,6 +66,12 @@
     const on = (offset: number, time: string) =>
         `${today.add({ days: offset }).toString().slice(0, 10)}T${time}`
     const dayOf = (offset: number) => today.add({ days: offset }).toString().slice(0, 10)
+    const UNSCHEDULED: DragSourceData<{ calendarId: string }>[] = [
+        { title: 'Dentist', durationMinutes: 45, color: 'error', data: { calendarId: 'personal' } },
+        { title: 'Sprint retro', durationMinutes: 90, color: 'info', data: { calendarId: 'team' } },
+        { title: 'Call the bank', color: 'primary', data: { calendarId: 'work' } }
+    ]
+
     const colorOf = (calendarId: string) =>
         SOURCES.find((source) => source.id === calendarId)?.color ?? 'primary'
 
@@ -316,6 +329,37 @@
                                         {source.label}
                                     </span>
                                 </label>
+                            </li>
+                        {/each}
+                    </ul>
+                </section>
+                <section class="space-y-1.5">
+                    <p
+                        class="px-1 text-[11px] font-semibold tracking-wider text-on-surface-variant/70 uppercase"
+                    >
+                        Unscheduled
+                    </p>
+                    <ul class="space-y-1">
+                        {#each UNSCHEDULED as item (item.title)}
+                            <li>
+                                <button
+                                    type="button"
+                                    class="flex w-full cursor-grab items-center gap-2.5 rounded-md border border-outline-variant/60 px-2 py-1.5 text-start text-sm text-on-surface select-none hover:bg-surface-container-high data-[sch-dragging]:cursor-grabbing data-[sch-dragging]:opacity-60"
+                                    {@attach dragSource(() => item)}
+                                >
+                                    <span
+                                        class={[
+                                            'size-3 shrink-0 rounded-sm',
+                                            SWATCH[item.color ?? 'primary']
+                                        ]}
+                                    ></span>
+                                    <span class="min-w-0 flex-1 truncate">{item.title}</span>
+                                    {#if item.durationMinutes}
+                                        <span class="text-xs text-on-surface-variant"
+                                            >{item.durationMinutes}m</span
+                                        >
+                                    {/if}
+                                </button>
                             </li>
                         {/each}
                     </ul>

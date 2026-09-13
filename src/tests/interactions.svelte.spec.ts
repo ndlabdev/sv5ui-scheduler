@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { render } from 'vitest-browser-svelte'
 import type { EventInput } from '../lib/types/event.types.js'
 import type { Mutation } from '../lib/types/mutation.types.js'
+import { RETURN_ANIMATION_ID } from '../lib/interactions/motion.js'
 import BoundScheduler from './fixtures/BoundScheduler.svelte'
 
 const anchor = parseZonedDateTime('2026-09-09T12:00[Asia/Ho_Chi_Minh]')
@@ -99,6 +100,34 @@ describe('drag to create', () => {
         expect(screen.container.querySelector('[data-sch-focus]')).not.toBeNull()
     })
 
+    it('shows nothing on pointer down until the pointer actually moves', async () => {
+        const screen = render(BoundScheduler, { initial: [], date: anchor })
+        const wed = column(screen.container, '2026-09-09')
+        const target = grid(screen.container)
+        target.dispatchEvent(pointer('pointerdown', pointAt(wed, 540)))
+        await frame()
+        expect(screen.container.querySelector('[data-sch-ghost]')).toBeNull()
+        const ring = screen.container.querySelector<HTMLElement>('[data-sch-focus]')
+        expect(ring).not.toBeNull()
+        expect(getComputedStyle(ring!).visibility).toBe('hidden')
+        target.dispatchEvent(pointer('pointermove', pointAt(wed, 600)))
+        await frame()
+        expect(screen.container.querySelector('[data-sch-ghost]')).not.toBeNull()
+        target.dispatchEvent(pointer('pointerup', pointAt(wed, 600)))
+        await settle()
+    })
+
+    it('shows the focus ring only when the grid is focused from the keyboard', async () => {
+        const screen = render(BoundScheduler, { initial: [], date: anchor })
+        const target = grid(screen.container)
+        target.focus()
+        target.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }))
+        await frame()
+        const ring = screen.container.querySelector<HTMLElement>('[data-sch-focus]')!
+        expect(target.matches(':focus-visible')).toBe(true)
+        expect(getComputedStyle(ring).visibility).toBe('visible')
+    })
+
     it('creates one slot on double click', async () => {
         const onMutate = vi.fn()
         const screen = render(BoundScheduler, { initial: [], onMutate, date: anchor })
@@ -154,6 +183,355 @@ describe('drag to move', () => {
         expect(moved?.closest('[data-sch-day]')?.getAttribute('data-sch-day')).toBe('2026-09-10')
     })
 
+    it('keeps one ghost element that slides across columns instead of remounting', async () => {
+        const screen = render(BoundScheduler, {
+            initial: [input('a', '2026-09-09T09:00', '2026-09-09T10:00')],
+            date: anchor
+        })
+        const wrapper = screen.container
+            .querySelector<HTMLElement>('[data-sch-event-id="a"]')!
+            .closest<HTMLElement>('[data-sch-event]')!
+        const rect = wrapper.getBoundingClientRect()
+        const from = { clientX: rect.left + rect.width / 2, clientY: rect.top + rect.height / 2 }
+        wrapper.dispatchEvent(pointer('pointerdown', from))
+        wrapper.dispatchEvent(
+            pointer('pointermove', pointAt(column(screen.container, '2026-09-10'), 600))
+        )
+        await frame()
+        const ghost = screen.container.querySelector<HTMLElement>('[data-sch-ghost]')!
+        expect(ghost.closest('[data-sch-day]')).toBeNull()
+        expect(getComputedStyle(ghost).transitionProperty).toContain('top')
+        expect(
+            getComputedStyle(screen.container.querySelector('[data-sch-time-grid]')!).cursor
+        ).toBe('grabbing')
+
+        wrapper.dispatchEvent(
+            pointer('pointermove', pointAt(column(screen.container, '2026-09-12'), 720))
+        )
+        await frame()
+        expect(screen.container.querySelector('[data-sch-ghost]')).toBe(ghost)
+        expect(ghost.style.insetInlineStart).not.toBe('')
+
+        wrapper.dispatchEvent(
+            pointer('pointerup', pointAt(column(screen.container, '2026-09-12'), 720))
+        )
+        await settle()
+        expect(screen.container.querySelector('[data-sch-ghost]')).toBeNull()
+        expect(
+            getComputedStyle(screen.container.querySelector('[data-sch-time-grid]')!).cursor
+        ).not.toBe('grabbing')
+    })
+
+    it('slides one ghost across month cells and rows and drops on the cell under the pointer', async () => {
+        const onMutate = vi.fn()
+        const screen = render(BoundScheduler, {
+            initial: [input('trip', '2026-09-09', '2026-09-10', { allDay: true })],
+            onMutate,
+            date: anchor,
+            view: 'month'
+        })
+        const cell = (day: string) =>
+            screen.container.querySelector<HTMLElement>(`[data-sch-day="${day}"]`)!
+        const centre = (element: HTMLElement) => {
+            const rect = element.getBoundingClientRect()
+            return { clientX: rect.left + rect.width / 2, clientY: rect.top + rect.height / 2 }
+        }
+        const wrapper = screen.container.querySelector<HTMLElement>('[data-sch-event="trip"]')!
+        wrapper.dispatchEvent(pointer('pointerdown', centre(wrapper)))
+        wrapper.dispatchEvent(pointer('pointermove', centre(cell('2026-09-11'))))
+        await frame()
+        const ghost = screen.container.querySelector<HTMLElement>('[data-sch-ghost]')!
+        expect(ghost.parentElement).toBe(
+            screen.container.querySelector('[data-sch-month-grid] [role="application"]')
+        )
+        expect(getComputedStyle(ghost).transitionProperty).toContain('top')
+        const before = ghost.style.top
+
+        wrapper.dispatchEvent(pointer('pointermove', centre(cell('2026-09-17'))))
+        await frame()
+        expect(screen.container.querySelector('[data-sch-ghost]')).toBe(ghost)
+        expect(ghost.style.top).not.toBe(before)
+        expect(
+            getComputedStyle(screen.container.querySelector('[data-sch-month-grid]')!).cursor
+        ).toBe('grabbing')
+
+        wrapper.dispatchEvent(pointer('pointerup', centre(cell('2026-09-17'))))
+        await settle()
+        const mutation: Mutation = onMutate.mock.calls[0][0]
+        expect(iso(mutation.after!.start)).toBe('2026-09-17T00:00')
+        expect(screen.container.querySelector('[data-sch-ghost]')).toBeNull()
+    })
+
+    it('makes room for the month ghost instead of covering the chips already there', async () => {
+        const screen = render(BoundScheduler, {
+            initial: [
+                input('a', '2026-09-09T09:00', '2026-09-09T10:00'),
+                input('b', '2026-09-16T09:00', '2026-09-16T10:00')
+            ],
+            date: anchor,
+            view: 'month'
+        })
+        const cell = (day: string) =>
+            screen.container.querySelector<HTMLElement>(`[data-sch-day="${day}"]`)!
+        const centre = (element: HTMLElement) => {
+            const rect = element.getBoundingClientRect()
+            return { clientX: rect.left + rect.width / 2, clientY: rect.top + rect.height / 2 }
+        }
+        const top = (id: string) =>
+            screen.container
+                .querySelector<HTMLElement>(`[data-sch-event="${id}"]`)!
+                .getBoundingClientRect().top
+        const bTop = top('b')
+        const wrapper = screen.container.querySelector<HTMLElement>('[data-sch-event="a"]')!
+        wrapper.dispatchEvent(pointer('pointerdown', centre(wrapper)))
+        wrapper.dispatchEvent(pointer('pointermove', centre(cell('2026-09-16'))))
+        await frame()
+
+        const ghost = screen.container.querySelector<HTMLElement>('[data-sch-ghost]')!
+        expect(getComputedStyle(wrapper).visibility).toBe('hidden')
+        expect(Math.round(ghost.getBoundingClientRect().top)).toBe(Math.round(bTop))
+        expect(Math.round(top('b'))).toBe(Math.round(bTop + 24))
+        const overlaps = [
+            ...screen.container.querySelectorAll<HTMLElement>('[data-sch-event]')
+        ].filter((element) => {
+            if (element === wrapper) return false
+            const a = element.getBoundingClientRect()
+            const g = ghost.getBoundingClientRect()
+            return (
+                a.top < g.bottom - 2 &&
+                a.bottom > g.top + 2 &&
+                a.left < g.right - 2 &&
+                a.right > g.left + 2
+            )
+        })
+        expect(overlaps).toEqual([])
+
+        wrapper.dispatchEvent(pointer('pointerup', centre(cell('2026-09-16'))))
+        await settle()
+        const moved = screen.container.querySelector<HTMLElement>('[data-sch-event="a"]')!
+        expect(getComputedStyle(moved).visibility).toBe('visible')
+        expect(moved.closest('[role="application"]')).not.toBeNull()
+        expect(Math.round(top('b'))).toBe(Math.round(bTop + 24))
+    })
+
+    it('keeps the month ghost visible in a cell that is already full', async () => {
+        const many = Array.from({ length: 12 }, (_, i) =>
+            input(
+                `m${i}`,
+                `2026-09-16T${String(i + 1).padStart(2, '0')}:00`,
+                `2026-09-16T${String(i + 1).padStart(2, '0')}:30`
+            )
+        )
+        const screen = render(BoundScheduler, {
+            initial: [input('a', '2026-09-09T09:00', '2026-09-09T10:00'), ...many],
+            date: anchor,
+            view: 'month'
+        })
+        const cell = screen.container.querySelector<HTMLElement>('[data-sch-day="2026-09-16"]')!
+        const rect = cell.getBoundingClientRect()
+        const at = { clientX: rect.left + rect.width / 2, clientY: rect.top + rect.height / 2 }
+        const more = () =>
+            Number(cell.querySelector('[data-sch-more]')?.textContent?.replace('+', ''))
+        const before = more()
+        expect(before).toBeGreaterThan(0)
+        const wrapper = screen.container.querySelector<HTMLElement>('[data-sch-event="a"]')!
+        const from = wrapper.getBoundingClientRect()
+        wrapper.dispatchEvent(
+            pointer('pointerdown', {
+                clientX: from.left + from.width / 2,
+                clientY: from.top + from.height / 2
+            })
+        )
+        wrapper.dispatchEvent(pointer('pointermove', at))
+        await frame()
+        const ghost = screen.container.querySelector<HTMLElement>('[data-sch-ghost]')!
+        const g = ghost.getBoundingClientRect()
+        expect(g.top).toBeGreaterThanOrEqual(rect.top)
+        expect(g.bottom).toBeLessThanOrEqual(rect.bottom)
+        expect(more()).toBe(before + 1)
+        const covered = [
+            ...cell.parentElement!.parentElement!.querySelectorAll<HTMLElement>('[data-sch-event]')
+        ].filter((element) => {
+            const a = element.getBoundingClientRect()
+            return (
+                a.top < g.bottom - 2 &&
+                a.bottom > g.top + 2 &&
+                a.left < g.right - 2 &&
+                a.right > g.left + 2
+            )
+        })
+        expect(covered).toEqual([])
+        wrapper.dispatchEvent(pointer('pointerup', at))
+        await settle()
+    })
+
+    it('adds a lane in the all-day row for the ghost instead of covering the chip there', async () => {
+        const screen = render(BoundScheduler, {
+            initial: [
+                input('a', '2026-09-09T09:00', '2026-09-09T10:00'),
+                input('fest', '2026-09-10', '2026-09-11', { allDay: true })
+            ],
+            date: anchor
+        })
+        const allDayCell = screen.container.querySelector<HTMLElement>(
+            '[data-sch-day-index="3"][data-sch-all-day]'
+        )!
+        const rect = allDayCell.getBoundingClientRect()
+        const target = { clientX: rect.left + rect.width / 2, clientY: rect.top + rect.height / 2 }
+        const fest = screen.container.querySelector<HTMLElement>('[data-sch-event="fest"]')!
+        const festTop = fest.getBoundingClientRect().top
+        const wrapper = screen.container.querySelector<HTMLElement>('[data-sch-event="a"]')!
+        const from = wrapper.getBoundingClientRect()
+        wrapper.dispatchEvent(
+            pointer('pointerdown', {
+                clientX: from.left + from.width / 2,
+                clientY: from.top + from.height / 2
+            })
+        )
+        wrapper.dispatchEvent(pointer('pointermove', target))
+        await frame()
+        const ghost = screen.container.querySelector<HTMLElement>('[data-sch-ghost]')!
+        const g = ghost.getBoundingClientRect()
+        const f = fest.getBoundingClientRect()
+        const row = allDayCell.getBoundingClientRect()
+        expect(g.top).toBeGreaterThanOrEqual(row.top - 1)
+        expect(g.bottom).toBeLessThanOrEqual(row.bottom + 1)
+        expect(g.bottom <= f.top + 1 || g.top >= f.bottom - 1).toBe(true)
+        expect(Math.round(f.top)).toBeGreaterThanOrEqual(Math.round(festTop))
+        wrapper.dispatchEvent(pointer('pointerup', target))
+        await settle()
+        expect(screen.container.querySelector('[data-sch-ghost]')).toBeNull()
+    })
+
+    it('does not map the pointer to hours hidden behind the scroll viewport', async () => {
+        const screen = render(BoundScheduler, {
+            initial: [input('a', '2026-09-09T13:00', '2026-09-09T14:00')],
+            date: anchor
+        })
+        const host = screen.container.firstElementChild as HTMLElement
+        host.style.height = '500px'
+        const viewport = screen.container.querySelector<HTMLElement>('[data-scroll-area-viewport]')!
+        viewport.scrollTop = 12 * 48
+        await frame()
+        const wrapper = screen.container.querySelector<HTMLElement>('[data-sch-event="a"]')!
+        const from = wrapper.getBoundingClientRect()
+        wrapper.dispatchEvent(
+            pointer('pointerdown', {
+                clientX: from.left + from.width / 2,
+                clientY: from.top + from.height / 2
+            })
+        )
+        wrapper.dispatchEvent(
+            pointer('pointermove', { clientX: from.left + from.width / 2, clientY: from.top + 48 })
+        )
+        await frame()
+        const ghost = screen.container.querySelector<HTMLElement>('[data-sch-ghost]')!
+        const settled = ghost.style.top
+        const header = screen.container.querySelector<HTMLElement>(
+            '[data-sch-day="2026-09-09"]:not([data-sch-day-index])'
+        )!
+        const h = header.getBoundingClientRect()
+        wrapper.dispatchEvent(
+            pointer('pointermove', { clientX: h.left + h.width / 2, clientY: h.top + h.height / 2 })
+        )
+        await frame()
+        expect(ghost.style.top).toBe(settled)
+        wrapper.dispatchEvent(
+            pointer('pointerup', { clientX: h.left + h.width / 2, clientY: h.top + 2 })
+        )
+        await settle()
+    })
+
+    it('keeps the clock time when a timed event is moved to another day of the month grid', async () => {
+        const onMutate = vi.fn()
+        const screen = render(BoundScheduler, {
+            initial: [input('a', '2026-09-09T13:15', '2026-09-09T14:45')],
+            onMutate,
+            date: anchor,
+            view: 'month'
+        })
+        const cell = screen.container.querySelector<HTMLElement>('[data-sch-day="2026-09-17"]')!
+        const rect = cell.getBoundingClientRect()
+        const at = { clientX: rect.left + rect.width / 2, clientY: rect.top + rect.height / 2 }
+        const wrapper = screen.container.querySelector<HTMLElement>('[data-sch-event="a"]')!
+        const from = wrapper.getBoundingClientRect()
+        wrapper.dispatchEvent(
+            pointer('pointerdown', {
+                clientX: from.left + from.width / 2,
+                clientY: from.top + from.height / 2
+            })
+        )
+        wrapper.dispatchEvent(pointer('pointermove', at))
+        await frame()
+        expect(screen.container.querySelector('[data-sch-ghost]')?.textContent).toContain('1:15')
+        wrapper.dispatchEvent(pointer('pointerup', at))
+        await settle()
+        const mutation: Mutation = onMutate.mock.calls[0][0]
+        expect(mutation.after!.allDay).not.toBe(true)
+        expect(iso(mutation.after!.start)).toBe('2026-09-17T13:15')
+        expect(iso(mutation.after!.end)).toBe('2026-09-17T14:45')
+    })
+
+    it('draws both segments of a ghost that crosses midnight at their full size', async () => {
+        const screen = render(BoundScheduler, {
+            initial: [input('ship', '2026-09-11T22:30', '2026-09-12T00:30')],
+            date: anchor
+        })
+        const wrapper = screen.container.querySelector<HTMLElement>('[data-sch-event="ship"]')!
+        const rect = wrapper.getBoundingClientRect()
+        const from = { clientX: rect.left + rect.width / 2, clientY: rect.top + rect.height / 2 }
+        wrapper.dispatchEvent(pointer('pointerdown', from))
+        wrapper.dispatchEvent(
+            pointer('pointermove', { clientX: from.clientX, clientY: from.clientY + 24 })
+        )
+        await frame()
+        const ghosts = [...screen.container.querySelectorAll<HTMLElement>('[data-sch-ghost]')]
+        expect(ghosts).toHaveLength(2)
+        const byTop = ghosts.sort(
+            (a, b) => parseFloat(a.style.insetInlineStart) - parseFloat(b.style.insetInlineStart)
+        )
+        expect(byTop[0].style.top).toBe(`${(23 * 60 * 24) / 30}px`)
+        expect(byTop[0].style.height).toBe(`${(60 * 24) / 30}px`)
+        expect(byTop[1].style.top).toBe('0px')
+        expect(byTop[1].style.height).toBe('48px')
+        expect(parseFloat(byTop[0].style.insetInlineStart)).toBeCloseTo((4 * 100) / 7, 2)
+        expect(parseFloat(byTop[1].style.insetInlineStart)).toBeCloseTo((5 * 100) / 7, 2)
+        for (const ghost of ghosts) {
+            const g = ghost.getBoundingClientRect()
+            expect(g.height).toBeGreaterThan(20)
+        }
+        wrapper.dispatchEvent(
+            pointer('pointerup', { clientX: from.clientX, clientY: from.clientY + 24 })
+        )
+        await settle()
+    })
+
+    it('maps the pointer to the right time while the grid is scrolled', async () => {
+        const onMutate = vi.fn()
+        const screen = render(BoundScheduler, { initial: [], onMutate, date: anchor })
+        const host = screen.container.firstElementChild as HTMLElement
+        host.style.height = '500px'
+        const viewport = screen.container.querySelector<HTMLElement>('[data-scroll-area-viewport]')!
+        viewport.scrollTop = 12 * 48
+        await frame()
+        const wed = column(screen.container, '2026-09-09')
+        const target = grid(screen.container)
+        const start = pointAt(wed, 14 * 60)
+        const end = pointAt(wed, 15 * 60)
+        expect(start.clientY).toBeGreaterThan(viewport.getBoundingClientRect().top)
+        target.dispatchEvent(pointer('pointerdown', start))
+        target.dispatchEvent(pointer('pointermove', end))
+        await frame()
+        expect(screen.container.querySelector<HTMLElement>('[data-sch-ghost]')!.style.top).toBe(
+            `${14 * 48}px`
+        )
+        target.dispatchEvent(pointer('pointerup', end))
+        await settle()
+        const mutation: Mutation = onMutate.mock.calls[0][0]
+        expect(iso(mutation.after!.start)).toBe('2026-09-09T14:00')
+        expect(iso(mutation.after!.end)).toBe('2026-09-09T15:00')
+    })
+
     it('leaves a locked event where it is', async () => {
         const onMutate = vi.fn()
         const screen = render(BoundScheduler, {
@@ -176,7 +554,7 @@ describe('rollback and conflicts', () => {
         container.querySelector('[aria-live="polite"][aria-atomic]')?.textContent?.trim()
     const returning = (root: ParentNode) =>
         [...root.querySelectorAll<HTMLElement>('*')].filter((element) =>
-            element.getAnimations().some((animation) => animation.id === 'sch-return')
+            element.getAnimations().some((animation) => animation.id === RETURN_ANIMATION_ID)
         )
 
     function deferred<T>() {

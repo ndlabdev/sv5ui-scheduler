@@ -36,6 +36,7 @@ function harness() {
         view: 'week',
         range,
         days: eachDay(range),
+        columnsPerRow: 7,
         scale: createTimeScale({ slotMinutes: 30, slotHeight: 20 }),
         scheduler: {
             timeZone: ZONE,
@@ -130,6 +131,21 @@ describe('move gesture', () => {
         expect(announcements[0]).toBe('Moved a to 2:00 PM')
     })
 
+    it('does not emit a new preview while the pointer stays inside the same slot', () => {
+        const { controller, previews } = harness()
+        controller.beginMove(
+            event('a', '2026-09-09T09:00', '2026-09-09T10:00'),
+            point('2026-09-09T09:00')
+        )
+        controller.update(point('2026-09-09T11:00'))
+        const count = previews.length
+        controller.update(point('2026-09-09T11:05'))
+        controller.update(point('2026-09-09T11:10'))
+        expect(previews.length).toBe(count)
+        controller.update(point('2026-09-09T11:20'))
+        expect(previews.length).toBe(count + 1)
+    })
+
     it('drops a move that ends where it began', () => {
         const { controller, commits, previews } = harness()
         controller.beginMove(
@@ -150,6 +166,44 @@ it('commits nothing when the pointer never moved, even from a whole-day cell', (
     expect(controller.commit()).toBe(false)
     expect(commits).toEqual([])
     expect(previews.at(-1)).toBeNull()
+})
+
+describe('insert from outside', () => {
+    it('creates at the drop point with no before, keeping the length while it moves', () => {
+        const { controller, commits, previews, announcements } = harness()
+        const draft = event('ext', '2026-09-09T09:00', '2026-09-09T10:30')
+        controller.beginInsert(draft, point('2026-09-09T09:00'))
+        expect(previews.at(-1)?.kind).toBe('create')
+        controller.update(point('2026-09-10T14:10'))
+        expect(controller.commit()).toBe(true)
+        expect(commits[0]).toMatchObject({ kind: 'create', eventId: 'ext', before: null })
+        expect(iso(commits[0].after!.start)).toBe('2026-09-10T14:00')
+        expect(iso(commits[0].after!.end)).toBe('2026-09-10T15:30')
+        expect(announcements[0]).toBe('Created ext')
+    })
+
+    it('commits at the entry point when dropped without moving', () => {
+        const { controller, commits } = harness()
+        controller.beginInsert(
+            event('ext', '2026-09-09T09:00', '2026-09-09T10:00'),
+            point('2026-09-09T09:00')
+        )
+        expect(controller.commit()).toBe(true)
+        expect(iso(commits[0].after!.start)).toBe('2026-09-09T09:00')
+    })
+
+    it('abandon clears the preview without announcing', () => {
+        const { controller, previews, announcements, commits } = harness()
+        controller.beginInsert(
+            event('ext', '2026-09-09T09:00', '2026-09-09T10:00'),
+            point('2026-09-09T09:00')
+        )
+        controller.abandon()
+        expect(controller.active).toBe(false)
+        expect(previews.at(-1)).toBeNull()
+        expect(announcements).toEqual([])
+        expect(commits).toEqual([])
+    })
 })
 
 describe('resize gesture', () => {

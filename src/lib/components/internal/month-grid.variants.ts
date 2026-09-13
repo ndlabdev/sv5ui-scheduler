@@ -2,13 +2,16 @@ import { tv } from 'tailwind-variants'
 
 export const monthGridVariants = tv({
     slots: {
-        root: 'bg-surface text-on-surface @container flex h-full min-h-0 flex-col overflow-hidden',
+        root: [
+            'bg-surface text-on-surface @container flex h-full min-h-0 flex-col overflow-hidden',
+            'data-[sch-gesture=move]:**:cursor-grabbing data-[sch-gesture=move]:cursor-grabbing'
+        ],
         header: 'border-outline-variant/60 grid shrink-0 border-b',
         weekday: [
             'text-on-surface-variant truncate px-3 py-2 text-start text-[11px] font-semibold tracking-wider uppercase',
             '@max-md:px-1 @max-md:text-center @max-md:text-[10px]'
         ],
-        body: 'grid min-h-0 flex-1 select-none focus-visible:outline-none',
+        body: 'relative grid min-h-0 flex-1 select-none focus-visible:outline-none',
         row: 'relative grid min-h-0',
         cells: 'grid min-h-0',
         cell: [
@@ -17,7 +20,7 @@ export const monthGridVariants = tv({
         ],
         cellHoliday: 'bg-surface-container-low/70',
         cellTodayColumn: 'bg-primary/5',
-        cellFocus: 'ring-primary ring-2 ring-inset',
+        cellFocus: 'ring-primary ring-inset [[role=application]:focus-visible_&]:ring-2',
         cellHeader: 'relative z-10 flex shrink-0 items-start justify-between gap-1',
         cellLead: 'flex min-w-0 items-center gap-1',
         weekNumber: 'text-outline shrink-0 text-[10px] leading-6 font-medium tabular-nums',
@@ -39,8 +42,13 @@ export const monthGridVariants = tv({
         ],
         popoverList: 'flex flex-col gap-1',
         events: 'pointer-events-none absolute inset-x-0 grid',
-        event: 'pointer-events-auto min-w-0 px-1.5 pt-1',
-        ghost: 'pointer-events-none z-20 min-w-0 px-1.5 pt-1',
+        event: 'pointer-events-auto min-w-0 cursor-pointer px-1.5 pt-1 **:cursor-pointer',
+        eventDraggable: 'cursor-grab **:cursor-grab',
+        eventLifted: 'invisible',
+        ghost: [
+            'pointer-events-none absolute z-20 min-w-0 px-1.5 pt-1',
+            'transition-[top,inset-inline-start,width] duration-75 ease-out motion-reduce:transition-none'
+        ],
         ghostChip: 'ring-primary shadow-lg ring-2'
     }
 })

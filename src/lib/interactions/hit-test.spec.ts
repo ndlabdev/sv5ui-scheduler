@@ -12,7 +12,9 @@ const column = (dayIndex: number, left: number, allDay = false): ColumnRect => (
     right: left + 100,
     top: allDay ? 0 : 50,
     bottom: allDay ? 50 : 50 + scale.dayHeight,
-    allDay
+    originTop: allDay ? 0 : 50,
+    allDay,
+    keepsTime: false
 })
 const columns = [column(0, 0, true), column(1, 100, true), column(0, 0), column(1, 100)]
 
@@ -38,5 +40,31 @@ describe('resolveHit', () => {
     it('carries the event id it was given', () => {
         const hit = resolveHit({ clientX: 10, clientY: 60, columns, days, scale, eventId: 'a' })
         expect(hit?.eventId).toBe('a')
+    })
+})
+
+describe('resolveHit on a clipped column', () => {
+    it('maps pixels from the column origin, not from the visible edge', () => {
+        const clipped: ColumnRect = {
+            dayIndex: 0,
+            left: 0,
+            right: 100,
+            top: 250,
+            bottom: 650,
+            originTop: 50,
+            allDay: false,
+            keepsTime: false
+        }
+        const hit = resolveHit({
+            clientX: 50,
+            clientY: 250 + 20 * 6,
+            columns: [clipped],
+            days,
+            scale
+        })
+        expect(hit?.date.hour).toBe(8)
+        expect(
+            resolveHit({ clientX: 50, clientY: 100, columns: [clipped], days, scale })
+        ).toBeNull()
     })
 })

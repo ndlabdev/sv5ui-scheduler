@@ -21,6 +21,7 @@ export interface GestureSession<T = unknown> {
     readonly edge: ResizeEdge | null
     readonly draft: DraftRange
     readonly moved: boolean
+    readonly external: boolean
 }
 
 export interface GestureOptions {
@@ -61,20 +62,41 @@ export class GestureController<T = unknown> {
             end: draft.end,
             allDay: draft.allDay
         }
-        this.#start({ mode: 'create', anchor, event, edge: null, draft, moved: false })
+        this.#start({
+            mode: 'create',
+            anchor,
+            event,
+            edge: null,
+            draft,
+            moved: false,
+            external: false
+        })
+    }
+
+    beginInsert(event: SchedulerEvent<T>, anchor: GesturePoint): void {
+        const draft = moveDraft(event, anchor, anchor, this.#moveOptions())
+        this.#start({ mode: 'move', anchor, event, edge: null, draft, moved: true, external: true })
     }
 
     beginMove(event: SchedulerEvent<T>, anchor: GesturePoint): boolean {
         if (!isEditable(event)) return false
         const draft = moveDraft(event, anchor, anchor, this.#moveOptions())
-        this.#start({ mode: 'move', anchor, event, edge: null, draft, moved: false })
+        this.#start({
+            mode: 'move',
+            anchor,
+            event,
+            edge: null,
+            draft,
+            moved: false,
+            external: false
+        })
         return true
     }
 
     beginResize(event: SchedulerEvent<T>, edge: ResizeEdge, anchor: GesturePoint): boolean {
         if (!isEditable(event)) return false
         const draft = resizeDraft(event, edge, anchor, this.#context().scale.slotMinutes)
-        this.#start({ mode: 'resize', anchor, event, edge, draft, moved: false })
+        this.#start({ mode: 'resize', anchor, event, edge, draft, moved: false, external: false })
         return true
     }
 
@@ -82,8 +104,12 @@ export class GestureController<T = unknown> {
         const session = this.#session
         if (!session) return
         const draft = this.#draftFor(session, current)
+        if (session.moved && sameDraft(session.draft, draft)) return
         this.#session = { ...session, draft, moved: true }
-        this.#context().setPreview({ kind: session.mode, event: applyDraft(session.event, draft) })
+        this.#context().setPreview({
+            kind: previewKind(session),
+            event: applyDraft(session.event, draft)
+        })
     }
 
     commit(): boolean {
@@ -91,23 +117,19 @@ export class GestureController<T = unknown> {
         if (!session) return false
         this.#finish()
         if (!session.moved) return false
-        if (session.mode !== 'create' && isUnchanged(session.event, session.draft)) return false
+        const inserts = session.mode === 'create' || session.external
+        if (!inserts && isUnchanged(session.event, session.draft)) return false
         const after = applyDraft(session.event, session.draft)
         const context = this.#context()
-        context.commit({
-            kind: MUTATION_KIND[session.mode],
+        const mutation = {
+            kind: inserts ? 'create' : MUTATION_KIND[session.mode],
             eventId: session.event.id,
-            before: session.mode === 'create' ? null : session.event,
+            before: inserts ? null : session.event,
             after
-        })
+        } as const
+        context.commit(mutation)
         const message = announceMutation(
-            {
-                id: '',
-                kind: MUTATION_KIND[session.mode],
-                eventId: after.id,
-                before: session.mode === 'create' ? null : session.event,
-                after
-            },
+            { id: '', ...mutation },
             {
                 labels: context.scheduler.labels,
                 locale: context.scheduler.locale,
@@ -133,10 +155,14 @@ export class GestureController<T = unknown> {
         this.#context().announce(this.#context().scheduler.labels.announce.cancelled)
     }
 
+    abandon(): void {
+        if (this.#session) this.#finish()
+    }
+
     #start(session: GestureSession<T>): void {
         this.#session = session
         this.#context().setPreview({
-            kind: session.mode,
+            kind: previewKind(session),
             event: applyDraft(session.event, session.draft)
         })
     }
@@ -160,6 +186,14 @@ export class GestureController<T = unknown> {
             defaultMinutes: this.#options().defaultMinutes
         }
     }
+}
+
+function sameDraft(a: DraftRange, b: DraftRange): boolean {
+    return a.allDay === b.allDay && a.start.compare(b.start) === 0 && a.end.compare(b.end) === 0
+}
+
+function previewKind(session: GestureSession): GestureMode {
+    return session.external ? 'create' : session.mode
 }
 
 function isEditable(event: SchedulerEvent): boolean {

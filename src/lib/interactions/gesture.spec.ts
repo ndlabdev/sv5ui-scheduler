@@ -207,6 +207,50 @@ describe('moveDraft', () => {
     })
 })
 
+describe('moveDraft on a day cell that keeps time', () => {
+    const options = { slotMinutes: 30 }
+    const dayCell = (iso: string): GesturePoint => ({
+        date: at(iso),
+        allDay: true,
+        keepsTime: true
+    })
+
+    it('shifts a timed event by whole days and keeps its clock time', () => {
+        const draft = moveDraft(
+            event('2026-09-09T13:15', '2026-09-09T14:45'),
+            dayCell('2026-09-09T00:00'),
+            dayCell('2026-09-16T00:00'),
+            options
+        )
+        expect(iso(draft.start)).toBe('2026-09-16T13:15')
+        expect(iso(draft.end)).toBe('2026-09-16T14:45')
+        expect(draft.allDay).toBe(false)
+    })
+
+    it('still turns a timed event all-day when dropped on the all-day row', () => {
+        const draft = moveDraft(
+            event('2026-09-09T13:15', '2026-09-09T14:45'),
+            point('2026-09-09T00:00', true),
+            point('2026-09-16T00:00', true),
+            options
+        )
+        expect(draft.allDay).toBe(true)
+        expect(iso(draft.start)).toBe('2026-09-16T00:00')
+    })
+
+    it('moves an all-day event by days either way', () => {
+        const draft = moveDraft(
+            event('2026-09-09T00:00', '2026-09-11T00:00', true),
+            dayCell('2026-09-10T00:00'),
+            dayCell('2026-09-17T00:00'),
+            options
+        )
+        expect(iso(draft.start)).toBe('2026-09-16T00:00')
+        expect(iso(draft.end)).toBe('2026-09-18T00:00')
+        expect(draft.allDay).toBe(true)
+    })
+})
+
 describe('resizeDraft', () => {
     const slot = 30
     const base = event('2026-09-09T09:00', '2026-09-09T10:00')

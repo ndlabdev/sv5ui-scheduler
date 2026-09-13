@@ -1,5 +1,6 @@
 import type { ZonedDateTime } from '@internationalized/date'
 import type { DateRange, WeekDay } from '../../types/range.types.js'
+import { createRange } from './range.js'
 import { startOfWeek } from './week.js'
 import { endOfDay, startOfDay } from './zone.js'
 
@@ -11,7 +12,7 @@ export function dayRange(anchor: ZonedDateTime): DateRange {
 
 export function daysRange(anchor: ZonedDateTime, days: number): DateRange {
     const start = startOfDay(anchor)
-    return { start, end: startOfDay(start.add({ days })) }
+    return createRange(start, startOfDay(start.add({ days: Math.floor(days) })))
 }
 
 export function weekRange(anchor: ZonedDateTime, weekStartsOn: WeekDay): DateRange {

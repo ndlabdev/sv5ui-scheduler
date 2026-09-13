@@ -14,11 +14,11 @@ export function isWholeDay(event: SchedulerEvent): boolean {
     return event.allDay === true || durationMs(event) >= DAY_MS
 }
 
-export function durationMs(event: SchedulerEvent): number {
+function durationMs(event: SchedulerEvent): number {
     return event.end.toDate().getTime() - event.start.toDate().getTime()
 }
 
-export function dayIndexer(days: readonly ZonedDateTime[]): (dayStart: ZonedDateTime) => number {
+function dayIndexer(days: readonly ZonedDateTime[]): (dayStart: ZonedDateTime) => number {
     const indexes = new Map(days.map((day, index) => [day.toDate().getTime(), index]))
     return (dayStart) => indexes.get(dayStart.toDate().getTime()) ?? -1
 }

@@ -634,3 +634,45 @@ describe('Scheduler verification fixes', () => {
         expect(live.textContent).not.toBe(first)
     })
 })
+
+describe('custom duration', () => {
+    it('shows the given number of days from the anchor and steps by that many', async () => {
+        const { container } = render(Scheduler, {
+            props: { timeZone: ZONE, date: anchor, view: 'week', days: 4 }
+        })
+        expect(columns(container).map((c) => c.dataset.schDay)).toEqual([
+            '2026-09-09',
+            '2026-09-10',
+            '2026-09-11',
+            '2026-09-12'
+        ])
+        expect(title(container)).toContain('Sep 9')
+        container.querySelector<HTMLElement>('button[aria-label="Next"]')!.click()
+        await tick()
+        expect(columns(container)[0].dataset.schDay).toBe('2026-09-13')
+    })
+
+    it('handles a fortnight without mistaking it for a month grid', async () => {
+        const { container } = render(Scheduler, {
+            props: { timeZone: ZONE, date: anchor, view: 'week', days: 14 }
+        })
+        expect(columns(container)).toHaveLength(14)
+        const target = container.querySelector<HTMLElement>('[role="application"]')!
+        target.focus()
+        await tick()
+        const ring = container.querySelector<HTMLElement>('[data-sch-focus]')!
+        expect(ring.style.top).not.toBe('')
+        for (let i = 0; i < 14; i += 1) {
+            target.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }))
+        }
+        await tick()
+        expect(columns(container)[0].dataset.schDay).toBe('2026-09-23')
+    })
+
+    it('leaves the other views alone', () => {
+        const { container } = render(Scheduler, {
+            props: { timeZone: ZONE, date: anchor, view: 'day', days: 4 }
+        })
+        expect(columns(container)).toHaveLength(1)
+    })
+})

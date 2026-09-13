@@ -1,4 +1,4 @@
-import { usePointerDrag, type PointerDragContext } from 'sv5ui'
+import { useEventListener, usePointerDrag, type PointerDragContext } from 'sv5ui'
 import type { ResizeEdge } from './gesture.js'
 
 export interface PointerDragOptions {
@@ -6,15 +6,19 @@ export interface PointerDragOptions {
     onMove: (context: PointerDragContext) => void
     onEnd: (context: PointerDragContext) => void
     moveThreshold?: number
+    longPressMs?: number
 }
 
 const DEFAULT_THRESHOLD = 3
+const DEFAULT_LONG_PRESS = 300
 const EDGE_SIZE = 6
+const held = new WeakSet<Event>()
 
 export function pointerDrag(node: HTMLElement, options: PointerDragOptions): () => void {
     const threshold = options.moveThreshold ?? DEFAULT_THRESHOLD
     let moved = false
     const drag = usePointerDrag({
+        throttle: false,
         onStart: (context) => {
             moved = false
             return options.onStart(context)
@@ -29,18 +33,77 @@ export function pointerDrag(node: HTMLElement, options: PointerDragOptions): () 
             options.onEnd(context)
         }
     })
-    const { handlers } = drag
-    node.addEventListener('pointerdown', handlers.onpointerdown)
-    node.addEventListener('pointermove', handlers.onpointermove)
-    node.addEventListener('pointerup', handlers.onpointerup)
-    node.addEventListener('pointercancel', handlers.onpointercancel)
+    const press = longPress(node, {
+        delay: options.longPressMs ?? DEFAULT_LONG_PRESS,
+        threshold,
+        isActive: () => drag.active
+    })
+    useEventListener(node, 'pointerdown', (event) => {
+        if (event.pointerType !== 'touch' || held.has(event)) drag.handlers.onpointerdown(event)
+        else press.begin(event)
+    })
+    useEventListener(node, 'pointermove', drag.handlers.onpointermove)
+    useEventListener(node, 'pointerup', drag.handlers.onpointerup)
+    useEventListener(node, 'pointercancel', drag.handlers.onpointercancel)
     return () => {
+        press.cancel()
         drag.cancel()
-        node.removeEventListener('pointerdown', handlers.onpointerdown)
-        node.removeEventListener('pointermove', handlers.onpointermove)
-        node.removeEventListener('pointerup', handlers.onpointerup)
-        node.removeEventListener('pointercancel', handlers.onpointercancel)
     }
+}
+
+interface LongPressOptions {
+    delay: number
+    threshold: number
+    isActive: () => boolean
+}
+
+function longPress(node: HTMLElement, options: LongPressOptions) {
+    let pending: PointerEvent | null = null
+    let timer = 0
+
+    function begin(event: PointerEvent): void {
+        cancel()
+        pending = event
+        timer = window.setTimeout(fire, options.delay)
+    }
+
+    function fire(): void {
+        const event = pending
+        cancel()
+        if (!event) return
+        const replay = new PointerEvent('pointerdown', event)
+        held.add(replay)
+        node.dispatchEvent(replay)
+    }
+
+    function cancel(): void {
+        window.clearTimeout(timer)
+        timer = 0
+        pending = null
+    }
+
+    useEventListener(node, 'pointermove', (event) => {
+        if (!pending || event.pointerId !== pending.pointerId) return
+        const distance = Math.hypot(
+            event.clientX - pending.clientX,
+            event.clientY - pending.clientY
+        )
+        if (distance >= options.threshold) cancel()
+    })
+    useEventListener(node, ['pointerup', 'pointercancel'], cancel)
+    useEventListener(
+        node,
+        'touchmove',
+        (event) => {
+            if (options.isActive()) event.preventDefault()
+        },
+        { passive: false }
+    )
+    useEventListener(node, 'contextmenu', (event) => {
+        if (pending || options.isActive()) event.preventDefault()
+    })
+
+    return { begin, cancel }
 }
 
 export function edgeAt(node: HTMLElement, clientY: number, size = EDGE_SIZE): ResizeEdge | null {

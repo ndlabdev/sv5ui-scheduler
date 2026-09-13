@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { DateRange } from '../../types/range.types.js'
 import { at, contextFor, event } from '../../../tests/fixtures/layout.js'
-import { countByCell, layoutSpans, overflowByCell } from './spans.js'
+import { countByCell, insertSpans, layoutSpans, overflowByCell } from './spans.js'
 
 const monthRange: DateRange = { start: at('2026-08-31T00:00'), end: at('2026-10-12T00:00') }
 const month = contextFor(monthRange, 7)
@@ -135,5 +135,82 @@ describe('countByCell', () => {
         expect(counts.get(1 * 7 + 2)).toBe(2)
         expect(counts.get(1 * 7 + 3)).toBe(1)
         expect(counts.get(1 * 7 + 4)).toBeUndefined()
+    })
+})
+
+describe('insertSpans', () => {
+    const laidOut = () =>
+        layoutSpans(
+            [
+                event('bar', '2026-09-07T00:00', '2026-09-11T00:00', { allDay: true }),
+                event('a', '2026-09-09T09:00', '2026-09-09T10:00'),
+                event('b', '2026-09-09T11:00', '2026-09-09T12:00'),
+                event('c', '2026-09-16T09:00', '2026-09-16T10:00')
+            ],
+            monthRange,
+            month
+        )
+    const ghostAt = (day: string) =>
+        layoutSpans([event('ghost', `${day}T00:00`, `${day}T00:30`)], monthRange, month)
+
+    it('gives the ghost the first free lane and pushes the others down', () => {
+        const { spans, ghosts } = insertSpans(laidOut(), ghostAt('2026-09-09'), null)
+        expect(ghosts[0]).toMatchObject({ row: 1, startColumn: 2, lane: 1 })
+        expect(find(spans, 'bar')[0].lane).toBe(0)
+        expect(find(spans, 'a')[0].lane).toBe(2)
+        expect(find(spans, 'b')[0].lane).toBe(3)
+        expect(find(spans, 'c')[0].lane).toBe(0)
+    })
+
+    it('slots a timed ghost among the chips of its day by clock time', () => {
+        const ghost = layoutSpans(
+            [event('ghost', '2026-09-09T10:00', '2026-09-09T10:30')],
+            monthRange,
+            month
+        )
+        const { spans, ghosts } = insertSpans(laidOut(), ghost, null)
+        expect(find(spans, 'a')[0].lane).toBe(1)
+        expect(ghosts[0].lane).toBe(2)
+        expect(find(spans, 'b')[0].lane).toBe(3)
+    })
+
+    it('drops the event being moved from its old place', () => {
+        const { spans, ghosts } = insertSpans(laidOut(), ghostAt('2026-09-16'), 'a')
+        expect(find(spans, 'a')).toEqual([])
+        expect(find(spans, 'b')[0].lane).toBe(1)
+        expect(ghosts[0]).toMatchObject({ row: 2, startColumn: 2, lane: 0 })
+        expect(find(spans, 'c')[0].lane).toBe(1)
+    })
+
+    it('lets a ghost sit beside chips that do not share its columns', () => {
+        const { spans, ghosts } = insertSpans(laidOut(), ghostAt('2026-09-12'), null)
+        expect(ghosts[0].lane).toBe(0)
+        expect(find(spans, 'bar')[0].lane).toBe(0)
+    })
+
+    it('keeps the ghost visible in a full cell by sending the last chip to the overflow', () => {
+        const bars = layoutSpans(
+            [
+                event('one', '2026-09-07T00:00', '2026-09-11T00:00', { allDay: true }),
+                event('two', '2026-09-07T00:00', '2026-09-11T00:00', { allDay: true }),
+                event('c', '2026-09-16T09:00', '2026-09-16T10:00')
+            ],
+            monthRange,
+            month
+        )
+        const { spans, ghosts } = insertSpans(bars, ghostAt('2026-09-09'), null, 2)
+        expect(ghosts[0].lane).toBe(1)
+        expect(find(spans, 'one')[0].lane).toBe(0)
+        expect(find(spans, 'two')[0].lane).toBe(2)
+        expect(find(spans, 'c')[0].lane).toBe(0)
+    })
+
+    it('touches nothing without ghosts', () => {
+        const before = laidOut()
+        const { spans, ghosts } = insertSpans(before, [], null)
+        expect(ghosts).toEqual([])
+        expect(spans.map((s) => [s.event.id, s.lane]).sort()).toEqual(
+            before.map((s) => [s.event.id, s.lane]).sort()
+        )
     })
 })

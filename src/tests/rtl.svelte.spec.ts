@@ -2,6 +2,7 @@ import { parseZonedDateTime } from '@internationalized/date'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { render } from 'vitest-browser-svelte'
 import { Scheduler } from '../lib/index.js'
+import { RETURN_ANIMATION_ID } from '../lib/interactions/motion.js'
 import type { EventInput } from '../lib/types/event.types.js'
 import type { Mutation } from '../lib/types/mutation.types.js'
 
@@ -18,7 +19,7 @@ const base = { timeZone: ZONE, date: anchor, weekStartsOn: 1 as const }
 
 function rtl(props: Record<string, unknown>) {
     const screen = render(Scheduler, { props: { ...base, dir: 'rtl', ...props } })
-    screen.container.style.height = '600px'
+    screen.container.style.height = '1400px'
     return screen
 }
 
@@ -133,7 +134,7 @@ describe('right to left', () => {
         await settle()
 
         const clone = [...container.querySelectorAll<HTMLElement>('*')].find((element) =>
-            element.getAnimations().some((animation) => animation.id === 'sch-return')
+            element.getAnimations().some((animation) => animation.id === RETURN_ANIMATION_ID)
         )!
         expect(clone).toBeDefined()
         const ghost = rect(clone)

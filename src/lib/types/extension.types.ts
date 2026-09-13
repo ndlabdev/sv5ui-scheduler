@@ -1,7 +1,7 @@
 import type { ZonedDateTime } from '@internationalized/date'
 import type { Component, Snippet } from 'svelte'
 import type { Attachment } from 'svelte/attachments'
-import type { SchedulerEvent } from './event.types.js'
+import type { EventInput, SchedulerEvent } from './event.types.js'
 import type { SchedulerLabels } from './labels.types.js'
 import type { EventPatch, Mutation } from './mutation.types.js'
 import type { BusinessHours, DateRange, Holiday, TimeZoneId, WeekDay } from './range.types.js'
@@ -70,6 +70,12 @@ export interface SchedulerContext {
     businessHours?: BusinessHours
 
     holidays: Holiday[]
+
+    /**
+     * Days the week view shows when the application asked for a custom
+     * duration. `undefined` means a calendar week.
+     */
+    dayCount?: number
 
     /**
      * Show ISO 8601 week numbers beside each week.
@@ -382,6 +388,13 @@ export interface HitTarget {
      */
     allDay: boolean
 
+    /**
+     * The whole-day cell stands for a calendar day, as in the month grid, so
+     * a timed event dropped on it keeps its clock time and only changes day.
+     * `false` for the all-day row of the time grid, which turns it all-day.
+     */
+    keepsTime: boolean
+
     eventId: string | null
 }
 
@@ -399,6 +412,11 @@ export interface InteractionContext<T = unknown> {
      * `HitTarget.dayIndex` and `GridFocus.dayIndex`.
      */
     days: ZonedDateTime[]
+
+    /**
+     * How many of `days` form one row, as the active view declared it.
+     */
+    columnsPerRow: number
 
     scale: TimeScale
 
@@ -447,6 +465,29 @@ export interface InteractionContext<T = unknown> {
     setPreview: (preview: InteractionPreview<T> | null) => void
 
     announce: (message: string) => void
+}
+
+/**
+ * What an element outside the scheduler carries when it is dragged onto a
+ * grid with `dragSource`. Dropping it creates an event at the pointer; the
+ * scheduler fills in `start`, `end` and, when omitted, `id`.
+ */
+export type DragSourceData<T = unknown> = Omit<
+    EventInput<T>,
+    'id' | 'start' | 'end' | 'recurrence'
+> & {
+    /**
+     * Identity of the created event.
+     * @default generated
+     */
+    id?: string
+
+    /**
+     * Length of the event when dropped on a time slot. Ignored when dropped
+     * on a whole-day cell.
+     * @default two grid slots
+     */
+    durationMinutes?: number
 }
 
 /**

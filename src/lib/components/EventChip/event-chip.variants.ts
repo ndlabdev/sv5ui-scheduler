@@ -24,6 +24,17 @@ export const EVENT_SWATCH: Record<ChipColor, string> = {
     surface: 'bg-outline'
 }
 
+const RING: Record<ChipColor, string> = {
+    primary: 'ring-primary',
+    secondary: 'ring-secondary',
+    tertiary: 'ring-tertiary',
+    success: 'ring-success',
+    warning: 'ring-warning',
+    error: 'ring-error',
+    info: 'ring-info',
+    surface: 'ring-outline'
+}
+
 const SOFT: Record<ChipColor, string> = {
     primary: 'bg-primary-container text-on-primary-container',
     secondary: 'bg-secondary-container text-on-secondary-container',
@@ -89,7 +100,7 @@ export const eventChipVariants = tv({
             md: ''
         },
         selected: {
-            true: { root: 'ring-primary ring-2 ring-inset' }
+            true: { root: 'ring-offset-surface shadow-md ring-2 ring-offset-1' }
         },
         dragging: {
             true: { root: 'opacity-50' }
@@ -103,7 +114,8 @@ export const eventChipVariants = tv({
     },
     compoundVariants: COLORS.flatMap((color) => [
         { color, variant: 'soft' as const, class: { root: SOFT[color] } },
-        { color, variant: 'solid' as const, class: { root: SOLID[color] } }
+        { color, variant: 'solid' as const, class: { root: SOLID[color] } },
+        { color, selected: true, class: { root: RING[color] } }
     ]),
     defaultVariants: {
         color: 'primary',

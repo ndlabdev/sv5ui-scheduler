@@ -7,11 +7,6 @@ import { composeMiddleware, type PatchSink } from './middleware.js'
 import { applyPatch } from './patch.js'
 import { emptyIndex, queryIndex, type EventIndex } from './sorted-index.js'
 
-export interface StoreSnapshot<T = unknown> {
-    readonly index: EventIndex<T>
-    readonly version: number
-}
-
 export class EventStore<T = unknown> {
     #index = $state.raw<EventIndex<T>>(emptyIndex())
     #version = $state(0)
@@ -56,15 +51,6 @@ export class EventStore<T = unknown> {
 
     apply(patch: EventPatch<T>): void {
         this.#sink(patch)
-    }
-
-    snapshot(): StoreSnapshot<T> {
-        return { index: this.#index, version: this.#version }
-    }
-
-    restore(snapshot: StoreSnapshot<T>): void {
-        this.#index = snapshot.index
-        this.#version += 1
     }
 
     #commit(patch: EventPatch<T>): void {

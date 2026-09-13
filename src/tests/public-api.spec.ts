@@ -4,7 +4,12 @@ import { describe, expect, it } from 'vitest'
 
 const ROOT = 'src/lib/index.ts'
 
-const AREAS = ['./types/index.js', './core/index.js', './components/index.js']
+const AREAS = [
+    './types/index.js',
+    './core/index.js',
+    './components/index.js',
+    './interactions/index.js'
+]
 
 const PUBLIC_TYPES = [
     'BusinessHours',
@@ -16,6 +21,7 @@ const PUBLIC_TYPES = [
     'ConflictResolution',
     'DateInput',
     'DateRange',
+    'DragSourceData',
     'EventColor',
     'EventDetailSnippetProps',
     'EventInput',
@@ -70,6 +76,7 @@ const PUBLIC_VALUES = [
     'createTimeScale',
     'defaultLabels',
     'defineSchedulerConfig',
+    'dragSource',
     'mergeLabels',
     'resetSchedulerConfig'
 ]

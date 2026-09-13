@@ -10,6 +10,7 @@
     import { Skeleton } from 'sv5ui'
     import { tick, untrack } from 'svelte'
     import { getComponentConfig } from '../../config.js'
+    import { announceConflict, announceReverted } from '../../core/a11y/announce.js'
     import { mergeLabels, viewLabel } from '../../core/i18n/labels.js'
     import { createRegistry } from '../../core/registry/registry.js'
     import { EventStore } from '../../core/store/event-store.svelte.js'
@@ -52,6 +53,7 @@
         timeZone = getLocalTimeZone(),
         locale = 'en-US',
         weekStartsOn = 1,
+        days: dayCount,
         hour12,
         businessHours,
         holidays = [],
@@ -96,11 +98,11 @@
             returnToPlace(mutation.eventId)
             if (!mutation.before && selectedEventId === mutation.eventId) selectedEventId = null
             const subject = mutation.before ?? mutation.after
-            if (subject) interactionContext.announce(labels.announce.reverted(subject))
+            if (subject) interactionContext.announce(announceReverted(subject, context))
         },
         willKeepServer: (_, server) => {
             returnToPlace(server.id)
-            interactionContext.announce(labels.announce.conflict(server))
+            interactionContext.announce(announceConflict(server, context))
         }
     })
     let mirrored = normalizeEvents(
@@ -155,6 +157,9 @@
         },
         get weekStartsOn() {
             return weekStartsOn
+        },
+        get dayCount() {
+            return dayCount
         },
         get hour12() {
             return hour12
@@ -221,6 +226,9 @@
         get days() {
             return days
         },
+        get columnsPerRow() {
+            return layoutContext.columnsPerRow
+        },
         get scale() {
             return scale
         },
@@ -238,8 +246,8 @@
         step: (direction) => step(direction),
         newEventId: () => `event-${Date.now().toString(36)}-${++createdIds}`,
         hitTest: (clientX, clientY) => {
-            if (!gridNode) return null
-            if (!gesture.active || !columnRects) columnRects = collectColumnRects(gridNode)
+            if (!gridNode || !ref) return null
+            if (!gesture.active || !columnRects) columnRects = collectColumnRects(ref)
             return resolveHit({ clientX, clientY, columns: columnRects, days, scale })
         },
         snap: (value) => snapToSlot(value, slotMinutes),

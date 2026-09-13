@@ -1,3 +1,4 @@
+import { useEventListener } from 'sv5ui'
 import type { InteractionPlugin } from '../types/extension.types.js'
 import type { GestureController } from './controller.svelte.js'
 import { edgeAt, isPrimaryButton, pointerDrag } from './pointer.js'
@@ -25,20 +26,15 @@ export function resizeInteraction<T>(controller: GestureController<T>): Interact
                     controller.commit()
                 }
             })
-            const onHover = (event: PointerEvent) => {
+            useEventListener(node, 'pointermove', (event) => {
                 if (controller.active) return
-                node.style.cursor = edgeAt(node, event.clientY) ? 'ns-resize' : ''
-            }
-            const onLeave = () => {
-                node.style.cursor = ''
-            }
-            node.addEventListener('pointermove', onHover)
-            node.addEventListener('pointerleave', onLeave)
-            return () => {
-                stopDrag()
-                node.removeEventListener('pointermove', onHover)
-                node.removeEventListener('pointerleave', onLeave)
-            }
+                if (edgeAt(node, event.clientY)) node.dataset.schEdge = ''
+                else delete node.dataset.schEdge
+            })
+            useEventListener(node, 'pointerleave', () => {
+                delete node.dataset.schEdge
+            })
+            return stopDrag
         }
     }
 }

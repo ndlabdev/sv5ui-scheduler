@@ -1,7 +1,8 @@
 <script lang="ts" generics="T">
     import type { ZonedDateTime } from '@internationalized/date'
+    import type { SchedulerEvent } from '../../types/event.types.js'
     import type { SpanPosition, ViewProps } from '../../types/extension.types.js'
-    import { countByCell, overflowByCell } from '../../core/layout/spans.js'
+    import { countByCell, insertSpans, overflowByCell } from '../../core/layout/spans.js'
     import {
         formatDayNumber,
         formatLongDate,
@@ -48,14 +49,22 @@
         Math.max(Math.floor((cellHeight - HEADER_HEIGHT - 4) / LANE_HEIGHT), 1)
     )
 
-    const spans = $derived(positioned.filter((p): p is SpanPosition<T> => p.kind === 'span'))
-    const visible = $derived(spans.filter((span) => span.lane < maxLanes))
-    const overflow = $derived(overflowByCell(spans, maxLanes, COLUMNS))
-    const counts = $derived(countByCell(spans, COLUMNS))
-    const ghosts = $derived(
+    const laidOut = $derived(positioned.filter((p): p is SpanPosition<T> => p.kind === 'span'))
+    const previewSpans = $derived(
         (preview?.positioned ?? []).filter((p): p is SpanPosition<T> => p.kind === 'span')
     )
     const draggingId = $derived(preview?.kind === 'create' ? null : (preview?.event.id ?? null))
+    const inserted = $derived(
+        preview
+            ? insertSpans(laidOut, previewSpans, draggingId, maxLanes)
+            : { spans: laidOut, ghosts: [] }
+    )
+    const spans = $derived(inserted.spans)
+    const ghosts = $derived(inserted.ghosts)
+    const lifted = $derived(laidOut.filter((span) => span.event.id === draggingId))
+    const visible = $derived([...spans, ...lifted].filter((span) => span.lane < maxLanes))
+    const overflow = $derived(overflowByCell(spans, maxLanes, COLUMNS))
+    const counts = $derived(countByCell(spans, COLUMNS))
     const todayWeekDay = $derived(weekDayOf(scheduler.now))
     const showTodayColumn = $derived(days.some((day) => isSameDay(day, scheduler.now)))
     const holidays = $derived(new Map(scheduler.holidays.map((holiday) => [holiday.date, holiday])))
@@ -64,6 +73,12 @@
     const isWeekend = (day: ZonedDateTime) => weekDayOf(day) === 0 || weekDayOf(day) === 6
     const isOutside = (day: ZonedDateTime) => day.month !== anchor.month
     const isToday = (day: ZonedDateTime) => isSameDay(day, scheduler.now)
+
+    const ghostTop = (span: SpanPosition<T>) =>
+        span.row * cellHeight + HEADER_HEIGHT + span.lane * LANE_HEIGHT
+
+    const draggable = (event: SchedulerEvent<T>) =>
+        event.editable !== false && event.background !== true ? classes.eventDraggable() : ''
 
     function spansOn(dayIndex: number) {
         const row = Math.floor(dayIndex / COLUMNS)
@@ -99,7 +114,7 @@
     }
 </script>
 
-<div class={classes.root()} data-sch-month-grid>
+<div class={classes.root()} data-sch-month-grid data-sch-gesture={preview?.kind}>
     <div class={classes.header()} style:grid-template-columns={columnTemplate}>
         {#each days.slice(0, COLUMNS) as day (isoDate(day))}
             <div class={classes.weekday()}>{formatWeekdayLong(day, scheduler.locale)}</div>
@@ -133,6 +148,7 @@
                             data-sch-day={isoDate(day)}
                             data-sch-day-index={dayIndex}
                             data-sch-all-day
+                            data-sch-day-cell
                             data-sch-focus={focus?.dayIndex === dayIndex ? '' : undefined}
                             role="group"
                             aria-label={cellLabel(day, dayIndex)}
@@ -221,7 +237,12 @@
                 >
                     {#each visible.filter((span) => span.row === row) as span (span.event.id)}
                         <div
-                            class={classes.event()}
+                            class={classes.event({
+                                class: [
+                                    draggable(span.event),
+                                    span.event.id === draggingId ? classes.eventLifted() : ''
+                                ]
+                            })}
                             style:grid-column="{span.startColumn + 1} / {span.endColumn + 1}"
                             style:grid-row={span.lane + 1}
                             data-sch-event={span.event.id}
@@ -262,25 +283,27 @@
                             {/if}
                         </div>
                     {/each}
-                    {#each ghosts.filter((span) => span.row === row) as span (span.event.id)}
-                        <div
-                            class={classes.ghost()}
-                            style:grid-column="{span.startColumn + 1} / {span.endColumn + 1}"
-                            style:grid-row={Math.min(span.lane, maxLanes - 1) + 1}
-                            data-sch-ghost
-                        >
-                            <EventChip
-                                event={span.event}
-                                position={span}
-                                variant="solid"
-                                size="sm"
-                                class={classes.ghostChip()}
-                                locale={scheduler.locale}
-                                hour12={scheduler.hour12}
-                            />
-                        </div>
-                    {/each}
                 </div>
+            </div>
+        {/each}
+        {#each ghosts as span, index (`${span.event.id}:${index}`)}
+            <div
+                class={classes.ghost()}
+                style:top="{ghostTop(span)}px"
+                style:height="{LANE_HEIGHT}px"
+                style:inset-inline-start="{(span.startColumn * 100) / COLUMNS}%"
+                style:width="{((span.endColumn - span.startColumn) * 100) / COLUMNS}%"
+                data-sch-ghost
+            >
+                <EventChip
+                    event={span.event}
+                    position={span}
+                    variant="solid"
+                    size="sm"
+                    class={classes.ghostChip()}
+                    locale={scheduler.locale}
+                    hour12={scheduler.hour12}
+                />
             </div>
         {/each}
     </div>

@@ -2,7 +2,9 @@
     import { parseZonedDateTime, type ZonedDateTime } from '@internationalized/date'
     import { Badge, ScrollArea } from 'sv5ui'
     import { untrack } from 'svelte'
+    import type { SchedulerEvent } from '../../types/event.types.js'
     import type { SpanPosition, TimePosition, ViewProps } from '../../types/extension.types.js'
+    import { insertSpans } from '../../core/layout/spans.js'
     import { eachDay } from '../../core/time/range.js'
     import {
         formatDate,
@@ -52,8 +54,7 @@
         `repeating-linear-gradient(to bottom, color-mix(in oklab, var(--color-outline-variant) 45%, transparent) 0 1px, transparent 1px ${hourHeight}px)`
     )
 
-    const spans = $derived(positioned.filter((p): p is SpanPosition<T> => p.kind === 'span'))
-    const laneCount = $derived(spans.reduce((max, p) => Math.max(max, p.lane + 1), 0))
+    const laidOutSpans = $derived(positioned.filter((p): p is SpanPosition<T> => p.kind === 'span'))
     const timed = $derived(positioned.filter((p): p is TimePosition<T> => p.kind === 'time'))
     const byDay = $derived(
         days.map((_, dayIndex) => {
@@ -67,10 +68,21 @@
     const ghostTimed = $derived(
         (preview?.positioned ?? []).filter((p): p is TimePosition<T> => p.kind === 'time')
     )
-    const ghostSpans = $derived(
+    const previewSpans = $derived(
         (preview?.positioned ?? []).filter((p): p is SpanPosition<T> => p.kind === 'span')
     )
     const draggingId = $derived(preview?.kind === 'create' ? null : (preview?.event.id ?? null))
+    const inserted = $derived(
+        preview
+            ? insertSpans(laidOutSpans, previewSpans, draggingId)
+            : { spans: laidOutSpans, ghosts: [] }
+    )
+    const ghostSpans = $derived(inserted.ghosts)
+    const lifted = $derived(laidOutSpans.filter((span) => span.event.id === draggingId))
+    const spans = $derived([...inserted.spans, ...lifted])
+    const laneCount = $derived(
+        [...inserted.spans, ...ghostSpans].reduce((max, p) => Math.max(max, p.lane + 1), 0)
+    )
     const focusTop = $derived(
         focus && focus.minutes !== null
             ? (focus.minutes / scale.slotMinutes) * scale.slotHeight
@@ -162,6 +174,13 @@
         return scheduler.businessHours?.days.includes(weekDayOf(day)) ?? !isWeekend(day)
     }
 
+    const columnOffset = (position: TimePosition<T>) =>
+        `${((position.dayIndex + position.left) * 100) / days.length}%`
+    const columnWidth = (position: TimePosition<T>) => `${(position.width * 100) / days.length}%`
+
+    const draggable = (event: SchedulerEvent<T>) =>
+        event.editable !== false && event.background !== true ? classes.eventDraggable() : ''
+
     function eventProps(position: TimePosition<T>) {
         return {
             event: position.event,
@@ -174,7 +193,7 @@
     }
 </script>
 
-<div class={classes.root()} data-sch-time-grid>
+<div class={classes.root()} data-sch-time-grid data-sch-gesture={preview?.kind}>
     {#if single}
         {@const holiday = holidays.get(isoDate(days[0]))}
         <div
@@ -288,7 +307,14 @@
                 >
                     {#each spans as position (position.event.id + position.row)}
                         <div
-                            class={classes.allDayEvent()}
+                            class={classes.allDayEvent({
+                                class: [
+                                    draggable(position.event),
+                                    position.event.id === draggingId
+                                        ? classes.allDayEventLifted()
+                                        : ''
+                                ]
+                            })}
                             style:grid-column="{position.startColumn + 1} / {position.endColumn +
                                 1}"
                             style:grid-row={position.lane + 1}
@@ -398,7 +424,9 @@
                                 {#each byDay[dayIndex].foreground as position (position.event.id + position.dayIndex)}
                                     {@const compact = position.height < COMPACT_HEIGHT}
                                     <div
-                                        class={classes.event()}
+                                        class={classes.event({
+                                            class: draggable(position.event)
+                                        })}
                                         style:top="{position.top}px"
                                         style:height="{Math.max(
                                             position.height,
@@ -441,29 +469,6 @@
                                     </div>
                                 {/each}
                             </div>
-                            {#each ghostTimed.filter((p) => p.dayIndex === dayIndex) as position (position.event.id)}
-                                <div
-                                    class={classes.ghost()}
-                                    style:top="{position.top}px"
-                                    style:height="{Math.max(
-                                        position.height,
-                                        scale.slotHeight / 2
-                                    )}px"
-                                    style:inset-inline-start="{position.left * 100}%"
-                                    style:width="{position.width * 100}%"
-                                    data-sch-ghost
-                                >
-                                    <EventChip
-                                        event={position.event}
-                                        {position}
-                                        locale={scheduler.locale}
-                                        hour12={scheduler.hour12}
-                                        size={position.height < COMPACT_HEIGHT ? 'sm' : 'md'}
-                                        showTime={position.height >= COMPACT_HEIGHT}
-                                        class={classes.ghostChip({ class: 'h-full' })}
-                                    />
-                                </div>
-                            {/each}
                             {#if focusTop !== null && focus?.dayIndex === dayIndex}
                                 <div
                                     class={classes.focusRing()}
@@ -478,6 +483,26 @@
                                     <span class={classes.nowRule()}></span>
                                 </div>
                             {/if}
+                        </div>
+                    {/each}
+                    {#each ghostTimed as position, index (`${position.event.id}:${index}`)}
+                        <div
+                            class={classes.ghost()}
+                            style:top="{position.top}px"
+                            style:height="{Math.max(position.height, scale.slotHeight / 2)}px"
+                            style:inset-inline-start={columnOffset(position)}
+                            style:width={columnWidth(position)}
+                            data-sch-ghost
+                        >
+                            <EventChip
+                                event={position.event}
+                                {position}
+                                locale={scheduler.locale}
+                                hour12={scheduler.hour12}
+                                size={position.height < COMPACT_HEIGHT ? 'sm' : 'md'}
+                                showTime={position.height >= COMPACT_HEIGHT}
+                                class={classes.ghostChip({ class: 'h-full' })}
+                            />
                         </div>
                     {/each}
                     {#if isEmpty}

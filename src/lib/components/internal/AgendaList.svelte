@@ -6,13 +6,12 @@
     import { isWholeDay } from '../../core/layout/segments.js'
     import { formatAgendaDay, formatTime } from '../../core/time/format.js'
     import { eachDay, intersect } from '../../core/time/range.js'
-    import { isSameDay } from '../../core/time/zone.js'
+    import { isSameDay, minutesBetween } from '../../core/time/zone.js'
     import { EVENT_SWATCH } from '../EventChip/event-chip.variants.js'
     import EventPopover from './EventPopover.svelte'
     import { agendaListVariants } from './agenda-list.variants.js'
 
     const MINUTES_PER_HOUR = 60
-    const MS_PER_MINUTE = 60000
 
     let {
         view,
@@ -61,7 +60,7 @@
         if (isWholeDay(event)) return 0
         const visible = intersect(event, dayRange)
         if (!visible) return 0
-        return (visible.end.toDate().getTime() - visible.start.toDate().getTime()) / MS_PER_MINUTE
+        return minutesBetween(visible.start, visible.end)
     }
 
     function meta(group: Group): string {
