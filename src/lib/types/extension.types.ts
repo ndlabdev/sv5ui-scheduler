@@ -71,6 +71,17 @@ export interface SchedulerContext {
 
     holidays: Holiday[]
 
+    /**
+     * Show ISO 8601 week numbers beside each week.
+     */
+    weekNumbers: boolean
+
+    /**
+     * Text direction, from the scheduler's `dir` attribute or inherited from
+     * the page when it mounts.
+     */
+    direction: 'ltr' | 'rtl'
+
     labels: SchedulerLabels
 
     /**

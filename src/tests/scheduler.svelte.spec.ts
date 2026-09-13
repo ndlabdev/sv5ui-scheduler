@@ -268,8 +268,9 @@ describe('Scheduler month view', () => {
     it('dims the days of the neighbouring months', () => {
         const { container } = render(Scheduler, { props: monthProps })
         const [first, second] = cells(container)
-        expect(first.querySelector('span')?.className).toContain('text-on-surface-variant/40')
-        expect(second.querySelector('span')?.className).not.toContain('text-on-surface-variant/40')
+        const colour = (cell: HTMLElement) => getComputedStyle(cell.querySelector('span')!).color
+        expect(colour(first)).not.toBe(colour(second))
+        expect(colour(second)).toBe(colour(cells(container)[10]))
     })
 
     it('marks today', () => {
@@ -366,7 +367,7 @@ describe('Scheduler agenda view', () => {
                 ]
             }
         })
-        const header = groups(container)[0].querySelector('header')
+        const header = groups(container)[0].firstElementChild
         expect(header?.textContent).toContain('2 events')
         expect(header?.textContent).toContain('1h 30m')
     })
@@ -378,7 +379,7 @@ describe('Scheduler agenda view', () => {
                 events: [input('a', '2026-09-09', '2026-09-10', { allDay: true })]
             }
         })
-        const header = groups(container)[0].querySelector('header')
+        const header = groups(container)[0].firstElementChild
         expect(header?.textContent).toContain('1 event')
         expect(header?.textContent).not.toContain('h')
     })

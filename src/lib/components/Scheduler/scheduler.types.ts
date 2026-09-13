@@ -88,9 +88,16 @@ export type SchedulerProps<T = unknown> = Omit<HTMLAttributes<HTMLDivElement>, '
         businessHours?: BusinessHours
 
         /**
+         * Days to mark as holidays.
          * @default []
          */
         holidays?: Holiday[]
+
+        /**
+         * Show ISO 8601 week numbers in the week, day, month and year views.
+         * @default false
+         */
+        weekNumbers?: boolean
 
         /**
          * Display strings. Missing keys fall back to English.

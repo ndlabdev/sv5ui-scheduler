@@ -34,14 +34,22 @@ const tick = () => new Promise((resolve) => setTimeout(resolve, 0))
 
 function setup(handlers: MutationHandlers = {}) {
     const store = new EventStore()
-    const onRevert = vi.fn()
+    const seenOnRevert: (SchedulerEvent | undefined)[] = []
+    const seenOnKeepServer: (SchedulerEvent | undefined)[] = []
+    const willRevert = vi.fn((mutation: Mutation) => {
+        seenOnRevert.push(store.get(mutation.eventId))
+    })
+    const willKeepServer = vi.fn((mutation: Mutation) => {
+        seenOnKeepServer.push(store.get(mutation.eventId))
+    })
     const pipeline = new MutationPipeline({
         store,
         timeZone: () => ZONE,
         handlers: () => handlers,
-        onRevert
+        willRevert,
+        willKeepServer
     })
-    return { store, pipeline, onRevert }
+    return { store, pipeline, willRevert, willKeepServer, seenOnRevert, seenOnKeepServer }
 }
 
 const create = (after: SchedulerEvent): MutationRequest => ({
@@ -111,7 +119,7 @@ describe('optimistic application', () => {
 describe('rollback', () => {
     it('restores the previous state when the handler throws', async () => {
         const onError = vi.fn()
-        const { store, pipeline, onRevert } = setup({
+        const { store, pipeline, willRevert, seenOnRevert } = setup({
             onMutate: () => {
                 throw new Error('offline')
             },
@@ -128,7 +136,9 @@ describe('rollback', () => {
             expect.objectContaining({ kind: 'move' }),
             expect.any(Error)
         )
-        expect(onRevert).toHaveBeenCalledWith(expect.objectContaining({ eventId: 'a' }))
+        expect(willRevert).toHaveBeenCalledTimes(1)
+        expect(willRevert).toHaveBeenCalledWith(expect.objectContaining({ eventId: 'a' }))
+        expect(seenOnRevert.map((e) => e?.start.hour)).toEqual([11])
         expect(pipeline.isPending('a')).toBe(false)
     })
 
@@ -140,9 +150,12 @@ describe('rollback', () => {
     })
 
     it('removes a created event that failed to persist', async () => {
-        const { store, pipeline } = setup({ onMutate: () => Promise.reject(new Error('nope')) })
+        const { store, pipeline, seenOnRevert } = setup({
+            onMutate: () => Promise.reject(new Error('nope'))
+        })
         await pipeline.commit(create(event('a')))
         expect(store.has('a')).toBe(false)
+        expect(seenOnRevert.map((e) => e?.id)).toEqual(['a'])
     })
 
     it('brings back a deleted event that failed to persist', async () => {
@@ -267,26 +280,35 @@ describe('conflict detection', () => {
     const after = event('a', '11:00', '12:00')
 
     it('commits when the server echoes the same event', async () => {
-        const { store, pipeline } = setup({
+        const { store, pipeline, willKeepServer } = setup({
             onMutate: (m) => ({ ...(m.after as SchedulerEvent), data: { server: true } })
         })
         expect(await pipeline.commit(move(before, after))).toBe('committed')
         expect(store.get('a')?.start.hour).toBe(11)
+        expect(willKeepServer).not.toHaveBeenCalled()
     })
 
     it('takes the server version by default', async () => {
         const server = { id: 'a', title: 'a', start: '2026-09-12T11:30', end: '2026-09-12T12:30' }
-        const { store, pipeline } = setup({ onMutate: () => server })
+        const { store, pipeline, willKeepServer, seenOnKeepServer } = setup({
+            onMutate: () => server
+        })
         expect(await pipeline.commit(move(before, after))).toBe('kept-server')
         expect(store.get('a')?.start.minute).toBe(30)
+        expect(willKeepServer).toHaveBeenCalledWith(
+            expect.objectContaining({ eventId: 'a' }),
+            expect.objectContaining({ id: 'a' })
+        )
+        expect(seenOnKeepServer.map((e) => e?.start.minute)).toEqual([0])
     })
 
     it('asks onConflict and keeps the local version when told to', async () => {
         const server = { id: 'a', title: 'a', start: '2026-09-12T11:30', end: '2026-09-12T12:30' }
         const onConflict = vi.fn<MutationHandlers['onConflict'] & object>(() => 'keep-local')
-        const { store, pipeline } = setup({ onMutate: () => server, onConflict })
+        const { store, pipeline, willKeepServer } = setup({ onMutate: () => server, onConflict })
         expect(await pipeline.commit(move(before, after))).toBe('kept-local')
         expect(store.get('a')?.start.minute).toBe(0)
+        expect(willKeepServer).not.toHaveBeenCalled()
         expect(onConflict).toHaveBeenCalledWith(
             expect.objectContaining({ eventId: 'a' }),
             expect.objectContaining({ id: 'a' })

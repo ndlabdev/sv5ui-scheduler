@@ -14,7 +14,8 @@ export interface MutationPipelineOptions<T = unknown> {
     store: EventStore<T>
     timeZone: () => TimeZoneId
     handlers: () => MutationHandlers<T>
-    onRevert?: (mutation: Mutation<T>) => void
+    willRevert?: (mutation: Mutation<T>) => void
+    willKeepServer?: (mutation: Mutation<T>, server: SchedulerEvent<T>) => void
 }
 
 export class MutationPipeline<T = unknown> {
@@ -80,6 +81,7 @@ export class MutationPipeline<T = unknown> {
         if (isSameEvent(server, local)) return 'committed'
         const resolution = handlers.onConflict?.(mutation, server) ?? 'keep-server'
         if (resolution === 'keep-local') return 'kept-local'
+        this.#options.willKeepServer?.(mutation, server)
         this.#store.apply({ type: 'upsert', event: server })
         return 'kept-server'
     }
@@ -91,9 +93,9 @@ export class MutationPipeline<T = unknown> {
 
     #revert(mutation: Mutation<T>): void {
         this.#queue.cancelPending(mutation.eventId)
+        this.#options.willRevert?.(mutation)
         if (mutation.before) this.#store.apply({ type: 'upsert', event: mutation.before })
         else this.#store.apply({ type: 'remove', eventId: mutation.eventId })
-        this.#options.onRevert?.(mutation)
     }
 
     #nextId(): string {

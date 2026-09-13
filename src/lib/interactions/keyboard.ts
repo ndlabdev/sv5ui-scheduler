@@ -1,3 +1,4 @@
+import { viewLabel } from '../core/i18n/labels.js'
 import type { GridFocus, InteractionContext, InteractionPlugin } from '../types/extension.types.js'
 import { isInteractiveTarget, isTextField } from './hit-test.js'
 import { describeEvent } from '../core/a11y/announce.js'
@@ -17,7 +18,10 @@ export function keyboardInteraction<T>(controller: GestureController<T>): Intera
         attach: (context) => (node) => {
             if (!node.hasAttribute('tabindex')) node.tabIndex = 0
             node.setAttribute('role', 'application')
-            node.setAttribute('aria-label', context.scheduler.labels.grid(context.view))
+            node.setAttribute(
+                'aria-label',
+                context.scheduler.labels.grid(viewLabel(context.scheduler.labels, context.view))
+            )
 
             const onKeyDown = (event: KeyboardEvent) => {
                 if (belongsToChild(event, node)) return

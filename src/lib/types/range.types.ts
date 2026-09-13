@@ -51,8 +51,9 @@ export interface BusinessHours {
 }
 
 /**
- * A whole day marked as a holiday. Rendered like a weekend and reported to
- * cell snippets through `isHoliday`.
+ * A whole day marked as a holiday. The day is tinted and treated as outside
+ * business hours in every grid view, and reported to cell snippets through
+ * `isHoliday`.
  */
 export interface Holiday {
     /**
@@ -61,7 +62,8 @@ export interface Holiday {
     date: string
 
     /**
-     * Optional label shown in the day header and read by screen readers.
+     * Shown in the day header, the month cell and the agenda day heading, and
+     * read by screen readers.
      */
     title?: string
 }

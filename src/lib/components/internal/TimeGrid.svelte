@@ -12,10 +12,11 @@
         formatWeekday,
         formatWeekdayLong
     } from '../../core/time/format.js'
-    import { weekDayOf } from '../../core/time/week.js'
+    import { isoWeek, isoWeekOfRow, weekDayOf } from '../../core/time/week.js'
     import { isSameDay } from '../../core/time/zone.js'
     import EventChip from '../EventChip/EventChip.svelte'
     import EventPopover from './EventPopover.svelte'
+    import WeekNumber from './WeekNumber.svelte'
     import { timeGridVariants } from './time-grid.variants.js'
 
     const COMPACT_HEIGHT = 38
@@ -79,7 +80,8 @@
     const todayIndex = $derived(days.findIndex((day) => isSameDay(day, scheduler.now)))
     const nowTop = $derived(scale.toPixel(scheduler.now))
     const nowLabel = $derived(formatTime(scheduler.now, scheduler.locale, scheduler.hour12))
-    const holidays = $derived(new Set(scheduler.holidays.map((h) => h.date)))
+    const holidays = $derived(new Map(scheduler.holidays.map((holiday) => [holiday.date, holiday])))
+    const week = $derived(single ? isoWeek(days[0]) : isoWeekOfRow(days[0]))
     const hourLabels = $derived(
         Array.from({ length: 23 }, (_, i) => {
             const hour = i + 1
@@ -123,12 +125,14 @@
 
     const isoDate = (day: ZonedDateTime) => day.toString().slice(0, 10)
     const isWeekend = (day: ZonedDateTime) => weekDayOf(day) === 0 || weekDayOf(day) === 6
-    const todayColumn = (dayIndex: number) =>
+    const columnTint = (day: ZonedDateTime, dayIndex: number) => [
+        holidays.has(isoDate(day)) ? classes.holidayColumn() : '',
         dayIndex === todayIndex && !single ? classes.todayColumn() : ''
+    ]
 
     function offHours(day: ZonedDateTime): { top: number; height: number }[] {
         const hours = scheduler.businessHours
-        if (!hours || !hours.days.includes(weekDayOf(day))) return []
+        if (!hours || holidays.has(isoDate(day)) || !hours.days.includes(weekDayOf(day))) return []
         const open = scale.toPixel(day.set(parseClock(hours.start)))
         const close = scale.toPixel(day.set(parseClock(hours.end)))
         return [
@@ -149,10 +153,13 @@
             isToday: dayIndex === todayIndex,
             isWeekend: isWeekend(day),
             isHoliday: holidays.has(isoDate(day)),
-            isBusinessHours:
-                scheduler.businessHours?.days.includes(weekDayOf(day)) ?? !isWeekend(day),
+            isBusinessHours: !holidays.has(isoDate(day)) && isBusinessDay(day),
             isOutside: false
         }
+    }
+
+    function isBusinessDay(day: ZonedDateTime): boolean {
+        return scheduler.businessHours?.days.includes(weekDayOf(day)) ?? !isWeekend(day)
     }
 
     function eventProps(position: TimePosition<T>) {
@@ -169,7 +176,11 @@
 
 <div class={classes.root()} data-sch-time-grid>
     {#if single}
-        <div class={classes.dayTitle()} data-sch-day-title>
+        {@const holiday = holidays.get(isoDate(days[0]))}
+        <div
+            class={classes.dayTitle({ class: holiday ? classes.holidayColumn() : '' })}
+            data-sch-day-title
+        >
             <span class={classes.dayTitleWeekday()}>
                 {formatWeekdayLong(days[0], scheduler.locale)}
             </span>
@@ -184,17 +195,42 @@
                         class={classes.todayBadge()}
                     />
                 {/if}
+                {#if holiday?.title}
+                    <Badge
+                        color="tertiary"
+                        variant="soft"
+                        size="sm"
+                        label={holiday.title}
+                        class={classes.todayBadge()}
+                    />
+                {/if}
+                {#if scheduler.weekNumbers}
+                    <WeekNumber
+                        week={week.week}
+                        labels={scheduler.labels}
+                        class={classes.weekNumber()}
+                    />
+                {/if}
             </div>
         </div>
     {:else}
         <div class={classes.header()} style:grid-template-columns={headerTemplate}>
-            <div class={classes.gutterSpacer()}></div>
+            <div class={classes.gutterSpacer()}>
+                {#if scheduler.weekNumbers}
+                    <WeekNumber
+                        week={week.week}
+                        labels={scheduler.labels}
+                        class={classes.weekNumber()}
+                    />
+                {/if}
+            </div>
             {#each days as day, dayIndex (isoDate(day))}
                 {@const isToday = dayIndex === todayIndex}
                 {@const weekday = formatWeekday(day, scheduler.locale)}
                 {@const number = formatDayNumber(day, scheduler.locale)}
+                {@const holiday = holidays.get(isoDate(day))}
                 <div
-                    class={classes.dayHeader({ class: todayColumn(dayIndex) })}
+                    class={classes.dayHeader({ class: columnTint(day, dayIndex) })}
                     data-sch-day={isoDate(day)}
                     aria-current={isToday ? 'date' : undefined}
                 >
@@ -203,7 +239,8 @@
                             date: day,
                             view,
                             label: `${weekday} ${number}`,
-                            isToday
+                            isToday,
+                            holiday
                         })}
                     {:else}
                         <span class={classes.weekday()}>{weekday}</span>
@@ -214,6 +251,11 @@
                         >
                             {number}
                         </span>
+                        {#if holiday?.title}
+                            <span class={classes.holidayTitle()} data-sch-holiday-title>
+                                {holiday.title}
+                            </span>
+                        {/if}
                     {/if}
                 </div>
             {/each}
@@ -226,7 +268,7 @@
             <div class={classes.allDayCells()} style:grid-template-columns={dayTemplate}>
                 {#each days as day, dayIndex (isoDate(day))}
                     <div
-                        class={classes.allDayCell({ class: todayColumn(dayIndex) })}
+                        class={classes.allDayCell({ class: columnTint(day, dayIndex) })}
                         style:min-height="{Math.max(laneCount, 1) * 1.625 + 0.5}rem"
                         data-sch-day-index={dayIndex}
                         data-sch-all-day
@@ -259,20 +301,23 @@
                                 enabled={detailPopover}
                                 detail={snippets.detail}
                                 onDelete={onDeleteEvent}
+                                onSelect={onSelectEvent}
                                 side="bottom"
                             >
-                                <EventChip
-                                    event={position.event}
-                                    {position}
-                                    variant="solid"
-                                    size="sm"
-                                    class="h-full"
-                                    locale={scheduler.locale}
-                                    hour12={scheduler.hour12}
-                                    selected={selectedEventId === position.event.id}
-                                    dragging={draggingId === position.event.id}
-                                    onclick={() => onSelectEvent(position.event.id)}
-                                />
+                                {#snippet children(trigger)}
+                                    <EventChip
+                                        {...trigger}
+                                        event={position.event}
+                                        {position}
+                                        variant="solid"
+                                        size="sm"
+                                        class="h-full"
+                                        locale={scheduler.locale}
+                                        hour12={scheduler.hour12}
+                                        selected={selectedEventId === position.event.id}
+                                        dragging={draggingId === position.event.id}
+                                    />
+                                {/snippet}
                             </EventPopover>
                         </div>
                     {/each}
@@ -301,7 +346,7 @@
     {/if}
 
     <div class={classes.body()}>
-        <ScrollArea class={classes.scroll()} bind:viewportRef={viewport}>
+        <ScrollArea class={classes.scroll()} dir={scheduler.direction} bind:viewportRef={viewport}>
             <div class={classes.bodyGrid()} style:grid-template-columns={bodyTemplate}>
                 <div class={classes.gutter()} style:height="{scale.dayHeight}px" aria-hidden="true">
                     {#each hourLabels as label (label.hour)}
@@ -324,7 +369,7 @@
                 >
                     {#each days as day, dayIndex (isoDate(day))}
                         <div
-                            class={classes.column({ class: todayColumn(dayIndex) })}
+                            class={classes.column({ class: columnTint(day, dayIndex) })}
                             data-sch-day={isoDate(day)}
                             data-sch-day-index={dayIndex}
                         >
@@ -333,6 +378,7 @@
                                     class={classes.offHours()}
                                     style:top="{block.top}px"
                                     style:height="{block.height}px"
+                                    data-sch-off-hours
                                 ></div>
                             {/each}
                             {#if snippets.cell}
@@ -358,7 +404,7 @@
                                             position.height,
                                             scale.slotHeight / 2
                                         )}px"
-                                        style:left="{position.left * 100}%"
+                                        style:inset-inline-start="{position.left * 100}%"
                                         style:width="{position.width * 100}%"
                                         data-sch-event={position.event.id}
                                         {@attach interactions.event(position)}
@@ -372,20 +418,24 @@
                                                 enabled={detailPopover}
                                                 detail={snippets.detail}
                                                 onDelete={onDeleteEvent}
+                                                onSelect={onSelectEvent}
                                                 side={single ? 'bottom' : 'right'}
                                             >
-                                                <EventChip
-                                                    event={position.event}
-                                                    {position}
-                                                    locale={scheduler.locale}
-                                                    hour12={scheduler.hour12}
-                                                    size={compact ? 'sm' : 'md'}
-                                                    showTime={!compact}
-                                                    selected={selectedEventId === position.event.id}
-                                                    dragging={draggingId === position.event.id}
-                                                    class="h-full"
-                                                    onclick={() => onSelectEvent(position.event.id)}
-                                                />
+                                                {#snippet children(trigger)}
+                                                    <EventChip
+                                                        {...trigger}
+                                                        event={position.event}
+                                                        {position}
+                                                        locale={scheduler.locale}
+                                                        hour12={scheduler.hour12}
+                                                        size={compact ? 'sm' : 'md'}
+                                                        showTime={!compact}
+                                                        selected={selectedEventId ===
+                                                            position.event.id}
+                                                        dragging={draggingId === position.event.id}
+                                                        class="h-full"
+                                                    />
+                                                {/snippet}
                                             </EventPopover>
                                         {/if}
                                     </div>
@@ -399,7 +449,7 @@
                                         position.height,
                                         scale.slotHeight / 2
                                     )}px"
-                                    style:left="{position.left * 100}%"
+                                    style:inset-inline-start="{position.left * 100}%"
                                     style:width="{position.width * 100}%"
                                     data-sch-ghost
                                 >

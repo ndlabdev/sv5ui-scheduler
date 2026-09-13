@@ -1,6 +1,5 @@
 <script lang="ts" generics="T">
     import type { ZonedDateTime } from '@internationalized/date'
-    import { Popover } from 'sv5ui'
     import type { SpanPosition, ViewProps } from '../../types/extension.types.js'
     import { countByCell, overflowByCell } from '../../core/layout/spans.js'
     import {
@@ -10,10 +9,12 @@
         formatWeekdayLong
     } from '../../core/time/format.js'
     import { eachDay } from '../../core/time/range.js'
-    import { weekDayOf } from '../../core/time/week.js'
+    import { isoWeekOfRow, weekDayOf } from '../../core/time/week.js'
     import { isSameDay } from '../../core/time/zone.js'
     import EventChip from '../EventChip/EventChip.svelte'
+    import AnchoredPopover from './AnchoredPopover.svelte'
     import EventPopover from './EventPopover.svelte'
+    import WeekNumber from './WeekNumber.svelte'
     import { monthGridVariants } from './month-grid.variants.js'
 
     const COLUMNS = 7
@@ -57,7 +58,7 @@
     const draggingId = $derived(preview?.kind === 'create' ? null : (preview?.event.id ?? null))
     const todayWeekDay = $derived(weekDayOf(scheduler.now))
     const showTodayColumn = $derived(days.some((day) => isSameDay(day, scheduler.now)))
-    const holidays = $derived(new Set(scheduler.holidays.map((h) => h.date)))
+    const holidays = $derived(new Map(scheduler.holidays.map((holiday) => [holiday.date, holiday])))
 
     const isoDate = (day: ZonedDateTime) => day.toString().slice(0, 10)
     const isWeekend = (day: ZonedDateTime) => weekDayOf(day) === 0 || weekDayOf(day) === 6
@@ -74,6 +75,17 @@
             .sort((a, b) => a.lane - b.lane)
     }
 
+    function isBusinessDay(day: ZonedDateTime): boolean {
+        return scheduler.businessHours?.days.includes(weekDayOf(day)) ?? !isWeekend(day)
+    }
+
+    function cellLabel(day: ZonedDateTime, dayIndex: number): string {
+        const date = formatLongDate(day, scheduler.locale)
+        const title = holidays.get(isoDate(day))?.title
+        const named = title ? scheduler.labels.holidayDate(date, title) : date
+        return scheduler.labels.dayCell(named, counts.get(dayIndex) ?? 0)
+    }
+
     function cellProps(day: ZonedDateTime) {
         return {
             date: day,
@@ -81,9 +93,7 @@
             isToday: isToday(day),
             isWeekend: isWeekend(day),
             isHoliday: holidays.has(isoDate(day)),
-            isBusinessHours: scheduler.businessHours
-                ? scheduler.businessHours.days.includes(weekDayOf(day))
-                : !isWeekend(day),
+            isBusinessHours: !holidays.has(isoDate(day)) && isBusinessDay(day),
             isOutside: isOutside(day)
         }
     }
@@ -108,9 +118,12 @@
                     {#each days.slice(row * COLUMNS, row * COLUMNS + COLUMNS) as day, column (isoDate(day))}
                         {@const dayIndex = row * COLUMNS + column}
                         {@const more = overflow.get(dayIndex) ?? 0}
+                        {@const holiday = holidays.get(isoDate(day))}
+                        {@const week = column === 0 ? isoWeekOfRow(day).week : null}
                         <div
                             class={classes.cell({
                                 class: [
+                                    holiday ? classes.cellHoliday() : '',
                                     showTodayColumn && weekDayOf(day) === todayWeekDay
                                         ? classes.cellTodayColumn()
                                         : '',
@@ -122,39 +135,53 @@
                             data-sch-all-day
                             data-sch-focus={focus?.dayIndex === dayIndex ? '' : undefined}
                             role="group"
-                            aria-label={scheduler.labels.dayCell(
-                                formatLongDate(day, scheduler.locale),
-                                counts.get(dayIndex) ?? 0
-                            )}
+                            aria-label={cellLabel(day, dayIndex)}
                         >
                             <div class={classes.cellHeader()}>
-                                <span
-                                    class={classes.dayNumber({
-                                        class: [
-                                            isOutside(day) ? classes.dayNumberOutside() : '',
-                                            isToday(day) ? classes.dayNumberToday() : ''
-                                        ]
-                                    })}
-                                    aria-current={isToday(day) ? 'date' : undefined}
-                                >
-                                    {formatDayNumber(day, scheduler.locale)}
-                                </span>
+                                <div class={classes.cellLead()}>
+                                    <span
+                                        class={classes.dayNumber({
+                                            class: [
+                                                isOutside(day) ? classes.dayNumberOutside() : '',
+                                                isToday(day) ? classes.dayNumberToday() : ''
+                                            ]
+                                        })}
+                                        aria-current={isToday(day) ? 'date' : undefined}
+                                    >
+                                        {formatDayNumber(day, scheduler.locale)}
+                                    </span>
+                                    {#if scheduler.weekNumbers && week !== null}
+                                        <WeekNumber
+                                            {week}
+                                            labels={scheduler.labels}
+                                            class={classes.weekNumber()}
+                                        />
+                                    {/if}
+                                    {#if holiday?.title}
+                                        <span class={classes.holidayTitle()} data-sch-holiday-title>
+                                            {holiday.title}
+                                        </span>
+                                    {/if}
+                                </div>
                                 {#if more > 0}
-                                    <Popover
+                                    <AnchoredPopover
                                         side="bottom"
                                         align="end"
                                         class={classes.moreTrigger()}
-                                        ui={{ content: classes.popover() }}
+                                        contentClass={classes.popover()}
                                     >
-                                        <button
-                                            type="button"
-                                            class={classes.more()}
-                                            data-sch-more={isoDate(day)}
-                                            aria-label={scheduler.labels.more(more)}
-                                        >
-                                            +{more}
-                                        </button>
-                                        {#snippet content()}
+                                        {#snippet trigger(props)}
+                                            <button
+                                                {...props}
+                                                type="button"
+                                                class={classes.more()}
+                                                data-sch-more={isoDate(day)}
+                                                aria-label={scheduler.labels.more(more)}
+                                            >
+                                                +{more}
+                                            </button>
+                                        {/snippet}
+                                        {#snippet panel()}
                                             <p class={classes.popoverTitle()}>
                                                 {formatPopoverDay(day, scheduler.locale)}
                                             </p>
@@ -176,7 +203,7 @@
                                                 {/each}
                                             </div>
                                         {/snippet}
-                                    </Popover>
+                                    </AnchoredPopover>
                                 {/if}
                             </div>
                             {#if snippets.cell}
@@ -216,18 +243,21 @@
                                     enabled={detailPopover}
                                     detail={snippets.detail}
                                     onDelete={onDeleteEvent}
+                                    onSelect={onSelectEvent}
                                 >
-                                    <EventChip
-                                        event={span.event}
-                                        position={span}
-                                        variant="solid"
-                                        size="sm"
-                                        locale={scheduler.locale}
-                                        hour12={scheduler.hour12}
-                                        selected={selectedEventId === span.event.id}
-                                        dragging={draggingId === span.event.id}
-                                        onclick={() => onSelectEvent(span.event.id)}
-                                    />
+                                    {#snippet children(trigger)}
+                                        <EventChip
+                                            {...trigger}
+                                            event={span.event}
+                                            position={span}
+                                            variant="solid"
+                                            size="sm"
+                                            locale={scheduler.locale}
+                                            hour12={scheduler.hour12}
+                                            selected={selectedEventId === span.event.id}
+                                            dragging={draggingId === span.event.id}
+                                        />
+                                    {/snippet}
                                 </EventPopover>
                             {/if}
                         </div>

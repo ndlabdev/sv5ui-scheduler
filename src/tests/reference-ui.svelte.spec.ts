@@ -25,10 +25,18 @@ function press(target: Element, key: string, init: KeyboardEventInit = {}) {
 }
 
 function tap(target: Element) {
-    const at = { pointerId: 1, bubbles: true, isPrimary: true, button: 0 }
+    const rect = target.getBoundingClientRect()
+    const at = {
+        pointerId: 1,
+        bubbles: true,
+        isPrimary: true,
+        button: 0,
+        clientX: rect.left + rect.width / 2,
+        clientY: rect.top + rect.height / 2
+    }
     target.dispatchEvent(new PointerEvent('pointerdown', at))
     target.dispatchEvent(new PointerEvent('pointerup', at))
-    target.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    target.dispatchEvent(new MouseEvent('click', at))
 }
 
 describe('year view', () => {
@@ -110,6 +118,60 @@ describe('event detail popover', () => {
         const detail = document.querySelector('[data-sch-detail="a"]')
         expect(detail).not.toBeNull()
         expect(detail?.querySelector('button[aria-label="Delete event"]')).toBeNull()
+    })
+
+    it('exposes its state on the chip itself and toggles on repeated clicks', async () => {
+        const screen = render(BoundScheduler, {
+            initial: [input('a', '2026-09-09T09:00', '2026-09-09T10:00')],
+            date: anchor
+        })
+        const chip = screen.container.querySelector<HTMLElement>('[data-sch-event-id="a"]')!
+        expect(chip.getAttribute('aria-haspopup')).toBe('dialog')
+        expect(chip.getAttribute('aria-expanded')).toBe('false')
+        expect(screen.container.querySelector('[aria-haspopup]:not(button)')).toBeNull()
+
+        tap(chip)
+        await settle()
+        expect(chip.getAttribute('aria-expanded')).toBe('true')
+        expect(chip.getAttribute('aria-pressed')).toBe('true')
+        expect(document.querySelector('[data-sch-detail="a"]')).not.toBeNull()
+
+        tap(chip)
+        await expect.poll(() => document.querySelector('[data-sch-detail="a"]')).toBeNull()
+        expect(chip.getAttribute('aria-expanded')).toBe('false')
+    })
+
+    it('closes on Escape and gives focus back to the chip', async () => {
+        const screen = render(BoundScheduler, {
+            initial: [input('a', '2026-09-09T09:00', '2026-09-09T10:00')],
+            date: anchor
+        })
+        const chip = screen.container.querySelector<HTMLElement>('[data-sch-event-id="a"]')!
+        tap(chip)
+        await settle()
+        const close = document.querySelector<HTMLElement>('[data-sch-detail="a"] button')!
+        close.focus()
+        close.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
+        await expect.poll(() => document.querySelector('[data-sch-detail="a"]')).toBeNull()
+        await expect.poll(() => document.activeElement).toBe(chip)
+    })
+
+    it('exposes the overflow list state on the more button', async () => {
+        const many = Array.from({ length: 8 }, (_, i) =>
+            input(`m${i}`, '2026-09-09T09:00', '2026-09-09T10:00')
+        )
+        const { container } = render(Scheduler, {
+            props: { timeZone: ZONE, date: anchor, view: 'month', events: many }
+        })
+        container.style.height = '600px'
+        await settle()
+        const more = container.querySelector<HTMLElement>('[data-sch-more="2026-09-09"]')!
+        expect(more.getAttribute('aria-haspopup')).toBe('dialog')
+        expect(more.getAttribute('aria-expanded')).toBe('false')
+        tap(more)
+        await settle()
+        expect(more.getAttribute('aria-expanded')).toBe('true')
+        expect(document.querySelector('[data-sch-more-list="2026-09-09"]')).not.toBeNull()
     })
 
     it('can be turned off', async () => {

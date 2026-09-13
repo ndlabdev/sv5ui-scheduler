@@ -8,7 +8,7 @@
     import { getLocalTimeZone, type ZonedDateTime } from '@internationalized/date'
     import type { Attachment } from 'svelte/attachments'
     import { Skeleton } from 'sv5ui'
-    import { untrack } from 'svelte'
+    import { tick, untrack } from 'svelte'
     import { getComponentConfig } from '../../config.js'
     import { mergeLabels, viewLabel } from '../../core/i18n/labels.js'
     import { createRegistry } from '../../core/registry/registry.js'
@@ -23,6 +23,7 @@
     import { composeAttachments } from '../../interactions/attachments.js'
     import { createBuiltinInteractions } from '../../interactions/builtin.js'
     import { GestureController } from '../../interactions/controller.svelte.js'
+    import { captureEvent, playReturn } from '../../interactions/motion.js'
     import { collectColumnRects, resolveHit, type ColumnRect } from '../../interactions/hit-test.js'
     import { snapToSlot } from '../../interactions/snap.js'
     import type { SchedulerEvent } from '../../types/event.types.js'
@@ -54,6 +55,7 @@
         hour12,
         businessHours,
         holidays = [],
+        weekNumbers = false,
         labels: labelOverrides,
         slotMinutes = 30,
         slotHeight = 24,
@@ -72,6 +74,7 @@
         onError,
         ui,
         class: className,
+        dir,
         event: eventSnippet,
         cell,
         header,
@@ -88,7 +91,17 @@
     const pipeline = new MutationPipeline<T>({
         store,
         timeZone: () => timeZone,
-        handlers: () => ({ onMutate, onConflict, onError })
+        handlers: () => ({ onMutate, onConflict, onError }),
+        willRevert: (mutation) => {
+            returnToPlace(mutation.eventId)
+            if (!mutation.before && selectedEventId === mutation.eventId) selectedEventId = null
+            const subject = mutation.before ?? mutation.after
+            if (subject) interactionContext.announce(labels.announce.reverted(subject))
+        },
+        willKeepServer: (_, server) => {
+            returnToPlace(server.id)
+            interactionContext.announce(labels.announce.conflict(server))
+        }
     })
     let mirrored = normalizeEvents(
         untrack(() => events) ?? [],
@@ -106,6 +119,7 @@
     let gridNode: HTMLElement | null = null
     let columnRects: ColumnRect[] | null = null
     let announceToggle = false
+    let inheritedDirection = $state<'ltr' | 'rtl'>('ltr')
 
     const now = $derived(toZoned(clock, timeZone))
     let lastToday: ZonedDateTime | null = null
@@ -150,6 +164,12 @@
         },
         get holidays() {
             return holidays
+        },
+        get weekNumbers() {
+            return weekNumbers
+        },
+        get direction() {
+            return dir === 'rtl' || dir === 'ltr' ? dir : inheritedDirection
         },
         get labels() {
             return labels
@@ -235,6 +255,10 @@
         }
     }
 
+    const readDirection: Attachment<HTMLElement> = (node) => {
+        inheritedDirection = getComputedStyle(node).direction === 'rtl' ? 'rtl' : 'ltr'
+    }
+
     const rememberGrid: Attachment<HTMLElement> = (node) => {
         gridNode = node
         return () => {
@@ -269,6 +293,15 @@
         empty,
         detail: eventDetail
     })
+
+    function returnToPlace(eventId: string) {
+        const root = ref
+        if (!root) return
+        const from = captureEvent(root, eventId)
+        void tick().then(() => {
+            if (ref === root) playReturn(root, eventId, from)
+        })
+    }
 
     function selectEvent(eventId: string | null) {
         selectedEventId = eventId
@@ -364,7 +397,15 @@
     }
 </script>
 
-<div bind:this={ref} {...restProps} class={classes.root} data-sch-scheduler data-sch-view={view}>
+<div
+    bind:this={ref}
+    {...restProps}
+    {dir}
+    {@attach readDirection}
+    class={classes.root}
+    data-sch-scheduler
+    data-sch-view={view}
+>
     {#if toolbar}
         <Toolbar
             {title}

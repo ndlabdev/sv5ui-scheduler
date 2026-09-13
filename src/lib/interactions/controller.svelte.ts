@@ -90,8 +90,8 @@ export class GestureController<T = unknown> {
         const session = this.#session
         if (!session) return false
         this.#finish()
+        if (!session.moved) return false
         if (session.mode !== 'create' && isUnchanged(session.event, session.draft)) return false
-        if (session.mode === 'create' && !session.moved) return false
         const after = applyDraft(session.event, session.draft)
         const context = this.#context()
         context.commit({

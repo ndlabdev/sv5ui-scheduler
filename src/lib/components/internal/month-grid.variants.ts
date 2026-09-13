@@ -5,7 +5,7 @@ export const monthGridVariants = tv({
         root: 'bg-surface text-on-surface @container flex h-full min-h-0 flex-col overflow-hidden',
         header: 'border-outline-variant/60 grid shrink-0 border-b',
         weekday: [
-            'text-on-surface-variant truncate px-3 py-2 text-left text-[11px] font-semibold tracking-wider uppercase',
+            'text-on-surface-variant truncate px-3 py-2 text-start text-[11px] font-semibold tracking-wider uppercase',
             '@max-md:px-1 @max-md:text-center @max-md:text-[10px]'
         ],
         body: 'grid min-h-0 flex-1 select-none focus-visible:outline-none',
@@ -15,11 +15,15 @@ export const monthGridVariants = tv({
             'border-outline-variant/60 relative flex min-w-0 flex-col overflow-hidden border-e border-b p-1.5',
             '[&:nth-child(7n)]:border-e-0'
         ],
+        cellHoliday: 'bg-surface-container-low/70',
         cellTodayColumn: 'bg-primary/5',
         cellFocus: 'ring-primary ring-2 ring-inset',
-        cellHeader: 'relative z-10 flex shrink-0 items-start justify-between',
+        cellHeader: 'relative z-10 flex shrink-0 items-start justify-between gap-1',
+        cellLead: 'flex min-w-0 items-center gap-1',
+        weekNumber: 'text-outline shrink-0 text-[10px] leading-6 font-medium tabular-nums',
+        holidayTitle: 'text-tertiary truncate text-[10px] leading-6 font-medium',
         dayNumber: 'text-on-surface inline-flex px-1 text-xs leading-6 font-semibold tabular-nums',
-        dayNumberOutside: 'text-on-surface-variant/40',
+        dayNumberOutside: 'text-outline',
         dayNumberToday: [
             'bg-primary text-on-primary flex size-6 items-center justify-center rounded-full px-0'
         ],

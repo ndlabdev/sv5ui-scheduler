@@ -1,6 +1,6 @@
 import { parseZonedDateTime } from '@internationalized/date'
 import { describe, expect, it } from 'vitest'
-import { isoWeek, startOfWeek, weekDayOf } from './week.js'
+import { isoWeek, isoWeekOfRow, startOfWeek, weekDayOf } from './week.js'
 
 const at = (iso: string) => parseZonedDateTime(`${iso}T12:00[UTC]`)
 
@@ -36,5 +36,25 @@ describe('isoWeek', () => {
         ['2027-01-03', 53, 2026]
     ])('%s is week %i of %i', (date, week, year) => {
         expect(isoWeek(at(date))).toEqual({ week, year })
+    })
+})
+
+describe('isoWeekOfRow', () => {
+    it.each([
+        ['2026-09-07', 37, 2026],
+        ['2026-09-06', 37, 2026],
+        ['2026-09-12', 38, 2026],
+        ['2026-09-10', 37, 2026],
+        ['2026-09-11', 38, 2026],
+        ['2020-12-27', 53, 2020],
+        ['2025-12-28', 1, 2026]
+    ])('a row starting %s is week %i of %i', (date, week, year) => {
+        expect(isoWeekOfRow(at(date))).toEqual({ week, year })
+    })
+
+    it('agrees with isoWeek on every day of a Monday row', () => {
+        const monday = at('2026-12-28')
+        const weeks = Array.from({ length: 7 }, (_, i) => isoWeek(monday.add({ days: i })))
+        expect(weeks.every((w) => w.week === isoWeekOfRow(monday).week)).toBe(true)
     })
 })

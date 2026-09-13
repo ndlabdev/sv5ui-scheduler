@@ -27,6 +27,7 @@
     }: ViewProps<T> = $props()
 
     const classes = agendaListVariants()
+    const holidays = $derived(new Map(scheduler.holidays.map((holiday) => [holiday.date, holiday])))
 
     interface Group {
         readonly key: string
@@ -82,11 +83,12 @@
             {/if}
         </div>
     {:else}
-        <ScrollArea class={classes.scroll()}>
+        <ScrollArea class={classes.scroll()} dir={scheduler.direction}>
             <ul class={classes.list()}>
                 {#each groups as group (group.key)}
+                    {@const holiday = holidays.get(group.key)}
                     <li data-sch-day={group.key}>
-                        <header class={classes.groupHeader()}>
+                        <div class={classes.groupHeader()}>
                             <h3 class={classes.groupDate()}>
                                 {formatAgendaDay(group.day, scheduler.locale)}
                             </h3>
@@ -98,8 +100,13 @@
                                     class={classes.todayBadge()}
                                 />
                             {/if}
+                            {#if holiday?.title}
+                                <span class={classes.groupHoliday()} data-sch-holiday-title>
+                                    {holiday.title}
+                                </span>
+                            {/if}
                             <span class={classes.groupMeta()}>{meta(group)}</span>
-                        </header>
+                        </div>
                         <ul class={classes.rows()}>
                             {#each group.events as event (event.id)}
                                 <li>
@@ -109,63 +116,72 @@
                                         enabled={detailPopover}
                                         detail={snippets.detail}
                                         onDelete={onDeleteEvent}
+                                        onSelect={onSelectEvent}
                                         side="bottom"
                                     >
-                                        <button
-                                            type="button"
-                                            class={classes.row({
-                                                class:
-                                                    selectedEventId === event.id
-                                                        ? classes.rowSelected()
-                                                        : ''
-                                            })}
-                                            data-sch-event-id={event.id}
-                                            aria-pressed={selectedEventId === event.id}
-                                            onclick={() => onSelectEvent(event.id)}
-                                        >
-                                            <span class={classes.time()}>
-                                                {#if isWholeDay(event)}
-                                                    <span class={classes.start()}
-                                                        >{scheduler.labels.allDay}</span
-                                                    >
-                                                {:else}
-                                                    <span class={classes.start()}>
-                                                        {formatTime(
-                                                            event.start,
-                                                            scheduler.locale,
-                                                            scheduler.hour12
-                                                        )}
-                                                    </span>
-                                                    <span class={classes.end()}>
-                                                        &rarr; {formatTime(
-                                                            event.end,
-                                                            scheduler.locale,
-                                                            scheduler.hour12
-                                                        )}
-                                                    </span>
-                                                {/if}
-                                            </span>
-                                            <span
-                                                class={classes.bar({
-                                                    class: EVENT_SWATCH[event.color ?? 'primary']
+                                        {#snippet children(trigger)}
+                                            <button
+                                                {...trigger}
+                                                type="button"
+                                                class={classes.row({
+                                                    class:
+                                                        selectedEventId === event.id
+                                                            ? classes.rowSelected()
+                                                            : ''
                                                 })}
-                                            ></span>
-                                            <span class={classes.body()}>
-                                                {#if snippets.event}
-                                                    {@render snippets.event({
-                                                        event,
-                                                        view,
-                                                        isDragging: false,
-                                                        isResizing: false,
-                                                        isSelected: selectedEventId === event.id
+                                                data-sch-event-id={event.id}
+                                                aria-pressed={selectedEventId === event.id}
+                                            >
+                                                <span class={classes.time()}>
+                                                    {#if isWholeDay(event)}
+                                                        <span class={classes.start()}
+                                                            >{scheduler.labels.allDay}</span
+                                                        >
+                                                    {:else}
+                                                        <span class={classes.start()}>
+                                                            {formatTime(
+                                                                event.start,
+                                                                scheduler.locale,
+                                                                scheduler.hour12
+                                                            )}
+                                                        </span>
+                                                        <span class={classes.end()}>
+                                                            <span
+                                                                class={classes.arrow()}
+                                                                aria-hidden="true">&rarr;</span
+                                                            >
+                                                            {formatTime(
+                                                                event.end,
+                                                                scheduler.locale,
+                                                                scheduler.hour12
+                                                            )}
+                                                        </span>
+                                                    {/if}
+                                                </span>
+                                                <span
+                                                    class={classes.bar({
+                                                        class: EVENT_SWATCH[
+                                                            event.color ?? 'primary'
+                                                        ]
                                                     })}
-                                                {:else}
-                                                    <span class={classes.title()}
-                                                        >{event.title}</span
-                                                    >
-                                                {/if}
-                                            </span>
-                                        </button>
+                                                ></span>
+                                                <span class={classes.body()}>
+                                                    {#if snippets.event}
+                                                        {@render snippets.event({
+                                                            event,
+                                                            view,
+                                                            isDragging: false,
+                                                            isResizing: false,
+                                                            isSelected: selectedEventId === event.id
+                                                        })}
+                                                    {:else}
+                                                        <span class={classes.title()}
+                                                            >{event.title}</span
+                                                        >
+                                                    {/if}
+                                                </span>
+                                            </button>
+                                        {/snippet}
                                     </EventPopover>
                                 </li>
                             {/each}

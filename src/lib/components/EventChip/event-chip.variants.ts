@@ -49,14 +49,14 @@ const SOLID: Record<ChipColor, string> = {
 export const eventChipVariants = tv({
     slots: {
         root: [
-            'w-full min-w-0 overflow-hidden text-left',
+            'w-full min-w-0 overflow-hidden text-start',
             'transition-[box-shadow,filter,opacity] duration-150',
             'hover:brightness-[0.97] dark:hover:brightness-110',
             'focus-visible:ring-primary focus-visible:ring-2 focus-visible:outline-none'
         ],
         swatch: 'pointer-events-none absolute inset-y-0 start-0 w-1',
         title: 'truncate font-semibold',
-        time: 'shrink-0 truncate tabular-nums opacity-80'
+        time: 'shrink-0 truncate tabular-nums'
     },
     variants: {
         shape: {

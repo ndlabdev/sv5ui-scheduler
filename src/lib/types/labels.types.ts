@@ -43,6 +43,21 @@ export interface SchedulerLabels {
     dayCell: (date: string, count: number) => string
 
     /**
+     * A formatted date followed by the title of the holiday on it.
+     */
+    holidayDate: (date: string, holiday: string) => string
+
+    /**
+     * Short ISO week number shown beside a week when `weekNumbers` is on.
+     */
+    weekNumber: (week: number) => string
+
+    /**
+     * Spoken form of `weekNumber`.
+     */
+    weekNumberLabel: (week: number) => string
+
+    /**
      * Count shown beside a day heading in the agenda.
      */
     eventCount: (count: number) => string

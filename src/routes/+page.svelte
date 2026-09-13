@@ -335,6 +335,8 @@
             hour12={false}
             weekStartsOn={0}
             businessHours={{ start: '09:00', end: '18:00', days: [1, 2, 3, 4, 5] }}
+            holidays={[{ date: dayOf(9), title: 'Family day' }]}
+            weekNumbers
             class="min-h-0 flex-1"
             onMutate={apply}
             onMenu={() => (panelOpen = !panelOpen)}

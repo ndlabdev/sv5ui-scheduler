@@ -1,6 +1,7 @@
 import type { ZonedDateTime } from '@internationalized/date'
 import type { SchedulerEvent } from './event.types.js'
 import type { PositionedEvent } from './extension.types.js'
+import type { Holiday } from './range.types.js'
 
 /**
  * Argument of the `event` snippet, rendered once per visible event segment.
@@ -63,6 +64,11 @@ export interface HeaderSnippetProps {
     label: string
 
     isToday: boolean
+
+    /**
+     * The holiday on this day, if any.
+     */
+    holiday?: Holiday
 }
 
 /**

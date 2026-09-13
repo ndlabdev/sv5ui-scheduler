@@ -18,6 +18,9 @@ export const vi: SchedulerLabels = {
     more: (count) => `+${count} nữa`,
     dayCell: (date, count) =>
         count === 0 ? `${date}, không có sự kiện` : `${date}, ${count} sự kiện`,
+    holidayDate: (date, holiday) => `${date}, ${holiday}`,
+    weekNumber: (week) => `T${week}`,
+    weekNumberLabel: (week) => `Tuần ${week}`,
     eventCount: (count) => `${count} sự kiện`,
     duration: (hours, minutes) =>
         [hours > 0 ? `${hours} giờ` : '', minutes > 0 ? `${minutes} phút` : '']

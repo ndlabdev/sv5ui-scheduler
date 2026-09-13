@@ -10,11 +10,14 @@ export const timeGridVariants = tv({
         dayTitleDate: 'text-on-surface truncate text-xl font-semibold',
         todayBadge: 'rounded-full',
         header: 'border-outline-variant/60 grid shrink-0 border-b',
-        gutterSpacer: '',
+        gutterSpacer: 'flex items-end justify-center pb-2',
         dayHeader: [
             'border-outline-variant/60 flex min-w-0 flex-col items-center border-s px-2 py-2 text-center'
         ],
+        holidayColumn: 'bg-surface-container-low/70',
         todayColumn: 'bg-primary/5',
+        holidayTitle: 'text-tertiary mt-1 max-w-full truncate text-[10px] leading-none font-medium',
+        weekNumber: 'text-on-surface-variant text-[10px] font-medium tabular-nums',
         weekday: 'text-on-surface-variant text-[11px] font-medium uppercase',
         dayNumber: [
             'text-on-surface mt-1 flex size-8 items-center justify-center rounded-full text-sm font-semibold',
@@ -23,7 +26,7 @@ export const timeGridVariants = tv({
         dayNumberToday: 'bg-primary text-on-primary',
         allDayRow: 'border-outline-variant/60 bg-surface-container-low/40 grid shrink-0 border-b',
         allDayLabel: [
-            'text-on-surface-variant/70 flex items-center justify-end pe-2 text-[10px] font-medium tracking-wide uppercase'
+            'text-on-surface-variant flex items-center justify-end pe-2 text-[10px] font-medium tracking-wide uppercase'
         ],
         allDayCells: 'relative grid',
         allDayCell: 'border-outline-variant/60 relative border-s',
@@ -35,9 +38,9 @@ export const timeGridVariants = tv({
         bodyGrid: 'grid py-2',
         gutter: 'relative',
         hourLabel:
-            'text-on-surface-variant/70 absolute end-2 -translate-y-1/2 text-[11px] leading-none tabular-nums select-none',
+            'text-on-surface-variant absolute end-2 -translate-y-1/2 text-[11px] leading-none tabular-nums select-none',
         hourStrong: 'text-on-surface-variant font-medium',
-        hourFaint: 'opacity-60',
+        hourFaint: 'text-outline',
         columns: 'relative grid select-none focus-visible:outline-none',
         column: 'border-outline-variant/60 relative border-s',
         offHours: 'bg-surface-container-low/60 pointer-events-none absolute inset-x-0',

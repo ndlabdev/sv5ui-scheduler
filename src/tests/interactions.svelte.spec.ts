@@ -171,6 +171,157 @@ describe('drag to move', () => {
     })
 })
 
+describe('rollback and conflicts', () => {
+    const live = (container: Element) =>
+        container.querySelector('[aria-live="polite"][aria-atomic]')?.textContent?.trim()
+    const returning = (root: ParentNode) =>
+        [...root.querySelectorAll<HTMLElement>('*')].filter((element) =>
+            element.getAnimations().some((animation) => animation.id === 'sch-return')
+        )
+
+    function deferred<T>() {
+        let resolve!: (value: T) => void
+        let reject!: (reason: unknown) => void
+        const promise = new Promise<T>((res, rej) => {
+            resolve = res
+            reject = rej
+        })
+        return { promise, resolve, reject }
+    }
+
+    async function dragToThursday(container: Element) {
+        const wrapper = container
+            .querySelector<HTMLElement>('[data-sch-event-id="a"]')!
+            .closest<HTMLElement>('[data-sch-event]')!
+        const rect = wrapper.getBoundingClientRect()
+        const from = { clientX: rect.left + rect.width / 2, clientY: rect.top + rect.height / 2 }
+        await drag(wrapper, from, pointAt(column(container, '2026-09-10'), 840 + 30))
+    }
+
+    const dayOf = (container: Element, id: string) =>
+        container
+            .querySelector(`[data-sch-event-id="${id}"]`)
+            ?.closest('[data-sch-day]')
+            ?.getAttribute('data-sch-day')
+
+    it('slides a failed move back to where it was and announces the rollback', async () => {
+        const server = deferred<void>()
+        const screen = render(BoundScheduler, {
+            initial: [input('a', '2026-09-09T09:00', '2026-09-09T10:00')],
+            onMutate: () => server.promise,
+            date: anchor
+        })
+        await dragToThursday(screen.container)
+        expect(dayOf(screen.container, 'a')).toBe('2026-09-10')
+        const optimistic = screen.container
+            .querySelector('[data-sch-event-id="a"]')!
+            .closest<HTMLElement>('[data-sch-event]')!
+            .getBoundingClientRect()
+
+        server.reject(new Error('offline'))
+        await settle()
+
+        expect(dayOf(screen.container, 'a')).toBe('2026-09-09')
+        expect(live(screen.container)).toBe('Could not save a, change reverted')
+        const [moving] = returning(screen.container)
+        expect(moving?.dataset.schEvent).toBe('a')
+        const [animation] = moving.getAnimations()
+        const first = (animation.effect as KeyframeEffect).getKeyframes()[0]
+        animation.finish()
+        const resting = moving.getBoundingClientRect()
+        const expected = `translate(${optimistic.left - resting.left}px, ${optimistic.top - resting.top}px)`
+        expect(first.transform).toBe(expected)
+        expect(moving.style.top).toBe(`${18 * 24}px`)
+    })
+
+    it('fades out a created event that failed to persist and cleans up after itself', async () => {
+        const server = deferred<void>()
+        const screen = render(BoundScheduler, {
+            initial: [],
+            onMutate: () => server.promise,
+            date: anchor
+        })
+        const wed = column(screen.container, '2026-09-09')
+        await drag(grid(screen.container), pointAt(wed, 540), pointAt(wed, 660))
+        expect(screen.container.querySelectorAll('[data-sch-event]')).toHaveLength(1)
+
+        server.reject(new Error('offline'))
+        await settle()
+
+        expect(screen.container.querySelectorAll('[data-sch-event]')).toHaveLength(0)
+        expect(screen.container.querySelectorAll('[data-sch-event-id]')).toHaveLength(0)
+        expect(screen.component.getEvents()).toHaveLength(0)
+        const [ghost] = returning(screen.container)
+        expect(ghost?.querySelector('[id], [data-sch-event-id]')).toBeNull()
+        expect(ghost?.getAttribute('aria-hidden')).toBe('true')
+        expect(ghost?.inert).toBe(true)
+        expect(live(screen.container)).toMatch(/^Could not save .*, change reverted$/)
+
+        await new Promise((resolve) => setTimeout(resolve, 400))
+        expect(returning(screen.container)).toHaveLength(0)
+        expect(screen.container.contains(ghost)).toBe(false)
+    })
+
+    it('moves to the server version on a conflict and announces it', async () => {
+        const screen = render(BoundScheduler, {
+            initial: [input('a', '2026-09-09T09:00', '2026-09-09T10:00')],
+            onMutate: (mutation) => ({
+                id: 'a',
+                title: 'a',
+                start: mutation.before!.start.add({ hours: 3 }),
+                end: mutation.before!.end.add({ hours: 3 })
+            }),
+            date: anchor
+        })
+        await dragToThursday(screen.container)
+
+        expect(dayOf(screen.container, 'a')).toBe('2026-09-09')
+        const wrapper = screen.container
+            .querySelector('[data-sch-event-id="a"]')!
+            .closest<HTMLElement>('[data-sch-event]')!
+        expect(wrapper.style.top).toBe(`${24 * 24}px`)
+        expect(live(screen.container)).toBe('a was updated elsewhere')
+        expect(returning(screen.container).map((element) => element.dataset.schEvent)).toEqual([
+            'a'
+        ])
+    })
+
+    it('fades a deleted event back in when the delete fails', async () => {
+        const server = deferred<void>()
+        const screen = render(BoundScheduler, {
+            initial: [input('a', '2026-09-09T09:00', '2026-09-09T10:00')],
+            onMutate: () => server.promise,
+            date: anchor
+        })
+        await screen.getByText('a', { exact: true }).click()
+        grid(screen.container).dispatchEvent(
+            new KeyboardEvent('keydown', { key: 'Delete', bubbles: true })
+        )
+        await settle()
+        expect(screen.container.querySelectorAll('[data-sch-event]')).toHaveLength(0)
+
+        server.reject(new Error('offline'))
+        await settle()
+
+        expect(dayOf(screen.container, 'a')).toBe('2026-09-09')
+        expect(returning(screen.container).map((element) => element.dataset.schEvent)).toEqual([
+            'a'
+        ])
+        expect(live(screen.container)).toBe('Could not save a, change reverted')
+    })
+
+    it('stays still when the change persists', async () => {
+        const screen = render(BoundScheduler, {
+            initial: [input('a', '2026-09-09T09:00', '2026-09-09T10:00')],
+            onMutate: () => undefined,
+            date: anchor
+        })
+        await dragToThursday(screen.container)
+        expect(dayOf(screen.container, 'a')).toBe('2026-09-10')
+        expect(returning(screen.container)).toHaveLength(0)
+    })
+})
+
 describe('drag to resize', () => {
     it('extends the end when dragging the bottom edge', async () => {
         const onMutate = vi.fn()
@@ -200,7 +351,7 @@ describe('keyboard', () => {
         const screen = render(BoundScheduler, { initial: [], onMutate, date: quietWeek })
         const target = grid(screen.container)
         expect(target.tabIndex).toBe(0)
-        expect(target.getAttribute('aria-label')).toContain('week')
+        expect(target.getAttribute('aria-label')).toBe('Calendar, Week view')
 
         target.focus()
         await settle()

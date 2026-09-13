@@ -55,6 +55,7 @@
                 size="sm"
                 square
                 icon="lucide:chevron-left"
+                ui={{ leadingIcon: classes.directional() }}
                 aria-label={labels.previous}
                 onclick={() => onStep(-1)}
             />
@@ -64,6 +65,7 @@
                 size="sm"
                 square
                 icon="lucide:chevron-right"
+                ui={{ leadingIcon: classes.directional() }}
                 aria-label={labels.next}
                 onclick={() => onStep(1)}
             />
@@ -72,17 +74,19 @@
     </div>
 
     <div class={classes.tools()}>
-        <Tabs
-            items={views}
-            value={view}
-            variant="pill"
-            size="sm"
-            content={false}
-            class={classes.switcher()}
-            onValueChange={onView}
-        />
+        <div role="group" aria-label={labels.views} class={classes.switcherGroup()}>
+            <Tabs
+                items={views}
+                value={view}
+                variant="pill"
+                size="sm"
+                content={false}
+                class={classes.switcher()}
+                onValueChange={onView}
+            />
+        </div>
         {#if actions}
-            <div class={classes.actions()}>
+            <div class={classes.actions()} role="group" aria-label={labels.actions}>
                 {@render actions()}
             </div>
         {/if}

@@ -31,3 +31,8 @@ export function isoWeek(date: ZonedDateTime): IsoWeek {
     const dayOfYear = thursday.compare(new CalendarDate(thursday.year, 1, 1)) + 1
     return { week: Math.floor((dayOfYear - 1) / DAYS_PER_WEEK) + 1, year: thursday.year }
 }
+
+export function isoWeekOfRow(first: ZonedDateTime): IsoWeek {
+    const offset = (THURSDAY - weekDayOf(first) + DAYS_PER_WEEK) % DAYS_PER_WEEK
+    return isoWeek(first.add({ days: offset }))
+}

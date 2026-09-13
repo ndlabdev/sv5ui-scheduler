@@ -18,6 +18,9 @@ export const en: SchedulerLabels = {
     more: (count) => `+${count} more`,
     dayCell: (date, count) =>
         count === 0 ? `${date}, no events` : `${date}, ${count} event${count === 1 ? '' : 's'}`,
+    holidayDate: (date, holiday) => `${date}, ${holiday}`,
+    weekNumber: (week) => `W${week}`,
+    weekNumberLabel: (week) => `Week ${week}`,
     eventCount: (count) => `${count} event${count === 1 ? '' : 's'}`,
     duration: (hours, minutes) =>
         [hours > 0 ? `${hours}h` : '', minutes > 0 ? `${minutes}m` : ''].filter(Boolean).join(' '),

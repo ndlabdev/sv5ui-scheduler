@@ -12,6 +12,7 @@ export const agendaListVariants = tv({
         ],
         groupDate: 'text-on-surface text-sm font-bold tracking-wide uppercase',
         todayBadge: 'rounded-full',
+        groupHoliday: 'text-tertiary text-xs font-medium',
         groupMeta: 'text-on-surface-variant text-xs',
         rows: 'divide-outline-variant/40 divide-y',
         row: [
@@ -22,6 +23,7 @@ export const agendaListVariants = tv({
         time: 'w-16 shrink-0 pt-0.5 text-end',
         start: 'text-on-surface block text-sm font-semibold tabular-nums',
         end: 'text-on-surface-variant block text-xs tabular-nums',
+        arrow: 'inline-block rtl:-scale-x-100',
         bar: 'w-1 shrink-0 rounded-full',
         body: 'min-w-0 flex-1',
         title: 'text-on-surface truncate text-sm font-semibold'

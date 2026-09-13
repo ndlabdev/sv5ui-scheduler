@@ -30,6 +30,8 @@ export const scheduler: SchedulerContext = {
     locale: 'en-US',
     weekStartsOn: 1,
     holidays: [],
+    weekNumbers: false,
+    direction: 'ltr',
     labels: {} as SchedulerContext['labels'],
     now: at('2026-09-09T12:00')
 }

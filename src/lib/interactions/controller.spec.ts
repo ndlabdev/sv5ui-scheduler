@@ -42,6 +42,8 @@ function harness() {
             locale: 'en-US',
             weekStartsOn: 1,
             holidays: [],
+            weekNumbers: false,
+            direction: 'ltr',
             labels: defaultLabels,
             now: at('2026-09-09T12:00')
         },
@@ -139,6 +141,15 @@ describe('move gesture', () => {
         expect(commits).toEqual([])
         expect(previews.at(-1)).toBeNull()
     })
+})
+
+it('commits nothing when the pointer never moved, even from a whole-day cell', () => {
+    const { controller, commits, previews } = harness()
+    const timed = event('a', '2026-09-08T09:00', '2026-09-10T18:00')
+    expect(controller.beginMove(timed, point('2026-09-08T00:00', true))).toBe(true)
+    expect(controller.commit()).toBe(false)
+    expect(commits).toEqual([])
+    expect(previews.at(-1)).toBeNull()
 })
 
 describe('resize gesture', () => {

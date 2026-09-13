@@ -1,5 +1,13 @@
+<script lang="ts" module>
+    export interface EventTrigger {
+        'aria-haspopup'?: 'dialog'
+        'aria-expanded'?: boolean
+        onclick: () => void
+    }
+</script>
+
 <script lang="ts" generics="T">
-    import { Button, Icon, Popover } from 'sv5ui'
+    import { Button, Icon } from 'sv5ui'
     import type { Snippet } from 'svelte'
     import type { SchedulerEvent } from '../../types/event.types.js'
     import type { SchedulerContext } from '../../types/extension.types.js'
@@ -7,6 +15,7 @@
     import { formatDayRange, formatLongDate, formatTimeRange } from '../../core/time/format.js'
     import { isSameDay } from '../../core/time/zone.js'
     import { EVENT_SWATCH } from '../EventChip/event-chip.variants.js'
+    import AnchoredPopover from './AnchoredPopover.svelte'
     import { eventPopoverVariants } from './event-popover.variants.js'
 
     interface Props {
@@ -15,11 +24,21 @@
         enabled: boolean
         detail?: Snippet<[EventDetailSnippetProps<T>]>
         onDelete: (eventId: string) => void
+        onSelect: (eventId: string) => void
         side?: 'top' | 'right' | 'bottom' | 'left'
-        children: Snippet
+        children: Snippet<[EventTrigger]>
     }
 
-    let { event, scheduler, enabled, detail, onDelete, side = 'right', children }: Props = $props()
+    let {
+        event,
+        scheduler,
+        enabled,
+        detail,
+        onDelete,
+        onSelect,
+        side = 'right',
+        children
+    }: Props = $props()
 
     let open = $state(false)
 
@@ -38,6 +57,10 @@
     )
     const deletable = $derived(event.editable !== false && event.background !== true)
 
+    function select() {
+        onSelect(event.id)
+    }
+
     function close() {
         open = false
     }
@@ -49,16 +72,17 @@
 </script>
 
 {#if enabled}
-    <Popover
+    <AnchoredPopover
         bind:open
         {side}
-        align="start"
         class={classes.trigger()}
-        ui={{ content: classes.content() }}
+        contentClass={classes.content()}
+        onActivate={select}
     >
-        {@render children()}
-
-        {#snippet content()}
+        {#snippet trigger(props)}
+            {@render children(props)}
+        {/snippet}
+        {#snippet panel()}
             <div class={classes.card()} data-sch-detail={event.id}>
                 <div
                     class={classes.swatch({ class: EVENT_SWATCH[event.color ?? 'primary'] })}
@@ -98,7 +122,7 @@
                 {@render detail?.({ event, close })}
             </div>
         {/snippet}
-    </Popover>
+    </AnchoredPopover>
 {:else}
-    {@render children()}
+    {@render children({ onclick: select })}
 {/if}
