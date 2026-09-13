@@ -32,6 +32,7 @@
         InteractionPreview,
         PositionedEvent,
         SchedulerContext,
+        StoreMiddleware,
         ViewProps
     } from '../../types/extension.types.js'
     import Toolbar from '../internal/Toolbar.svelte'
@@ -76,10 +77,13 @@
         ...restProps
     }: Props<T> = $props()
 
-    const store = new EventStore<T>(
-        untrack(() => middleware),
-        () => ({ weekStartsOn })
-    )
+    const mirrorToLoader: StoreMiddleware<T> = (next) => (patch) => {
+        if (patch.type !== 'reset') loader?.apply(patch)
+        next(patch)
+    }
+    const store = new EventStore<T>([...untrack(() => middleware), mirrorToLoader], () => ({
+        weekStartsOn
+    }))
     const pipeline = new MutationPipeline<T>({
         store,
         timeZone: () => timeZone,

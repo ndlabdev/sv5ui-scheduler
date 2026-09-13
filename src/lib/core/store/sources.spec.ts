@@ -60,7 +60,7 @@ describe('function source', () => {
         const result = await loader.load(week)
         expect(result).toMatchObject({ status: 'loaded' })
         const context = fetch.mock.calls[0][0]
-        expect(context.range).toBe(week)
+        expect(context.range).toEqual(week)
         expect(context.timeZone).toBe('UTC')
         expect(context.signal.aborted).toBe(false)
     })
@@ -157,5 +157,120 @@ describe('function source', () => {
         expect(await stale).toEqual({ status: 'superseded' })
         expect(await loader.load(week)).toMatchObject({ status: 'loaded' })
         expect(contexts).toHaveLength(2)
+    })
+})
+
+describe('coverage based cache', () => {
+    const day = createRange(at('2026-09-09T00:00'), at('2026-09-10T00:00'))
+    const rangesOf = (fetch: ReturnType<typeof vi.fn<EventSourceFn>>) =>
+        fetch.mock.calls.map(([context]) => [context.range.start.day, context.range.end.day])
+
+    it('fetches only the parts of a range it has not loaded yet', async () => {
+        const fetch = vi.fn<EventSourceFn>(async () => [])
+        const loader = createSourceLoader(fetch, ZONE)
+        await loader.load(day)
+        await loader.load(week)
+        expect(rangesOf(fetch)).toEqual([
+            [9, 10],
+            [7, 9],
+            [10, 14]
+        ])
+    })
+
+    it('serves a range inside loaded coverage without fetching', async () => {
+        const fetch = vi.fn<EventSourceFn>(async () => [input('a')])
+        const loader = createSourceLoader(fetch, ZONE)
+        await loader.load(week)
+        const result = await loader.load(day)
+        expect(fetch).toHaveBeenCalledTimes(1)
+        expect(result).toMatchObject({ status: 'loaded' })
+    })
+
+    it('returns only the cached events overlapping the requested range', async () => {
+        const fetch = vi.fn<EventSourceFn>(async ({ range }) =>
+            range.start.day === 7
+                ? [input('a')]
+                : [{ ...input('b'), start: '2026-09-16T09:00', end: '2026-09-16T10:00' }]
+        )
+        const loader = createSourceLoader(fetch, ZONE)
+        await loader.load(week)
+        await loader.load(nextWeek)
+        const result = await loader.load(week)
+        if (result.status !== 'loaded') throw new Error('unreachable')
+        expect(result.events.map((e) => e.id)).toEqual(['a'])
+    })
+
+    it('always returns recurring series regardless of the range', async () => {
+        const fetch = vi.fn<EventSourceFn>(async ({ range }) =>
+            range.start.day === 7 ? [{ ...input('s'), recurrence: { freq: 'daily' } }] : []
+        )
+        const loader = createSourceLoader(fetch, ZONE)
+        await loader.load(week)
+        const result = await loader.load(nextWeek)
+        if (result.status !== 'loaded') throw new Error('unreachable')
+        expect(result.events.map((e) => e.id)).toEqual(['s'])
+    })
+
+    it('reflects applied mutations on the next read from cache', async () => {
+        const fetch = vi.fn<EventSourceFn>(async () => [input('a')])
+        const loader = createSourceLoader(fetch, ZONE)
+        const first = await loader.load(week)
+        if (first.status !== 'loaded') throw new Error('unreachable')
+        const moved = {
+            ...first.events[0],
+            start: at('2026-09-11T09:00'),
+            end: at('2026-09-11T10:00')
+        }
+        loader.apply({ type: 'upsert', event: moved })
+        loader.apply({ type: 'upsert', event: { ...moved, id: 'new', title: 'new' } })
+        loader.apply({ type: 'remove', eventId: 'gone' })
+
+        const second = await loader.load(week)
+        if (second.status !== 'loaded') throw new Error('unreachable')
+        expect(second.events.map((e) => [e.id, e.start.day])).toEqual([
+            ['a', 11],
+            ['new', 11]
+        ])
+        expect(fetch).toHaveBeenCalledTimes(1)
+
+        loader.apply({ type: 'remove', eventId: 'new' })
+        const third = await loader.load(week)
+        if (third.status !== 'loaded') throw new Error('unreachable')
+        expect(third.events.map((e) => e.id)).toEqual(['a'])
+    })
+
+    it('ignores reset patches, which come from its own loads', async () => {
+        const loader = createSourceLoader(async () => [input('a')], ZONE)
+        await loader.load(week)
+        loader.apply({ type: 'reset', events: [] })
+        const result = await loader.load(week)
+        if (result.status !== 'loaded') throw new Error('unreachable')
+        expect(result.events).toHaveLength(1)
+    })
+
+    it('does not extend coverage when a load is superseded', async () => {
+        const first = deferred<EventInput[]>()
+        let calls = 0
+        const fetch = vi.fn<EventSourceFn>(() => (calls++ === 0 ? first.promise : []))
+        const loader = createSourceLoader(fetch, ZONE)
+        const stale = loader.load(week)
+        await loader.load(nextWeek)
+        first.resolve([input('a')])
+        expect(await stale).toEqual({ status: 'superseded' })
+        await loader.load(week)
+        expect(rangesOf(fetch)).toEqual([
+            [7, 14],
+            [14, 21],
+            [7, 14]
+        ])
+    })
+
+    it('forgets coverage on invalidate', async () => {
+        const fetch = vi.fn<EventSourceFn>(async () => [])
+        const loader = createSourceLoader(fetch, ZONE)
+        await loader.load(week)
+        loader.invalidate()
+        await loader.load(week)
+        expect(fetch).toHaveBeenCalledTimes(2)
     })
 })

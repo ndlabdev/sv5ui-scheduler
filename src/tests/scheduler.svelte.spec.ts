@@ -4,7 +4,9 @@ import { render } from 'vitest-browser-svelte'
 import { Scheduler } from '../lib/index.js'
 import type { EventInput } from '../lib/types/event.types.js'
 import type { InteractionPlugin } from '../lib/types/extension.types.js'
+import type { EventSourceFn } from '../lib/types/source.types.js'
 import BoundScheduler from './fixtures/BoundScheduler.svelte'
+import SourceScheduler from './fixtures/SourceScheduler.svelte'
 
 const ZONE = 'Asia/Ho_Chi_Minh'
 const anchor = parseZonedDateTime('2026-09-09T12:00[Asia/Ho_Chi_Minh]')
@@ -501,5 +503,87 @@ describe('Scheduler with a recurring series', () => {
         )
         expect(groups).toContain('2026-09-07')
         expect(groups).not.toContain('2026-09-09')
+    })
+})
+
+describe('Scheduler with an async source', () => {
+    const settle = () => new Promise((resolve) => setTimeout(resolve, 30))
+
+    it('loads the visible range, then only the gaps when navigating', async () => {
+        const calls: string[] = []
+        const source: EventSourceFn = async ({ range }) => {
+            calls.push(
+                `${range.start.toString().slice(0, 10)}..${range.end.toString().slice(0, 10)}`
+            )
+            return range.start.day === 7 ? [input('a', '2026-09-09T09:00', '2026-09-09T10:00')] : []
+        }
+        const screen = render(SourceScheduler, { source, date: anchor })
+        await settle()
+        expect(chips(screen.container)).toHaveLength(1)
+        expect(calls).toEqual(['2026-09-07..2026-09-14'])
+
+        screen.component.next()
+        await settle()
+        expect(calls).toEqual(['2026-09-07..2026-09-14', '2026-09-14..2026-09-21'])
+        expect(chips(screen.container)).toHaveLength(0)
+
+        screen.component.previous()
+        await settle()
+        expect(calls).toHaveLength(2)
+        expect(chips(screen.container)).toHaveLength(1)
+    })
+
+    it('keeps a committed mutation after navigating away and back', async () => {
+        const source: EventSourceFn = async ({ range }) =>
+            range.start.day === 7 ? [input('a', '2026-09-09T09:00', '2026-09-09T10:00')] : []
+        const plugin: InteractionPlugin = {
+            name: 'mover',
+            attach: (context) => () => {
+                const timer = setTimeout(() => {
+                    const event = context.getEvent('a')
+                    if (!event) return
+                    context.commit({
+                        kind: 'move',
+                        eventId: 'a',
+                        before: event,
+                        after: {
+                            ...event,
+                            start: parseZonedDateTime('2026-09-11T09:00[Asia/Ho_Chi_Minh]'),
+                            end: parseZonedDateTime('2026-09-11T10:00[Asia/Ho_Chi_Minh]')
+                        }
+                    })
+                }, 20)
+                return () => clearTimeout(timer)
+            }
+        }
+        const onMutate = vi.fn()
+        const screen = render(SourceScheduler, { source, date: anchor, onMutate })
+        await settle()
+        expect(chips(screen.container)).toHaveLength(1)
+
+        screen.component.next()
+        await settle()
+        screen.component.previous()
+        await settle()
+        expect(
+            chips(screen.container)[0].closest('[data-sch-day]')?.getAttribute('data-sch-day')
+        ).toBe('2026-09-09')
+
+        const rerendered = render(SourceScheduler, {
+            source,
+            date: anchor,
+            onMutate,
+            interactions: [plugin]
+        })
+        await settle()
+        await settle()
+        await settle()
+        expect(onMutate).toHaveBeenCalledWith(expect.objectContaining({ kind: 'move' }))
+        rerendered.component.next()
+        await settle()
+        rerendered.component.previous()
+        await settle()
+        const moved = chips(rerendered.container).find((c) => c.dataset.schEventId === 'a')
+        expect(moved?.closest('[data-sch-day]')?.getAttribute('data-sch-day')).toBe('2026-09-11')
     })
 })
