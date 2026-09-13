@@ -81,3 +81,29 @@ describe('EventStore', () => {
         expect(store.has('a')).toBe(true)
     })
 })
+
+describe('EventStore with a recurring series', () => {
+    const daily: SchedulerEvent = {
+        ...event('s', '09:00', '10:00'),
+        recurrence: { freq: 'daily', count: 3 }
+    }
+
+    it('lists the series itself in all() and its occurrences in query()', () => {
+        const store = new EventStore()
+        store.apply({ type: 'upsert', event: daily })
+        expect(store.all().map((e) => e.id)).toEqual(['s'])
+        const week = createRange(at('00:00'), at('00:00').add({ days: 7 }))
+        expect(store.query(week).map((e) => e.seriesId)).toEqual(['s', 's', 's'])
+        expect(store.series().map((e) => e.id)).toEqual(['s'])
+    })
+
+    it('expands with the configured week start', () => {
+        const store = new EventStore([], () => ({ weekStartsOn: 0 }))
+        store.apply({
+            type: 'upsert',
+            event: { ...daily, recurrence: { freq: 'weekly', interval: 2, byDay: [6] } }
+        })
+        const month = createRange(at('00:00'), at('00:00').add({ days: 28 }))
+        expect(store.query(month).map((e) => e.start.day)).toEqual([12, 26])
+    })
+})

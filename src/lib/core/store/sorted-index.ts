@@ -1,5 +1,6 @@
 import type { SchedulerEvent } from '../../types/event.types.js'
 import type { DateRange } from '../../types/range.types.js'
+import { expandSeries, type ExpandOptions } from '../recurrence/expand.js'
 
 export interface IndexedEvent<T = unknown> {
     readonly event: SchedulerEvent<T>
@@ -10,10 +11,13 @@ export interface IndexedEvent<T = unknown> {
 export interface EventIndex<T = unknown> {
     readonly byId: ReadonlyMap<string, SchedulerEvent<T>>
     readonly sorted: readonly IndexedEvent<T>[]
+    readonly series: readonly SchedulerEvent<T>[]
     readonly maxDurationMs: number
 }
 
-const EMPTY: EventIndex<never> = { byId: new Map(), sorted: [], maxDurationMs: 0 }
+const EMPTY: EventIndex<never> = { byId: new Map(), sorted: [], series: [], maxDurationMs: 0 }
+
+const isSeries = (event: SchedulerEvent): boolean => event.recurrence !== undefined
 
 export function emptyIndex<T>(): EventIndex<T> {
     return EMPTY
@@ -22,19 +26,24 @@ export function emptyIndex<T>(): EventIndex<T> {
 export function indexFrom<T>(events: Iterable<SchedulerEvent<T>>): EventIndex<T> {
     const byId = new Map<string, SchedulerEvent<T>>()
     for (const event of events) byId.set(event.id, event)
-    const sorted = [...byId.values()].map(toIndexed).sort(compareIndexed)
-    return { byId, sorted, maxDurationMs: longestDuration(sorted) }
+    const all = [...byId.values()]
+    const sorted = all
+        .filter((event) => !isSeries(event))
+        .map(toIndexed)
+        .sort(compareIndexed)
+    return { byId, sorted, series: all.filter(isSeries), maxDurationMs: longestDuration(sorted) }
 }
 
 export function upsertIntoIndex<T>(index: EventIndex<T>, event: SchedulerEvent<T>): EventIndex<T> {
     const byId = new Map(index.byId)
     byId.set(event.id, event)
-    const entry = toIndexed(event)
-    const without = index.byId.has(event.id)
+    const withoutSorted = index.byId.has(event.id)
         ? index.sorted.filter((item) => item.event.id !== event.id)
         : index.sorted
-    const sorted = insertSorted(without, entry)
-    return { byId, sorted, maxDurationMs: longestDuration(sorted) }
+    const withoutSeries = index.series.filter((item) => item.id !== event.id)
+    const sorted = isSeries(event) ? withoutSorted : insertSorted(withoutSorted, toIndexed(event))
+    const series = isSeries(event) ? [...withoutSeries, event] : withoutSeries
+    return { byId, sorted, series, maxDurationMs: longestDuration(sorted) }
 }
 
 export function removeFromIndex<T>(index: EventIndex<T>, eventId: string): EventIndex<T> {
@@ -42,10 +51,15 @@ export function removeFromIndex<T>(index: EventIndex<T>, eventId: string): Event
     const byId = new Map(index.byId)
     byId.delete(eventId)
     const sorted = index.sorted.filter((item) => item.event.id !== eventId)
-    return { byId, sorted, maxDurationMs: longestDuration(sorted) }
+    const series = index.series.filter((item) => item.id !== eventId)
+    return { byId, sorted, series, maxDurationMs: longestDuration(sorted) }
 }
 
-export function queryIndex<T>(index: EventIndex<T>, range: DateRange): SchedulerEvent<T>[] {
+export function queryIndex<T>(
+    index: EventIndex<T>,
+    range: DateRange,
+    expansion: ExpandOptions
+): SchedulerEvent<T>[] {
     const rangeStartMs = range.start.toDate().getTime()
     const rangeEndMs = range.end.toDate().getTime()
     const { sorted } = index
@@ -55,7 +69,12 @@ export function queryIndex<T>(index: EventIndex<T>, range: DateRange): Scheduler
         if (item.startMs >= rangeEndMs) break
         if (item.endMs > rangeStartMs) results.push(item.event)
     }
-    return results
+    for (const series of index.series) results.push(...expandSeries(series, range, expansion))
+    return results.sort(compareEvents)
+}
+
+function compareEvents(a: SchedulerEvent, b: SchedulerEvent): number {
+    return a.start.compare(b.start) || a.id.localeCompare(b.id)
 }
 
 function toIndexed<T>(event: SchedulerEvent<T>): IndexedEvent<T> {

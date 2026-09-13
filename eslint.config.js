@@ -32,6 +32,12 @@ export default defineConfig(
         }
     },
     {
+        files: ['src/lib/core/dev.ts'],
+        rules: {
+            'no-console': 'off'
+        }
+    },
+    {
         files: ['**/*.svelte', '**/*.svelte.ts', '**/*.svelte.js'],
         languageOptions: {
             parserOptions: {

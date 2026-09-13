@@ -2,6 +2,7 @@ import type { SchedulerEvent } from '../../types/event.types.js'
 import type { StoreMiddleware } from '../../types/extension.types.js'
 import type { EventPatch } from '../../types/mutation.types.js'
 import type { DateRange } from '../../types/range.types.js'
+import type { ExpandOptions } from '../recurrence/expand.js'
 import { composeMiddleware, type PatchSink } from './middleware.js'
 import { applyPatch } from './patch.js'
 import { emptyIndex, queryIndex, type EventIndex } from './sorted-index.js'
@@ -15,9 +16,14 @@ export class EventStore<T = unknown> {
     #index = $state.raw<EventIndex<T>>(emptyIndex())
     #version = $state(0)
     readonly #sink: PatchSink<T>
+    readonly #expansion: () => ExpandOptions
 
-    constructor(middleware: readonly StoreMiddleware<T>[] = []) {
+    constructor(
+        middleware: readonly StoreMiddleware<T>[] = [],
+        expansion: () => ExpandOptions = () => ({ weekStartsOn: 1 })
+    ) {
         this.#sink = composeMiddleware(middleware, (patch) => this.#commit(patch))
+        this.#expansion = expansion
     }
 
     get version(): number {
@@ -37,11 +43,15 @@ export class EventStore<T = unknown> {
     }
 
     all(): SchedulerEvent<T>[] {
-        return this.#index.sorted.map((item) => item.event)
+        return [...this.#index.sorted.map((item) => item.event), ...this.#index.series]
     }
 
     query(range: DateRange): SchedulerEvent<T>[] {
-        return queryIndex(this.#index, range)
+        return queryIndex(this.#index, range, this.#expansion())
+    }
+
+    series(): SchedulerEvent<T>[] {
+        return [...this.#index.series]
     }
 
     apply(patch: EventPatch<T>): void {

@@ -18,6 +18,7 @@ const event = (id: string, start: string, end: string): SchedulerEvent => ({
     end: at(end)
 })
 const ids = (events: SchedulerEvent[]) => events.map((e) => e.id)
+const expansion = { weekStartsOn: 1 as const }
 
 describe('emptyIndex', () => {
     it('has nothing in it', () => {
@@ -107,19 +108,19 @@ describe('queryIndex', () => {
     const range = createRange(at('09:00'), at('11:00'))
 
     it('returns every event overlapping the range, end exclusive', () => {
-        expect(ids(queryIndex(index, range)).sort()).toEqual(
+        expect(ids(queryIndex(index, range, expansion)).sort()).toEqual(
             ['covering', 'overlap-start', 'inside', 'overlap-end'].sort()
         )
     })
 
     it('excludes events that only touch the boundaries', () => {
-        const found = ids(queryIndex(index, range))
+        const found = ids(queryIndex(index, range, expansion))
         expect(found).not.toContain('touching-start')
         expect(found).not.toContain('touching-end')
     })
 
     it('returns results in start order', () => {
-        expect(ids(queryIndex(index, range))).toEqual([
+        expect(ids(queryIndex(index, range, expansion))).toEqual([
             'covering',
             'overlap-start',
             'inside',
@@ -128,12 +129,50 @@ describe('queryIndex', () => {
     })
 
     it('finds a long event that started well before the range', () => {
-        const found = queryIndex(index, createRange(at('13:00'), at('13:30')))
+        const found = queryIndex(index, createRange(at('13:00'), at('13:30')), expansion)
         expect(ids(found)).toEqual(['covering'])
     })
 
     it('returns nothing for an empty index or a range with no events', () => {
-        expect(queryIndex(emptyIndex(), range)).toEqual([])
-        expect(queryIndex(index, createRange(at('15:00'), at('16:00')))).toEqual([])
+        expect(queryIndex(emptyIndex(), range, expansion)).toEqual([])
+        expect(queryIndex(index, createRange(at('15:00'), at('16:00')), expansion)).toEqual([])
+    })
+})
+
+describe('recurring series in the index', () => {
+    const daily = (id: string): SchedulerEvent => ({
+        ...event(id, '09:00', '10:00'),
+        recurrence: { freq: 'daily', count: 5 }
+    })
+
+    it('keeps a series out of the sorted array but reachable by id', () => {
+        const index = indexFrom([event('a', '09:00', '10:00'), daily('s')])
+        expect(index.sorted.map((i) => i.event.id)).toEqual(['a'])
+        expect(index.series.map((s) => s.id)).toEqual(['s'])
+        expect(index.byId.has('s')).toBe(true)
+    })
+
+    it('expands the series into the query result, merged in start order', () => {
+        const index = indexFrom([event('a', '09:30', '10:30'), daily('s')])
+        const day = createRange(at('00:00'), at('23:59'))
+        expect(ids(queryIndex(index, day, expansion))).toEqual(['s@2026-09-12T09:00:00.000Z', 'a'])
+        const tomorrow = createRange(at('00:00').add({ days: 1 }), at('23:59').add({ days: 1 }))
+        expect(ids(queryIndex(index, tomorrow, expansion))).toEqual(['s@2026-09-13T09:00:00.000Z'])
+    })
+
+    it('moves an event between the two halves when its rule appears or disappears', () => {
+        const base = indexFrom([event('a', '09:00', '10:00')])
+        const promoted = upsertIntoIndex(base, daily('a'))
+        expect(promoted.sorted).toEqual([])
+        expect(promoted.series).toHaveLength(1)
+        const demoted = upsertIntoIndex(promoted, event('a', '09:00', '10:00'))
+        expect(demoted.series).toEqual([])
+        expect(demoted.sorted).toHaveLength(1)
+    })
+
+    it('removes a series by id', () => {
+        const index = removeFromIndex(indexFrom([daily('s')]), 's')
+        expect(index.series).toEqual([])
+        expect(index.byId.size).toBe(0)
     })
 })
