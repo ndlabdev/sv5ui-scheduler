@@ -3,66 +3,63 @@ import { tv } from 'tailwind-variants'
 export const timeGridVariants = tv({
     slots: {
         root: 'bg-surface text-on-surface @container flex h-full min-h-0 flex-col overflow-hidden',
-        gridFocus: 'focus-visible:outline-none',
-        header: 'border-outline-variant grid shrink-0 border-b',
-        dayTitle: 'border-outline-variant flex shrink-0 flex-col gap-1 border-b px-4 py-3',
-        dayTitleWeekday:
-            'text-on-surface-variant text-[11px] font-semibold tracking-wide uppercase',
-        dayTitleRow: 'flex items-center gap-3',
-        dayTitleDate: 'text-on-surface truncate text-2xl font-semibold @max-md:text-xl',
-        gutterSpacer: 'border-outline-variant border-r',
+        dayTitle:
+            'border-outline-variant/60 flex shrink-0 flex-col gap-0.5 border-b px-4 py-3 sm:px-6',
+        dayTitleWeekday: 'text-on-surface-variant text-xs font-medium tracking-wide uppercase',
+        dayTitleRow: 'flex items-center gap-2',
+        dayTitleDate: 'text-on-surface truncate text-xl font-semibold',
+        todayBadge: 'rounded-full',
+        header: 'border-outline-variant/60 grid shrink-0 border-b',
+        gutterSpacer: '',
         dayHeader: [
-            'border-outline-variant flex flex-col items-center gap-1 border-r py-2 last:border-r-0',
-            'text-on-surface-variant'
+            'border-outline-variant/60 flex min-w-0 flex-col items-center border-s px-2 py-2 text-center'
         ],
-        dayHeaderWeekend: 'bg-surface-container-low',
-        dayHeaderToday: 'text-primary',
-        dayHeaderTodayColumn: 'bg-primary/[0.05]',
-        weekday: 'text-[11px] font-medium tracking-wide uppercase @max-md:text-[10px]',
+        todayColumn: 'bg-primary/5',
+        weekday: 'text-on-surface-variant text-[11px] font-medium uppercase',
         dayNumber: [
-            'text-on-surface flex size-8 items-center justify-center rounded-full text-xl leading-none font-semibold',
-            '@max-md:size-7 @max-md:text-base'
+            'text-on-surface mt-1 flex size-8 items-center justify-center rounded-full text-sm font-semibold',
+            '@max-md:size-7 @max-md:text-xs'
         ],
         dayNumberToday: 'bg-primary text-on-primary',
-        allDayRow: 'border-outline-variant grid shrink-0 border-b',
+        allDayRow: 'border-outline-variant/60 bg-surface-container-low/40 grid shrink-0 border-b',
         allDayLabel: [
-            'border-outline-variant text-on-surface-variant flex items-start justify-end border-r px-2 py-1.5',
-            'text-[11px] leading-none'
+            'text-on-surface-variant/70 flex items-center justify-end pe-2 text-[10px] font-medium tracking-wide uppercase'
         ],
         allDayCells: 'relative grid',
-        allDayCell: 'border-outline-variant border-r last:border-r-0',
-        allDayCellWeekend: 'bg-surface-container-low',
-        allDayEvents: 'pointer-events-none absolute inset-0 grid gap-y-0.5 py-1',
-        allDayEvent: 'pointer-events-auto min-w-0 px-0.5',
+        allDayCell: 'border-outline-variant/60 relative border-s',
+        allDayEvents: 'pointer-events-none absolute inset-0 grid gap-y-1 p-1',
+        allDayEvent: 'pointer-events-auto min-w-0',
+        allDayGhost: 'pointer-events-none z-20 min-w-0',
         body: 'relative min-h-0 flex-1',
         scroll: 'h-full',
-        bodyGrid: 'grid',
-        gutter: 'border-outline-variant text-on-surface-variant relative border-r text-[11px] tabular-nums',
-        hourLabel: 'absolute right-2 -translate-y-1/2 leading-none select-none',
-        columns: 'relative grid select-none',
-        column: 'border-outline-variant relative border-r last:border-r-0',
-        columnWeekend: 'bg-surface-container-low',
-        columnToday: 'bg-primary/[0.035]',
-        offHours: 'bg-surface-container-low pointer-events-none absolute right-0 left-0',
+        bodyGrid: 'grid py-2',
+        gutter: 'relative',
+        hourLabel:
+            'text-on-surface-variant/70 absolute end-2 -translate-y-1/2 text-[11px] leading-none tabular-nums select-none',
+        hourStrong: 'text-on-surface-variant font-medium',
+        hourFaint: 'opacity-60',
+        columns: 'relative grid select-none focus-visible:outline-none',
+        column: 'border-outline-variant/60 relative border-s',
+        offHours: 'bg-surface-container-low/60 pointer-events-none absolute inset-x-0',
         background: [
-            'bg-surface-container-highest/70 text-on-surface-variant pointer-events-none absolute right-0 left-0',
+            'bg-surface-container-highest/70 text-on-surface-variant pointer-events-none absolute inset-x-0',
             'truncate px-2 py-1 text-[11px] leading-none'
         ],
         events: 'absolute inset-0',
-        event: 'absolute min-w-0 px-px pb-px',
-        ghost: 'pointer-events-none absolute z-20 min-w-0 px-px pb-px',
+        event: 'absolute min-w-0 px-0.5 pb-0.5',
+        ghost: 'pointer-events-none absolute z-20 min-w-0 px-0.5 pb-0.5',
         ghostChip: 'ring-primary shadow-lg ring-2',
         focusRing:
             'ring-primary pointer-events-none absolute inset-x-0 z-10 rounded-sm ring-2 ring-inset',
-        allDayGhost: 'pointer-events-none z-20 min-w-0 px-0.5',
-        nowLine: 'bg-error pointer-events-none absolute right-0 left-0 z-10 h-px',
-        nowDot: 'bg-error absolute top-1/2 -left-1 size-2 -translate-y-1/2 rounded-full',
+        nowLine: 'pointer-events-none absolute inset-x-0 z-20 flex items-center',
+        nowDot: 'bg-error -ms-1 size-2 shrink-0 rounded-full',
+        nowRule: 'bg-error h-px flex-1',
         nowLabel: [
-            'text-error absolute right-1 -translate-y-1/2 text-[11px] leading-none font-semibold tabular-nums'
+            'text-error absolute end-2 z-20 -translate-y-1/2 text-[10px] leading-none font-semibold tabular-nums'
         ],
         empty: [
-            'bg-surface-container text-on-surface-variant pointer-events-none absolute top-1/2 left-1/2 z-10',
-            '-translate-x-1/2 -translate-y-1/2 rounded-full px-4 py-2 text-sm whitespace-nowrap'
+            'bg-surface-container-high text-on-surface-variant pointer-events-none absolute left-1/2 z-10',
+            '-translate-x-1/2 rounded-full px-3 py-1 text-xs whitespace-nowrap'
         ]
     }
 })

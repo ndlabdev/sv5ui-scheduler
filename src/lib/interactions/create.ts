@@ -1,7 +1,7 @@
 import type { InteractionPlugin } from '../types/extension.types.js'
 import type { GestureController } from './controller.svelte.js'
 import { minutesOfDay } from './gesture.js'
-import { eventIdAt } from './hit-test.js'
+import { eventIdAt, isInteractiveTarget } from './hit-test.js'
 import { isPrimaryButton, pointerDrag } from './pointer.js'
 
 export function createInteraction<T>(controller: GestureController<T>): InteractionPlugin<T> {
@@ -11,7 +11,8 @@ export function createInteraction<T>(controller: GestureController<T>): Interact
             const stopDrag = pointerDrag(node, {
                 onStart: ({ event }) => {
                     if (controller.active || !isPrimaryButton(event)) return false
-                    if (eventIdAt(event.target)) return false
+                    if (eventIdAt(event.target) || isInteractiveTarget(event.target, node))
+                        return false
                     const hit = context.hitTest(event.clientX, event.clientY)
                     if (!hit) return false
                     context.select(null)
@@ -31,7 +32,7 @@ export function createInteraction<T>(controller: GestureController<T>): Interact
                 }
             })
             const onDoubleClick = (event: MouseEvent) => {
-                if (eventIdAt(event.target)) return
+                if (eventIdAt(event.target) || isInteractiveTarget(event.target, node)) return
                 const hit = context.hitTest(event.clientX, event.clientY)
                 if (hit) controller.createAt(hit)
             }

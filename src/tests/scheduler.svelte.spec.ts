@@ -76,7 +76,7 @@ describe('Scheduler', () => {
         })
         const [chip] = chips(container)
         expect(chip.textContent).toContain('standup')
-        const wrapper = chip.parentElement as HTMLElement
+        const wrapper = chip.closest<HTMLElement>('[data-sch-event]')!
         expect(wrapper.style.top).toBe(`${18 * 20}px`)
         expect(wrapper.style.height).toBe('20px')
         expect(wrapper.closest('[data-sch-day-index]')?.getAttribute('data-sch-day')).toBe(
@@ -116,7 +116,7 @@ describe('Scheduler', () => {
 
     it('switches views from the toolbar', async () => {
         const screen = render(Scheduler, { timeZone: ZONE, date: anchor })
-        await screen.getByRole('radio', { name: 'Day' }).click()
+        await screen.getByRole('tab', { name: 'Day' }).click()
         expect(columns(screen.container)).toHaveLength(1)
         expect(
             screen.container.querySelector('[data-sch-view]')?.getAttribute('data-sch-view')
@@ -268,8 +268,8 @@ describe('Scheduler month view', () => {
     it('dims the days of the neighbouring months', () => {
         const { container } = render(Scheduler, { props: monthProps })
         const [first, second] = cells(container)
-        expect(first.className).toContain('text-on-surface-variant/60')
-        expect(second.className).not.toContain('text-on-surface-variant/60')
+        expect(first.querySelector('span')?.className).toContain('text-on-surface-variant/40')
+        expect(second.querySelector('span')?.className).not.toContain('text-on-surface-variant/40')
     })
 
     it('marks today', () => {
@@ -297,7 +297,7 @@ describe('Scheduler month view', () => {
                 events: [input('trip', '2026-09-10', '2026-09-16', { allDay: true })]
             }
         })
-        const wrappers = chips(container).map((c) => c.parentElement as HTMLElement)
+        const wrappers = chips(container).map((c) => c.closest<HTMLElement>('[data-sch-event]')!)
         expect(wrappers).toHaveLength(2)
         expect(wrappers[0].style.gridColumn).toBe('4 / 8')
         expect(wrappers[1].style.gridColumn).toBe('1 / 3')
@@ -310,7 +310,8 @@ describe('Scheduler month view', () => {
         const screen = render(Scheduler, { props: { ...monthProps, events: many } })
         const more = screen.container.querySelector<HTMLElement>('[data-sch-more="2026-09-09"]')
         expect(more).not.toBeNull()
-        expect(more?.textContent).toMatch(/^\+\d+ more$/)
+        expect(more?.textContent?.trim()).toMatch(/^\+\d+$/)
+        expect(more?.getAttribute('aria-label')).toMatch(/more$/)
 
         const trigger = more!.closest('button') ?? more!
         trigger.dispatchEvent(
@@ -318,7 +319,7 @@ describe('Scheduler month view', () => {
         )
         trigger.dispatchEvent(new MouseEvent('click', { bubbles: true }))
         await new Promise((resolve) => setTimeout(resolve, 150))
-        expect(document.body.textContent).toContain('Wednesday, September 9, 2026')
+        expect(document.body.textContent).toContain('Wednesday, Sep 9')
     })
 })
 

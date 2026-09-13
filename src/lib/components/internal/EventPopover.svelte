@@ -1,0 +1,104 @@
+<script lang="ts" generics="T">
+    import { Button, Icon, Popover } from 'sv5ui'
+    import type { Snippet } from 'svelte'
+    import type { SchedulerEvent } from '../../types/event.types.js'
+    import type { SchedulerContext } from '../../types/extension.types.js'
+    import type { EventDetailSnippetProps } from '../../types/snippet.types.js'
+    import { formatDayRange, formatLongDate, formatTimeRange } from '../../core/time/format.js'
+    import { isSameDay } from '../../core/time/zone.js'
+    import { EVENT_SWATCH } from '../EventChip/event-chip.variants.js'
+    import { eventPopoverVariants } from './event-popover.variants.js'
+
+    interface Props {
+        event: SchedulerEvent<T>
+        scheduler: SchedulerContext
+        enabled: boolean
+        detail?: Snippet<[EventDetailSnippetProps<T>]>
+        onDelete: (eventId: string) => void
+        side?: 'top' | 'right' | 'bottom' | 'left'
+        children: Snippet
+    }
+
+    let { event, scheduler, enabled, detail, onDelete, side = 'right', children }: Props = $props()
+
+    let open = $state(false)
+
+    const classes = eventPopoverVariants()
+    const allDay = $derived(event.allDay === true)
+    const lastDay = $derived(allDay ? event.end.subtract({ days: 1 }) : event.end)
+    const primary = $derived(
+        allDay && !isSameDay(event.start, lastDay)
+            ? formatDayRange(event, scheduler.locale)
+            : formatLongDate(event.start, scheduler.locale)
+    )
+    const secondary = $derived(
+        allDay
+            ? scheduler.labels.allDay
+            : formatTimeRange(event.start, event.end, scheduler.locale, scheduler.hour12)
+    )
+    const deletable = $derived(event.editable !== false && event.background !== true)
+
+    function close() {
+        open = false
+    }
+
+    function remove() {
+        open = false
+        onDelete(event.id)
+    }
+</script>
+
+{#if enabled}
+    <Popover
+        bind:open
+        {side}
+        align="start"
+        class={classes.trigger()}
+        ui={{ content: classes.content() }}
+    >
+        {@render children()}
+
+        {#snippet content()}
+            <div class={classes.card()} data-sch-detail={event.id}>
+                <div
+                    class={classes.swatch({ class: EVENT_SWATCH[event.color ?? 'primary'] })}
+                ></div>
+                <div class={classes.header()}>
+                    <h3 class={classes.title()}>{event.title}</h3>
+                    <div class={classes.actions()}>
+                        {#if deletable}
+                            <Button
+                                variant="ghost"
+                                color="surface"
+                                size="sm"
+                                square
+                                icon="lucide:trash-2"
+                                aria-label={scheduler.labels.deleteEvent}
+                                onclick={remove}
+                            />
+                        {/if}
+                        <Button
+                            variant="ghost"
+                            color="surface"
+                            size="sm"
+                            square
+                            icon="lucide:x"
+                            aria-label={scheduler.labels.close}
+                            onclick={close}
+                        />
+                    </div>
+                </div>
+                <div class={classes.row()}>
+                    <Icon name="lucide:calendar" size={16} class={classes.icon()} />
+                    <div>
+                        <p class={classes.primary()}>{primary}</p>
+                        <p class={classes.secondary()}>{secondary}</p>
+                    </div>
+                </div>
+                {@render detail?.({ event, close })}
+            </div>
+        {/snippet}
+    </Popover>
+{:else}
+    {@render children()}
+{/if}

@@ -6,7 +6,9 @@
 
 <script lang="ts" generics="T">
     import { getComponentConfig } from '../../config.js'
-    import { formatTimeRange } from '../../core/time/format.js'
+    import { isWholeDay } from '../../core/layout/segments.js'
+    import { formatTime, formatTimeRange } from '../../core/time/format.js'
+    import { isSameDay } from '../../core/time/zone.js'
     import { eventChipDefaults, eventChipVariants } from './event-chip.variants.js'
 
     const config = getComponentConfig('eventChip', eventChipDefaults)
@@ -19,6 +21,7 @@
         hour12,
         color,
         size = config.defaultVariants.size,
+        variant = config.defaultVariants.variant,
         showTime = true,
         selected = false,
         dragging = false,
@@ -28,14 +31,26 @@
         ...restProps
     }: Props<T> = $props()
 
+    const shape = $derived(position?.kind === 'span' ? 'pill' : 'block')
     const continuesBefore = $derived(position?.kind === 'span' && position.continuesBefore)
     const continuesAfter = $derived(position?.kind === 'span' && position.continuesAfter)
-    const timeVisible = $derived(showTime && position?.kind !== 'span' && !event.allDay)
-    const timeText = $derived(formatTimeRange(event.start, event.end, locale, hour12))
+    const timed = $derived(!isWholeDay(event))
+    const prefix = $derived(
+        shape === 'pill' && timed && !continuesBefore ? formatTime(event.start, locale, hour12) : ''
+    )
+    const range = $derived.by(() => {
+        if (shape !== 'block' || !showTime || !timed) return ''
+        if (isSameDay(event.start, event.end)) {
+            return formatTimeRange(event.start, event.end, locale, hour12)
+        }
+        return `${formatTime(event.start, locale, hour12)} \u2013 ${formatTime(event.end, locale, hour12)}`
+    })
 
     const classes = $derived.by(() => {
         const slots = eventChipVariants({
+            shape,
             color: color ?? event.color ?? config.defaultVariants.color,
+            variant,
             size,
             selected,
             dragging,
@@ -44,6 +59,7 @@
         })
         return {
             root: slots.root({ class: [config.slots.root, className, ui?.root] }),
+            swatch: slots.swatch({ class: [config.slots.swatch, ui?.swatch] }),
             title: slots.title({ class: [config.slots.title, ui?.title] }),
             time: slots.time({ class: [config.slots.time, ui?.time] })
         }
@@ -61,9 +77,13 @@
     {#if children}
         {@render children()}
     {:else}
+        <span class={classes.swatch}></span>
+        {#if prefix}
+            <span class={classes.time}>{prefix}</span>
+        {/if}
         <span class={classes.title}>{event.title}</span>
-        {#if timeVisible}
-            <span class={classes.time}>{timeText}</span>
+        {#if range}
+            <span class={classes.time}>{range}</span>
         {/if}
     {/if}
 </button>

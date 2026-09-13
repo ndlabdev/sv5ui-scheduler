@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { Button, FieldGroup, ToggleGroup } from 'sv5ui'
+    import { Button, Tabs } from 'sv5ui'
     import type { Snippet } from 'svelte'
     import type { SchedulerLabels } from '../../types/labels.types.js'
     import { toolbarVariants } from './toolbar.variants.js'
@@ -41,20 +41,20 @@
                 color="surface"
                 size="sm"
                 square
-                leadingIcon="lucide:menu"
+                icon="lucide:menu"
                 aria-label={labels.menu}
                 onclick={onMenu}
             />
         {/if}
         <Button variant="outline" color="surface" size="sm" onclick={onToday}>{labels.today}</Button
         >
-        <FieldGroup size="sm">
+        <div class={classes.chevrons()}>
             <Button
                 variant="ghost"
                 color="surface"
                 size="sm"
                 square
-                leadingIcon="lucide:chevron-left"
+                icon="lucide:chevron-left"
                 aria-label={labels.previous}
                 onclick={() => onStep(-1)}
             />
@@ -63,26 +63,28 @@
                 color="surface"
                 size="sm"
                 square
-                leadingIcon="lucide:chevron-right"
+                icon="lucide:chevron-right"
                 aria-label={labels.next}
                 onclick={() => onStep(1)}
             />
-        </FieldGroup>
+        </div>
         <h2 class={classes.title()} aria-live="polite">{title}</h2>
     </div>
 
     <div class={classes.tools()}>
-        <ToggleGroup
-            type="single"
-            size="sm"
-            variant="ghost"
-            color="primary"
-            value={view}
+        <Tabs
             items={views}
+            value={view}
+            variant="pill"
+            size="sm"
+            content={false}
+            class={classes.switcher()}
             onValueChange={onView}
-            aria-label={labels.views}
-            ui={{ root: classes.switcher() }}
         />
-        {@render actions?.()}
+        {#if actions}
+            <div class={classes.actions()}>
+                {@render actions()}
+            </div>
+        {/if}
     </div>
 </div>

@@ -22,7 +22,8 @@ export function viewLabel(labels: SchedulerLabels, view: string): string {
         month: labels.month,
         week: labels.week,
         day: labels.day,
-        agenda: labels.agenda
+        agenda: labels.agenda,
+        year: labels.year
     }
     return known[view] ?? view
 }

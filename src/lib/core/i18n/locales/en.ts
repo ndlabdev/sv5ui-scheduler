@@ -8,6 +8,7 @@ export const en: SchedulerLabels = {
     week: 'Week',
     day: 'Day',
     agenda: 'Agenda',
+    year: 'Year',
     allDay: 'All day',
     views: 'View',
     menu: 'Toggle sidebar',
@@ -22,6 +23,8 @@ export const en: SchedulerLabels = {
         [hours > 0 ? `${hours}h` : '', minutes > 0 ? `${minutes}m` : ''].filter(Boolean).join(' '),
     grid: (view) => `Calendar, ${view} view`,
     event: (event, start, end) => `${event.title}, ${start} to ${end}`,
+    close: 'Close',
+    deleteEvent: 'Delete event',
     announce: {
         created: (event) => `Created ${event.title}`,
         moved: (event, start) => `Moved ${event.title} to ${start}`,

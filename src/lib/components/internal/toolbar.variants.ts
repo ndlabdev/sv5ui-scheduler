@@ -3,9 +3,11 @@ import { tv } from 'tailwind-variants'
 export const toolbarVariants = tv({
     slots: {
         navigation: 'flex min-w-0 items-center gap-2',
-        title: 'text-on-surface truncate text-xl font-semibold @max-md:text-base',
-        tools: 'ml-auto flex items-center gap-1',
-        switcher: 'bg-surface-container rounded-full p-0.5'
+        chevrons: 'flex items-center',
+        title: 'text-on-surface truncate text-base font-semibold tracking-tight sm:text-lg',
+        tools: 'ms-auto flex shrink-0 flex-nowrap items-center gap-1 sm:gap-2',
+        switcher: 'w-auto shrink-0',
+        actions: 'flex items-center gap-0.5'
     }
 })
 

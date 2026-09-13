@@ -139,7 +139,7 @@ describe('drag to move', () => {
             date: anchor
         })
         const chip = screen.container.querySelector<HTMLElement>('[data-sch-event-id="a"]')!
-        const wrapper = chip.parentElement!
+        const wrapper = chip.closest<HTMLElement>('[data-sch-event]')!
         const rect = wrapper.getBoundingClientRect()
         const from = { clientX: rect.left + rect.width / 2, clientY: rect.top + rect.height / 2 }
         const thu = column(screen.container, '2026-09-10')
@@ -161,8 +161,9 @@ describe('drag to move', () => {
             onMutate,
             date: anchor
         })
-        const wrapper =
-            screen.container.querySelector<HTMLElement>('[data-sch-event-id="a"]')!.parentElement!
+        const wrapper = screen.container
+            .querySelector<HTMLElement>('[data-sch-event-id="a"]')!
+            .closest<HTMLElement>('[data-sch-event]')!
         const rect = wrapper.getBoundingClientRect()
         const from = { clientX: rect.left + rect.width / 2, clientY: rect.top + rect.height / 2 }
         await drag(wrapper, from, pointAt(column(screen.container, '2026-09-10'), 840))
@@ -178,8 +179,9 @@ describe('drag to resize', () => {
             onMutate,
             date: anchor
         })
-        const wrapper =
-            screen.container.querySelector<HTMLElement>('[data-sch-event-id="a"]')!.parentElement!
+        const wrapper = screen.container
+            .querySelector<HTMLElement>('[data-sch-event-id="a"]')!
+            .closest<HTMLElement>('[data-sch-event]')!
         const rect = wrapper.getBoundingClientRect()
         const from = { clientX: rect.left + rect.width / 2, clientY: rect.bottom - 2 }
         const to = pointAt(column(screen.container, '2026-09-09'), 690)

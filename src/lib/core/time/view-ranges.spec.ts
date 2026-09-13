@@ -1,7 +1,17 @@
 import { parseZonedDateTime } from '@internationalized/date'
 import { describe, expect, it } from 'vitest'
 import { eachDay } from './range.js'
-import { dayRange, daysRange, monthRange, stepDays, stepMonths, weekRange } from './view-ranges.js'
+import {
+    calendarMonthRange,
+    dayRange,
+    daysRange,
+    monthRange,
+    stepDays,
+    stepMonths,
+    stepYears,
+    weekRange,
+    yearRange
+} from './view-ranges.js'
 
 const at = (iso: string) => parseZonedDateTime(`${iso}[America/New_York]`)
 const iso = (date: { toString(): string }) => date.toString().slice(0, 16)
@@ -68,5 +78,24 @@ describe('stepping', () => {
         expect(iso(stepDays(at('2026-03-07T09:00'), 1))).toBe('2026-03-08T09:00')
         expect(iso(stepDays(at('2026-03-08T09:00'), -1))).toBe('2026-03-07T09:00')
         expect(iso(stepMonths(at('2026-01-31T09:00'), 1))).toBe('2026-02-28T09:00')
+    })
+})
+
+describe('calendarMonthRange and yearRange', () => {
+    it('covers exactly the days of the month', () => {
+        const range = calendarMonthRange(at('2026-02-17T12:00'))
+        expect(iso(range.start)).toBe('2026-02-01T00:00')
+        expect(iso(range.end)).toBe('2026-03-01T00:00')
+        expect(eachDay(range)).toHaveLength(28)
+    })
+
+    it('covers exactly the days of the year, leap years included', () => {
+        expect(eachDay(yearRange(at('2026-09-12T12:00')))).toHaveLength(365)
+        expect(eachDay(yearRange(at('2028-09-12T12:00')))).toHaveLength(366)
+        expect(iso(yearRange(at('2026-09-12T12:00')).start)).toBe('2026-01-01T00:00')
+    })
+
+    it('steps by whole years', () => {
+        expect(iso(stepYears(at('2028-02-29T09:00'), 1))).toBe('2029-02-28T09:00')
     })
 })

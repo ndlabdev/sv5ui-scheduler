@@ -64,3 +64,16 @@ export interface HeaderSnippetProps {
 
     isToday: boolean
 }
+
+/**
+ * Argument of the `eventDetail` snippet, rendered under the default details
+ * in the popover an event opens.
+ */
+export interface EventDetailSnippetProps<T = unknown> {
+    event: SchedulerEvent<T>
+
+    /**
+     * Closes the popover.
+     */
+    close: () => void
+}

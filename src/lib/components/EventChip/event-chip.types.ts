@@ -44,6 +44,12 @@ export type EventChipProps<T = unknown> = Omit<HTMLButtonAttributes, 'class' | '
     size?: NonNullable<EventChipVariantProps['size']>
 
     /**
+     * `soft` draws a tinted block with a colour bar, `solid` a filled pill.
+     * @default 'soft'
+     */
+    variant?: NonNullable<EventChipVariantProps['variant']>
+
+    /**
      * Show the start and end time under the title. Ignored for all-day
      * events and span placements, which never show it.
      * @default true

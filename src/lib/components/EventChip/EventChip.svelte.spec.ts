@@ -41,7 +41,7 @@ describe('EventChip', () => {
         }
         const { container } = render(EventChip, { event: event(), position })
         expect(root(container).textContent?.trim()).toBe('Standup')
-        expect(root(container).className).toContain('rounded-l-none')
+        expect(root(container).className).toContain('rounded-s-none')
     })
 
     it('uses the event colour unless overridden', () => {
@@ -55,6 +55,17 @@ describe('EventChip', () => {
         const { container } = render(EventChip, { event: event(), selected: true })
         expect(root(container).getAttribute('aria-pressed')).toBe('true')
         expect(root(container).dataset.schEventId).toBe('a')
+    })
+
+    it('shows clock times without dates for an event crossing midnight', () => {
+        const { container } = render(EventChip, {
+            event: event({ start: at('2026-09-12T23:00'), end: at('2026-09-13T01:00') })
+        })
+        const text = root(container).textContent ?? ''
+        expect(text).toContain('11:00')
+        expect(text).toContain('1:00')
+        expect(text).not.toContain('2026')
+        expect(text).not.toContain('9/1')
     })
 
     it('formats the time in the given locale', () => {

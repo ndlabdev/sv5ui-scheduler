@@ -47,3 +47,17 @@ export function segmentsInRange<T>(
     }
     return segments
 }
+
+export function daysWithEvents(
+    events: readonly SchedulerEvent[],
+    range: DateRange
+): ReadonlySet<string> {
+    const days = new Set<string>()
+    for (const event of events) {
+        const visible = intersect({ start: event.start, end: event.end }, range)
+        if (!visible) continue
+        for (const segment of splitByDay(visible))
+            days.add(segment.dayStart.toString().slice(0, 10))
+    }
+    return days
+}

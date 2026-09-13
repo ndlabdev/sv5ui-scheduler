@@ -24,7 +24,10 @@ export function pointerDrag(node: HTMLElement, options: PointerDragOptions): () 
             moved = true
             options.onMove(context)
         },
-        onEnd: options.onEnd
+        onEnd: (context) => {
+            if (moved) swallowNextClick(node)
+            options.onEnd(context)
+        }
     })
     const { handlers } = drag
     node.addEventListener('pointerdown', handlers.onpointerdown)
@@ -50,4 +53,13 @@ export function edgeAt(node: HTMLElement, clientY: number, size = EDGE_SIZE): Re
 
 export function isPrimaryButton(event: PointerEvent): boolean {
     return event.button === 0 && event.isPrimary
+}
+
+function swallowNextClick(node: HTMLElement): void {
+    const swallow = (event: Event) => {
+        event.stopPropagation()
+        event.preventDefault()
+    }
+    node.addEventListener('click', swallow, { capture: true, once: true })
+    setTimeout(() => node.removeEventListener('click', swallow, { capture: true }), 0)
 }

@@ -1,16 +1,20 @@
 import type { ViewDefinition } from '../../types/extension.types.js'
-import { formatDate, formatDayRange, formatMonthYear } from '../../core/time/format.js'
+import { formatDate, formatDayRange, formatMonthYear, formatYear } from '../../core/time/format.js'
 import {
+    calendarMonthRange,
     dayRange,
     monthRange,
     stepDays,
     stepMonths,
-    weekRange
+    stepYears,
+    weekRange,
+    yearRange
 } from '../../core/time/view-ranges.js'
 import AgendaView from '../AgendaView/AgendaView.svelte'
 import DayView from '../DayView/DayView.svelte'
 import MonthView from '../MonthView/MonthView.svelte'
 import WeekView from '../WeekView/WeekView.svelte'
+import YearView from '../YearView/YearView.svelte'
 
 export function createBuiltinViews<T>(): ViewDefinition<T>[] {
     return [
@@ -40,9 +44,17 @@ export function createBuiltinViews<T>(): ViewDefinition<T>[] {
             component: MonthView
         },
         {
+            name: 'year',
+            layout: 'list',
+            range: (anchor) => yearRange(anchor),
+            step: (anchor, direction) => stepYears(anchor, direction),
+            title: (anchor, _range, context) => formatYear(anchor, context.locale),
+            component: YearView
+        },
+        {
             name: 'agenda',
             layout: 'list',
-            range: (anchor) => monthRange(anchor, 0),
+            range: (anchor) => calendarMonthRange(anchor),
             step: (anchor, direction) => stepMonths(anchor, direction),
             title: (anchor, _range, context) => formatMonthYear(anchor, context.locale),
             component: AgendaView

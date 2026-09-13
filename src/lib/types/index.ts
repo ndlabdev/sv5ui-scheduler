@@ -29,7 +29,12 @@ export type {
 
 export type { SchedulerLabels } from './labels.types.js'
 
-export type { CellSnippetProps, EventSnippetProps, HeaderSnippetProps } from './snippet.types.js'
+export type {
+    CellSnippetProps,
+    EventDetailSnippetProps,
+    EventSnippetProps,
+    HeaderSnippetProps
+} from './snippet.types.js'
 
 export type {
     GridFocus,

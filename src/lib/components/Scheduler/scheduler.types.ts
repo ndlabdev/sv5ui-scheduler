@@ -15,6 +15,7 @@ import type { BusinessHours, Holiday, TimeZoneId, WeekDay } from '../../types/ra
 import type { EventSourceFn } from '../../types/source.types.js'
 import type {
     CellSnippetProps,
+    EventDetailSnippetProps,
     EventSnippetProps,
     HeaderSnippetProps
 } from '../../types/snippet.types.js'
@@ -135,6 +136,12 @@ export type SchedulerProps<T = unknown> = Omit<HTMLAttributes<HTMLDivElement>, '
         toolbar?: boolean
 
         /**
+         * Open a popover with an event's details when it is clicked.
+         * @default true
+         */
+        detailPopover?: boolean
+
+        /**
          * Called when the toolbar's menu button is pressed. The button is
          * shown only when this is set; the scheduler does not own a sidebar.
          */
@@ -154,15 +161,14 @@ export type SchedulerProps<T = unknown> = Omit<HTMLAttributes<HTMLDivElement>, '
         toolbarActions?: Snippet
 
         /**
-         * Renders a strip between the toolbar and the view, for a suggestion
-         * or a notice.
-         */
-        banner?: Snippet
-
-        /**
          * Replaces the message shown when the visible range holds no events.
          */
         empty?: Snippet
+
+        /**
+         * Extra content under the default details in an event's popover.
+         */
+        eventDetail?: Snippet<[EventDetailSnippetProps<T>]>
 
         /**
          * Renders one event.

@@ -34,12 +34,6 @@ export function formatTimeRange(
     ).formatRange(start.toDate(), end.toDate())
 }
 
-export function formatHour(date: ZonedDateTime, locale: string, hour12?: boolean): string {
-    return hour12 === false
-        ? format(date, locale, { hour: '2-digit', minute: '2-digit', hour12 })
-        : format(date, locale, { hour: 'numeric', hour12 })
-}
-
 export function formatWeekday(date: ZonedDateTime, locale: string): string {
     return format(date, locale, { weekday: 'short' })
 }
@@ -71,4 +65,40 @@ export function formatDayRange(range: DateRange, locale: string): string {
         { month: 'short', day: 'numeric', year: 'numeric' },
         range.start.timeZone
     ).formatRange(range.start.toDate(), last.toDate())
+}
+
+export interface HourParts {
+    readonly hour: string
+    readonly rest: string
+}
+
+export function formatHourParts(date: ZonedDateTime, locale: string, hour12?: boolean): HourParts {
+    const options: Intl.DateTimeFormatOptions =
+        hour12 === false
+            ? { hour: '2-digit', minute: '2-digit', hour12 }
+            : { hour: 'numeric', minute: '2-digit', hour12 }
+    const parts = formatter(locale, options, date.timeZone).formatToParts(date.toDate())
+    const split = parts.findIndex((part) => part.type === 'hour') + 1
+    const join = (list: Intl.DateTimeFormatPart[]) => list.map((part) => part.value).join('')
+    return { hour: join(parts.slice(0, split)), rest: join(parts.slice(split)) }
+}
+
+export function formatAgendaDay(date: ZonedDateTime, locale: string): string {
+    return format(date, locale, { weekday: 'long', month: 'long', day: 'numeric' })
+}
+
+export function formatPopoverDay(date: ZonedDateTime, locale: string): string {
+    return format(date, locale, { weekday: 'long', month: 'short', day: 'numeric' })
+}
+
+export function formatMonthName(date: ZonedDateTime, locale: string): string {
+    return format(date, locale, { month: 'long' })
+}
+
+export function formatWeekdayNarrow(date: ZonedDateTime, locale: string): string {
+    return format(date, locale, { weekday: 'narrow' })
+}
+
+export function formatYear(date: ZonedDateTime, locale: string): string {
+    return format(date, locale, { year: 'numeric' })
 }

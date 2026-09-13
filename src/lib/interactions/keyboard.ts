@@ -1,4 +1,5 @@
 import type { GridFocus, InteractionContext, InteractionPlugin } from '../types/extension.types.js'
+import { isInteractiveTarget, isTextField } from './hit-test.js'
 import { describeEvent } from '../core/a11y/announce.js'
 import { isNavigationKey, navigate, type GridShape } from '../core/a11y/grid-navigation.js'
 import { formatLongDate, formatTime } from '../core/time/format.js'
@@ -19,6 +20,7 @@ export function keyboardInteraction<T>(controller: GestureController<T>): Intera
             node.setAttribute('aria-label', context.scheduler.labels.grid(context.view))
 
             const onKeyDown = (event: KeyboardEvent) => {
+                if (belongsToChild(event, node)) return
                 if (handleKey(event, context, controller, node)) event.preventDefault()
             }
             const onFocus = () => {
@@ -37,6 +39,12 @@ export function keyboardInteraction<T>(controller: GestureController<T>): Intera
             }
         }
     }
+}
+
+function belongsToChild(event: KeyboardEvent, node: HTMLElement): boolean {
+    if (!isInteractiveTarget(event.target, node) || event.key === 'Escape') return false
+    const removal = event.key === 'Delete' || event.key === 'Backspace'
+    return !removal || isTextField(event.target)
 }
 
 function handleKey<T>(

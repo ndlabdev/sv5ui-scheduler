@@ -8,6 +8,7 @@ export const vi: SchedulerLabels = {
     week: 'Tuần',
     day: 'Ngày',
     agenda: 'Lịch trình',
+    year: 'Năm',
     allDay: 'Cả ngày',
     views: 'Chế độ xem',
     menu: 'Ẩn hiện thanh bên',
@@ -24,6 +25,8 @@ export const vi: SchedulerLabels = {
             .join(' '),
     grid: (view) => `Lịch, chế độ ${view}`,
     event: (event, start, end) => `${event.title}, từ ${start} đến ${end}`,
+    close: 'Đóng',
+    deleteEvent: 'Xoá sự kiện',
     announce: {
         created: (event) => `Đã tạo ${event.title}`,
         moved: (event, start) => `Đã chuyển ${event.title} sang ${start}`,

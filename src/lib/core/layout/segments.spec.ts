@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { eachDay } from '../time/range.js'
 import { event, week } from '../../../tests/fixtures/layout.js'
-import { isWholeDay, segmentsInRange } from './segments.js'
+import { daysWithEvents, isWholeDay, segmentsInRange } from './segments.js'
 
 const range = week('2026-09-07')
 const days = eachDay(range)
@@ -92,5 +92,19 @@ describe('segmentsInRange', () => {
             weekend
         )
         expect(segments.map((s) => [s.event.id, s.dayIndex])).toEqual([['sat', 0]])
+    })
+})
+
+describe('daysWithEvents', () => {
+    it('lists every calendar day an event touches inside the range', () => {
+        const days = daysWithEvents(
+            [
+                event('a', '2026-09-09T23:00', '2026-09-10T01:00'),
+                event('b', '2026-09-12T09:00', '2026-09-12T10:00'),
+                event('outside', '2026-10-01T09:00', '2026-10-01T10:00')
+            ],
+            range
+        )
+        expect([...days].sort()).toEqual(['2026-09-09', '2026-09-10', '2026-09-12'])
     })
 })

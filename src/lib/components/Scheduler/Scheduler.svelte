@@ -62,9 +62,10 @@
         middleware = [],
         interactions = [],
         toolbar = true,
+        detailPopover = true,
+        eventDetail,
         onMenu,
         toolbarActions,
-        banner,
         empty,
         onMutate,
         onConflict,
@@ -265,11 +266,25 @@
         event: eventSnippet,
         cell,
         header,
-        empty
+        empty,
+        detail: eventDetail
     })
 
     function selectEvent(eventId: string | null) {
         selectedEventId = eventId
+    }
+
+    function deleteEvent(eventId: string) {
+        const before = store.get(eventId)
+        if (!before || before.editable === false) return
+        void pipeline.commit({ kind: 'delete', eventId, before, after: null })
+        if (selectedEventId === eventId) selectedEventId = null
+        interactionContext.announce(labels.announce.deleted(before))
+    }
+
+    function navigate(next: ZonedDateTime, name?: string) {
+        date = next
+        if (name && registry.hasView(name)) view = name
     }
 
     const classes = $derived.by(() => {
@@ -364,7 +379,6 @@
             actions={toolbarActions}
         />
     {/if}
-    {@render banner?.()}
     <div class={classes.view}>
         <View
             {view}
@@ -379,6 +393,9 @@
             {focus}
             {selectedEventId}
             onSelectEvent={selectEvent}
+            {detailPopover}
+            onDeleteEvent={deleteEvent}
+            {navigate}
             interactions={viewInteractions}
         />
         {#if loading}

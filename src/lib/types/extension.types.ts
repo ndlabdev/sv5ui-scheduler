@@ -5,7 +5,12 @@ import type { SchedulerEvent } from './event.types.js'
 import type { SchedulerLabels } from './labels.types.js'
 import type { EventPatch, Mutation } from './mutation.types.js'
 import type { BusinessHours, DateRange, Holiday, TimeZoneId, WeekDay } from './range.types.js'
-import type { CellSnippetProps, EventSnippetProps, HeaderSnippetProps } from './snippet.types.js'
+import type {
+    CellSnippetProps,
+    EventDetailSnippetProps,
+    EventSnippetProps,
+    HeaderSnippetProps
+} from './snippet.types.js'
 
 /**
  * Maps wall-clock time to pixels along a day column and back. One instance
@@ -212,6 +217,11 @@ export interface ViewSnippets<T = unknown> {
      * Replaces the message a view shows when the range holds no events.
      */
     empty?: Snippet
+
+    /**
+     * Extra content under the default details in an event's popover.
+     */
+    detail?: Snippet<[EventDetailSnippetProps<T>]>
 }
 
 /**
@@ -271,6 +281,21 @@ export interface ViewProps<T = unknown> {
     selectedEventId: string | null
 
     onSelectEvent: (eventId: string | null) => void
+
+    /**
+     * Show an event's details in a popover when it is clicked.
+     */
+    detailPopover: boolean
+
+    /**
+     * Delete an event through the mutation pipeline.
+     */
+    onDeleteEvent: (eventId: string) => void
+
+    /**
+     * Move the scheduler to `date`, switching to `view` when given.
+     */
+    navigate: (date: ZonedDateTime, view?: string) => void
 }
 
 /**

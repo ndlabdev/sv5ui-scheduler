@@ -12,6 +12,7 @@ export interface SchedulerLabels {
     week: string
     day: string
     agenda: string
+    year: string
     allDay: string
 
     /**
@@ -60,6 +61,16 @@ export interface SchedulerLabels {
      * Accessible name of one event chip.
      */
     event: (event: SchedulerEvent, start: string, end: string) => string
+
+    /**
+     * Accessible name of the button that closes an open panel or popover.
+     */
+    close: string
+
+    /**
+     * Accessible name of the delete action on an event.
+     */
+    deleteEvent: string
 
     /**
      * Live region announcements after a keyboard or pointer action.

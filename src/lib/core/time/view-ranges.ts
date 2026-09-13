@@ -34,3 +34,17 @@ export function stepDays(anchor: ZonedDateTime, days: number): ZonedDateTime {
 export function stepMonths(anchor: ZonedDateTime, months: number): ZonedDateTime {
     return anchor.add({ months })
 }
+
+export function calendarMonthRange(anchor: ZonedDateTime): DateRange {
+    const start = startOfDay(anchor.set({ day: 1 }))
+    return { start, end: startOfDay(start.add({ months: 1 })) }
+}
+
+export function yearRange(anchor: ZonedDateTime): DateRange {
+    const start = startOfDay(anchor.set({ month: 1, day: 1 }))
+    return { start, end: startOfDay(start.add({ years: 1 })) }
+}
+
+export function stepYears(anchor: ZonedDateTime, years: number): ZonedDateTime {
+    return anchor.add({ years })
+}
