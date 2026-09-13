@@ -413,6 +413,7 @@
     class={classes.root}
     data-sch-scheduler
     data-sch-view={view}
+    onscrollcapture={() => (columnRects = null)}
 >
     {#if toolbar}
         <Toolbar

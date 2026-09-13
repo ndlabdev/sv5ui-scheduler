@@ -1,4 +1,5 @@
 import { useEventListener, usePointerDrag, type PointerDragContext } from 'sv5ui'
+import { createAutoScroller } from './autoscroll.js'
 import type { ResizeEdge } from './gesture.js'
 
 export interface PointerDragOptions {
@@ -17,6 +18,10 @@ const held = new WeakSet<Event>()
 export function pointerDrag(node: HTMLElement, options: PointerDragOptions): () => void {
     const threshold = options.moveThreshold ?? DEFAULT_THRESHOLD
     let moved = false
+    let last: PointerDragContext | null = null
+    const scroller = createAutoScroller(node.ownerDocument.defaultView ?? window, () => {
+        if (last) options.onMove(last)
+    })
     const drag = usePointerDrag({
         throttle: false,
         onStart: (context) => {
@@ -26,9 +31,13 @@ export function pointerDrag(node: HTMLElement, options: PointerDragOptions): () 
         onMove: (context) => {
             if (!moved && Math.hypot(context.dx, context.dy) < threshold) return
             moved = true
+            last = context
+            scroller.track(context)
             options.onMove(context)
         },
         onEnd: (context) => {
+            scroller.stop()
+            last = null
             if (moved) swallowNextClick(node)
             options.onEnd(context)
         }
@@ -47,6 +56,7 @@ export function pointerDrag(node: HTMLElement, options: PointerDragOptions): () 
     useEventListener(node, 'pointercancel', drag.handlers.onpointercancel)
     return () => {
         press.cancel()
+        scroller.stop()
         drag.cancel()
     }
 }

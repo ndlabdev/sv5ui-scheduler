@@ -22,6 +22,7 @@ const input = (
 })
 const frame = () => new Promise((resolve) => requestAnimationFrame(resolve))
 const settle = () => new Promise((resolve) => setTimeout(resolve, 30))
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 function grid(container: Element) {
     return container.querySelector<HTMLElement>('[data-sch-time-grid] [role="application"]')!
@@ -530,6 +531,89 @@ describe('drag to move', () => {
         const mutation: Mutation = onMutate.mock.calls[0][0]
         expect(iso(mutation.after!.start)).toBe('2026-09-09T14:00')
         expect(iso(mutation.after!.end)).toBe('2026-09-09T15:00')
+    })
+
+    it('scrolls the grid while the pointer waits near the bottom edge and follows it', async () => {
+        const screen = render(BoundScheduler, {
+            initial: [input('a', '2026-09-09T09:00', '2026-09-09T10:00')],
+            date: anchor,
+            view: 'day'
+        })
+        const host = screen.container.firstElementChild as HTMLElement
+        host.style.height = '500px'
+        const viewport = screen.container.querySelector<HTMLElement>('[data-scroll-area-viewport]')!
+        viewport.scrollTop = 8 * 48
+        await frame()
+        const wrapper = screen.container.querySelector<HTMLElement>('[data-sch-event="a"]')!
+        const from = wrapper.getBoundingClientRect()
+        const at = { clientX: from.left + from.width / 2, clientY: from.top + from.height / 2 }
+        const edge = { clientX: at.clientX, clientY: viewport.getBoundingClientRect().bottom - 8 }
+        wrapper.dispatchEvent(pointer('pointerdown', at))
+        wrapper.dispatchEvent(pointer('pointermove', edge))
+        await frame()
+        const ghost = screen.container.querySelector<HTMLElement>('[data-sch-ghost]')!
+        const before = { scroll: viewport.scrollTop, top: parseFloat(ghost.style.top) }
+        await wait(120)
+        expect(viewport.scrollTop).toBeGreaterThan(before.scroll + 48)
+        expect(parseFloat(ghost.style.top)).toBeGreaterThan(before.top + 48)
+        expect(viewport.scrollTop + viewport.clientHeight).toBeLessThan(viewport.scrollHeight - 100)
+        wrapper.dispatchEvent(pointer('pointerup', edge))
+        await settle()
+        const settledScroll = viewport.scrollTop
+        await wait(120)
+        expect(viewport.scrollTop).toBe(settledScroll)
+    })
+
+    it('stops scrolling as soon as the pointer is released', async () => {
+        const screen = render(BoundScheduler, { initial: [], date: anchor, view: 'day' })
+        const host = screen.container.firstElementChild as HTMLElement
+        host.style.height = '500px'
+        const viewport = screen.container.querySelector<HTMLElement>('[data-scroll-area-viewport]')!
+        viewport.scrollTop = 8 * 48
+        await frame()
+        const target = grid(screen.container)
+        const box = viewport.getBoundingClientRect()
+        const start = { clientX: box.left + box.width / 2, clientY: box.top + box.height / 2 }
+        const edge = { clientX: start.clientX, clientY: box.bottom - 8 }
+        target.dispatchEvent(pointer('pointerdown', start))
+        target.dispatchEvent(pointer('pointermove', edge))
+        await wait(120)
+        expect(viewport.scrollTop).toBeGreaterThan(8 * 48 + 48)
+        target.dispatchEvent(pointer('pointerup', edge))
+        await settle()
+        const settledScroll = viewport.scrollTop
+        expect(settledScroll + viewport.clientHeight).toBeLessThan(viewport.scrollHeight - 100)
+        await wait(120)
+        expect(viewport.scrollTop).toBe(settledScroll)
+    })
+
+    it('re-maps the pointer after the grid was scrolled by other means mid-drag', async () => {
+        const screen = render(BoundScheduler, {
+            initial: [input('a', '2026-09-09T09:00', '2026-09-09T10:00')],
+            date: anchor,
+            view: 'day'
+        })
+        const host = screen.container.firstElementChild as HTMLElement
+        host.style.height = '500px'
+        const viewport = screen.container.querySelector<HTMLElement>('[data-scroll-area-viewport]')!
+        viewport.scrollTop = 8 * 48
+        await frame()
+        const wrapper = screen.container.querySelector<HTMLElement>('[data-sch-event="a"]')!
+        const from = wrapper.getBoundingClientRect()
+        const at = { clientX: from.left + from.width / 2, clientY: from.top + from.height / 2 }
+        wrapper.dispatchEvent(pointer('pointerdown', at))
+        wrapper.dispatchEvent(pointer('pointermove', { ...at, clientY: at.clientY + 48 }))
+        await frame()
+        const ghost = screen.container.querySelector<HTMLElement>('[data-sch-ghost]')!
+        expect(ghost.style.top).toBe(`${10 * 48}px`)
+
+        viewport.scrollTop += 96
+        viewport.dispatchEvent(new Event('scroll', { bubbles: false }))
+        wrapper.dispatchEvent(pointer('pointermove', { ...at, clientY: at.clientY + 49 }))
+        await frame()
+        expect(ghost.style.top).toBe(`${12 * 48}px`)
+        wrapper.dispatchEvent(pointer('pointerup', { ...at, clientY: at.clientY + 49 }))
+        await settle()
     })
 
     it('leaves a locked event where it is', async () => {
