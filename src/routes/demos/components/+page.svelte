@@ -99,6 +99,7 @@
                         class="h-[420px] overflow-hidden rounded-xl border border-outline-variant/60"
                     >
                         <Scheduler
+                            creatable={false}
                             bind:events
                             {timeZone}
                             {calendars}

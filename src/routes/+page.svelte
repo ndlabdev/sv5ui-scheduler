@@ -24,7 +24,7 @@
         {
             icon: 'lucide:mouse-pointer-click',
             title: 'Direct manipulation',
-            description: 'Create, move and resize with a mouse, a finger or the keyboard.'
+            description: 'Move and resize events with a mouse, a finger or the keyboard.'
         },
         {
             icon: 'lucide:refresh-ccw',
@@ -85,7 +85,14 @@
         </div>
         <Card variant="outline">
             <div class="h-[480px]">
-                <Scheduler bind:events {timeZone} {calendars} view="month" class="h-full" />
+                <Scheduler
+                    creatable={false}
+                    bind:events
+                    {timeZone}
+                    {calendars}
+                    view="month"
+                    class="h-full"
+                />
             </div>
         </Card>
     </section>

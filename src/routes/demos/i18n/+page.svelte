@@ -94,6 +94,7 @@
             </FormField>
         {/snippet}
         <Scheduler
+            creatable={false}
             bind:events
             bind:view
             {timeZone}
@@ -115,6 +116,7 @@
     >
         <div class="grid h-full gap-4 lg:grid-cols-2">
             <Scheduler
+                creatable={false}
                 bind:events={sideEvents}
                 view="month"
                 {timeZone}
@@ -124,6 +126,7 @@
                 class="h-full rounded-xl border border-outline-variant/60"
             />
             <Scheduler
+                creatable={false}
                 bind:events={sideEvents}
                 view="month"
                 {timeZone}

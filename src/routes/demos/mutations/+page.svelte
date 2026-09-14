@@ -110,6 +110,7 @@
             <LogPanel {log} title="Server log" />
         {/snippet}
         <Scheduler
+            creatable={false}
             bind:events
             {timeZone}
             {calendars}

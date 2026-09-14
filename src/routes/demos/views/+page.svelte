@@ -12,6 +12,9 @@
     let slotHeight = $state(24)
     let weekStartsOn = $state('1')
     let weekNumbers = $state(true)
+    let startHour = $state('0')
+    let endHour = $state('24')
+    let hideWeekends = $state(false)
 
     let compactEvents = $state<EventInput[]>(teamEvents())
 
@@ -37,6 +40,9 @@
         { label: '1 hour', value: '60' }
     ]
 
+    const startHourItems = ['0', '6', '7', '8'].map((value) => ({ label: `${value}:00`, value }))
+    const endHourItems = ['18', '20', '22', '24'].map((value) => ({ label: `${value}:00`, value }))
+
     const startItems = [
         { label: 'Monday', value: '1' },
         { label: 'Sunday', value: '0' },
@@ -56,6 +62,9 @@
             `    slotHeight={${slotHeight}}`,
             `    weekStartsOn={${weekStartsOn}}`,
             weekNumbers ? '    weekNumbers' : null,
+            startHour !== '0' ? `    dayStartHour={${startHour}}` : null,
+            endHour !== '24' ? `    dayEndHour={${endHour}}` : null,
+            hideWeekends ? '    hiddenDays={[0, 6]}' : null,
             '/>'
         ]
             .filter((line) => line !== null)
@@ -102,8 +111,18 @@
             <FormField label="Week numbers">
                 <Switch bind:checked={weekNumbers} />
             </FormField>
+            <FormField label="Visible hours">
+                <div class="flex items-center gap-2">
+                    <Select items={startHourItems} bind:value={startHour} class="w-24" />
+                    <Select items={endHourItems} bind:value={endHour} class="w-24" />
+                </div>
+            </FormField>
+            <FormField label="Hide weekends">
+                <Switch bind:checked={hideWeekends} />
+            </FormField>
         {/snippet}
         <Scheduler
+            creatable={false}
             bind:events
             bind:view
             {timeZone}
@@ -113,6 +132,9 @@
             {slotHeight}
             weekStartsOn={firstDay}
             {weekNumbers}
+            dayStartHour={Number(startHour)}
+            dayEndHour={Number(endHour)}
+            hiddenDays={hideWeekends ? [0, 6] : []}
             class="h-full"
         />
     </DemoCard>
@@ -125,6 +147,7 @@
     >
         <div class="mx-auto h-full max-w-md">
             <Scheduler
+                creatable={false}
                 bind:events={compactEvents}
                 view="agenda"
                 toolbar={false}

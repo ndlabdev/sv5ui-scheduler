@@ -111,6 +111,7 @@ const logger = (next) => (patch) => {
             <LogPanel {log} title="Store patches" />
         {/snippet}
         <Scheduler
+            creatable={false}
             bind:events
             bind:view
             {timeZone}

@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { Badge, FormField, Icon, Switch, toast } from 'sv5ui'
+    import { Badge, Icon, toast } from 'sv5ui'
     import {
         Scheduler,
         dragSource,
@@ -25,7 +25,6 @@
             editable: false
         }
     ])
-    let creatable = $state(true)
     const log = new EventLog()
 
     let planned = $state<EventInput[]>([])
@@ -67,7 +66,7 @@
         }
     }
 
-    const code = `<Scheduler bind:events {creatable} {onMutate} />
+    const code = `<Scheduler bind:events creatable={false} {onMutate} />
 
 <button {@attach dragSource(() => ({ title: 'Write release notes', durationMinutes: 60 }))}>
     Write release notes
@@ -79,24 +78,19 @@
         icon="lucide:move"
         badge="Interaction"
         title="Drag and drop"
-        description="Drag on empty slots to create, drag events to move them and pull their edges to resize. Events can be locked, creation can be switched off, and any element on the page can become a drag source."
+        description="Drag events to move them and pull their edges to resize. Events can be locked, and any element on the page can become a drag source."
     />
 
     <DemoCard
-        title="Create, move and resize"
+        title="Move and resize"
         description="Every gesture goes through the mutation pipeline and is reported to onMutate. The board meeting is locked with editable: false, so it cannot be dragged or resized."
         {code}
         height="h-[720px]"
     >
-        {#snippet controls()}
-            <FormField label="Create by dragging">
-                <Switch bind:checked={creatable} />
-            </FormField>
-        {/snippet}
         {#snippet aside()}
             <LogPanel {log} title="onMutate calls" />
         {/snippet}
-        <Scheduler bind:events {timeZone} {calendars} {creatable} {onMutate} class="h-full" />
+        <Scheduler bind:events {timeZone} {calendars} creatable={false} {onMutate} class="h-full" />
     </DemoCard>
 
     <DemoCard

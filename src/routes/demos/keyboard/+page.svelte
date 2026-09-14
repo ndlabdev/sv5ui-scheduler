@@ -32,7 +32,6 @@
             keys: ['PgUp', 'PgDn'],
             action: 'Previous or next period, keeping the focused position.'
         },
-        { keys: ['Enter'], action: 'Create an event at the focused slot.' },
         { keys: ['Esc'], action: 'Cancel the drag in progress, or clear the selection.' },
         { keys: ['Delete'], action: 'Delete the selected event.' }
     ]
@@ -87,6 +86,6 @@
                 empty="Focus the grid and move around to hear what is announced."
             />
         {/snippet}
-        <Scheduler bind:events bind:ref {timeZone} {calendars} class="h-full" />
+        <Scheduler creatable={false} bind:events bind:ref {timeZone} {calendars} class="h-full" />
     </DemoCard>
 </div>

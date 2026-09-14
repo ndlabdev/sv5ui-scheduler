@@ -59,7 +59,7 @@ export const demoGroups: DemoGroup[] = [
         demos: [
             {
                 title: 'Drag and drop',
-                description: 'Create, move and resize events, and drop items from your own lists.',
+                description: 'Move and resize events, and drop items from your own lists.',
                 icon: 'lucide:move',
                 href: resolve('/demos/drag-and-drop')
             },

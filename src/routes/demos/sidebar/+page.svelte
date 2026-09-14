@@ -39,7 +39,7 @@
     {dragSources}
 >
     {#snippet sidebarHeader()}
-        <Button label="New event" icon="lucide:plus" />
+        <p>Team calendar</p>
     {/snippet}
     {#snippet sidebarFooter()}
         <p>Synced a moment ago</p>
@@ -48,7 +48,7 @@
 </script>
 
 {#snippet header()}
-    <Button label="New event" icon="lucide:plus" class="w-full justify-center" />
+    <p class="px-1 text-sm font-semibold text-on-surface">Team calendar</p>
 {/snippet}
 
 {#snippet footer()}
@@ -128,6 +128,7 @@
             </FormField>
         {/snippet}
         <Scheduler
+            creatable={false}
             bind:events
             bind:sidebarOpen={open}
             {timeZone}
@@ -147,6 +148,7 @@
         height="h-[640px]"
     >
         <Scheduler
+            creatable={false}
             bind:events={customEvents}
             {timeZone}
             {calendars}

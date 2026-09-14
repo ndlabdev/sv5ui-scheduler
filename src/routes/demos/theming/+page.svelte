@@ -57,7 +57,13 @@
             description="Each event colour maps to a token pair. Calendars set the colour of their events, and an event can override it."
             height="h-[640px]"
         >
-            <Scheduler bind:events={palette} {timeZone} view="day" class="h-full" />
+            <Scheduler
+                creatable={false}
+                bind:events={palette}
+                {timeZone}
+                view="day"
+                class="h-full"
+            />
         </DemoCard>
 
         <div class="space-y-4">
@@ -105,6 +111,14 @@
                 <Switch bind:checked={tintedToolbar} />
             </FormField>
         {/snippet}
-        <Scheduler bind:events {timeZone} {calendars} view="month" {ui} class="h-full" />
+        <Scheduler
+            creatable={false}
+            bind:events
+            {timeZone}
+            {calendars}
+            view="month"
+            {ui}
+            class="h-full"
+        />
     </DemoCard>
 </div>

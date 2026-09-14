@@ -158,7 +158,7 @@
     <Empty
         icon="lucide:coffee"
         title="A quiet week"
-        description="Nothing is planned. Drag on the grid to add something."
+        description="Nothing is planned for this week."
     />
 {/snippet}
 
@@ -177,6 +177,7 @@
         height="h-[720px]"
     >
         <Scheduler
+            creatable={false}
             bind:events
             {timeZone}
             {holidays}
@@ -195,6 +196,7 @@
             height="h-[560px]"
         >
             <Scheduler
+                creatable={false}
                 bind:events={detailEvents}
                 {timeZone}
                 view="agenda"
@@ -208,7 +210,13 @@
             description="The empty snippet replaces the message shown when the range holds nothing."
             height="h-[560px]"
         >
-            <Scheduler bind:events={emptyEvents} {timeZone} empty={nothing} class="h-full" />
+            <Scheduler
+                creatable={false}
+                bind:events={emptyEvents}
+                {timeZone}
+                empty={nothing}
+                class="h-full"
+            />
         </DemoCard>
     </div>
 </div>

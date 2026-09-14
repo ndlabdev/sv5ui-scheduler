@@ -174,6 +174,6 @@
                 </div>
             </Card>
         {/snippet}
-        <Scheduler bind:events bind:view {timeZone} {calendars} class="h-full" />
+        <Scheduler creatable={false} bind:events bind:view {timeZone} {calendars} class="h-full" />
     </DemoCard>
 </div>

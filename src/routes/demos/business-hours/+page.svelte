@@ -105,6 +105,7 @@
             </FormField>
         {/snippet}
         <Scheduler
+            creatable={false}
             bind:events
             bind:view
             {timeZone}

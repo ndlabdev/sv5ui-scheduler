@@ -128,6 +128,14 @@
         {#snippet aside()}
             <LogPanel {log} title="Network" />
         {/snippet}
-        <Scheduler {source} {onLoadError} bind:view {timeZone} {calendars} class="h-full" />
+        <Scheduler
+            creatable={false}
+            {source}
+            {onLoadError}
+            bind:view
+            {timeZone}
+            {calendars}
+            class="h-full"
+        />
     </DemoCard>
 </div>

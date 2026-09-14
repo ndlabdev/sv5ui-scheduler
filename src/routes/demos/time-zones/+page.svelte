@@ -133,6 +133,7 @@
                         class="min-h-0 flex-1 overflow-hidden rounded-xl border border-outline-variant/60"
                     >
                         <Scheduler
+                            creatable={false}
                             bind:events
                             bind:date
                             timeZone={zone}
