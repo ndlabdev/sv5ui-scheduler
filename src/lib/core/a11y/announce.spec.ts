@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import type { SchedulerEvent } from '../../types/event.types.js'
 import type { Mutation } from '../../types/mutation.types.js'
 import { defaultLabels } from '../i18n/labels.js'
-import { vi } from '../i18n/locales/vi.js'
+import { vi } from '../../locales/vi.js'
 import { announceConflict, announceMutation, announceReverted, describeEvent } from './announce.js'
 
 const at = (iso: string) => parseZonedDateTime(`${iso}[UTC]`)

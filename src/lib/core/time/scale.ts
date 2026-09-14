@@ -1,4 +1,4 @@
-import type { TimeScale } from '../../types/extension.types.js'
+import type { TimeScale } from '../../types/layout.types.js'
 
 export interface TimeScaleOptions {
     slotMinutes?: number

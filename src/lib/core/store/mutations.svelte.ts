@@ -2,7 +2,7 @@ import type { SchedulerEvent } from '../../types/event.types.js'
 import type { Mutation, MutationHandlers } from '../../types/mutation.types.js'
 import type { TimeZoneId } from '../../types/range.types.js'
 import type { EventStore } from './event-store.svelte.js'
-import { emptyIdSet, withId, withoutId } from './id-set.js'
+import { emptyIdSet, withId, withoutId } from '../utils/id-set.js'
 import { isSameEvent, normalizeEvent } from './normalize.js'
 import { createKeyedQueue, type KeyedQueue } from './queue.js'
 

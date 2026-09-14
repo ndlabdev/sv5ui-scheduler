@@ -1,5 +1,5 @@
 import type { SchedulerEvent } from '../../types/event.types.js'
-import type { LayoutContext, TimePosition } from '../../types/extension.types.js'
+import type { LayoutContext, TimePosition } from '../../types/layout.types.js'
 import type { DateRange } from '../../types/range.types.js'
 import { assignColumns, type ColumnPlacement } from './overlap.js'
 import { isWholeDay, segmentsInRange, type EventSegment } from './segments.js'

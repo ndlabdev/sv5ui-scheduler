@@ -2,7 +2,7 @@ import { parseZonedDateTime } from '@internationalized/date'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { SchedulerEvent } from '../../types/event.types.js'
 import type { RecurrenceRule } from '../../types/recurrence.types.js'
-import { resetWarnings } from '../dev.js'
+import { resetWarnings } from '../utils/dev.js'
 import { expandSeries, unsupportedFields } from './expand.js'
 
 const ZONE = 'America/New_York'

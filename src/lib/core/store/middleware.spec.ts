@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import type { StoreMiddleware } from '../../types/extension.types.js'
+import type { StoreMiddleware } from '../../types/mutation.types.js'
 import type { EventPatch } from '../../types/mutation.types.js'
 import { composeMiddleware } from './middleware.js'
 

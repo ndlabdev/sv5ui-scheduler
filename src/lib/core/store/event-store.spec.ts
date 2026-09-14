@@ -1,7 +1,7 @@
 import { parseZonedDateTime } from '@internationalized/date'
 import { describe, expect, it, vi } from 'vitest'
 import type { SchedulerEvent } from '../../types/event.types.js'
-import type { StoreMiddleware } from '../../types/extension.types.js'
+import type { StoreMiddleware } from '../../types/mutation.types.js'
 import { createRange } from '../time/range.js'
 import { EventStore } from './event-store.svelte.js'
 

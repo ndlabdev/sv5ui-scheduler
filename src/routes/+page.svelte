@@ -7,7 +7,7 @@
         type EventInput,
         type SchedulerCalendar
     } from '$lib/index.js'
-    import { vi } from '$lib/locales.js'
+    import { vi } from '$lib/locales/index.js'
 
     const calendars: SchedulerCalendar[] = [
         { id: 'work', title: 'Work', color: 'primary' },

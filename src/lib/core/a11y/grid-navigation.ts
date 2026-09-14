@@ -1,4 +1,4 @@
-import type { GridFocus } from '../../types/extension.types.js'
+import type { GridFocus } from '../../types/interaction.types.js'
 
 export type { GridFocus }
 

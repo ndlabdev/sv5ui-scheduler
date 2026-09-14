@@ -1,5 +1,5 @@
 import type { SchedulerLabels } from '../../types/labels.types.js'
-import { en } from './locales/en.js'
+import { en } from '../../locales/en.js'
 
 export type PartialLabels = Partial<Omit<SchedulerLabels, 'announce'>> & {
     announce?: Partial<SchedulerLabels['announce']>

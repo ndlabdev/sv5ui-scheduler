@@ -43,17 +43,16 @@ export type {
     HitTarget,
     InteractionContext,
     InteractionPlugin,
-    InteractionPreview,
+    InteractionPreview
+} from './interaction.types.js'
+export type {
     LayoutContext,
     LayoutStrategy,
     PositionedEvent,
-    SchedulerContext,
     SpanPosition,
-    StoreMiddleware,
     TimePosition,
-    TimeScale,
-    ViewDefinition,
-    ViewPreview,
-    ViewProps,
-    ViewSnippets
-} from './extension.types.js'
+    TimeScale
+} from './layout.types.js'
+export type { SchedulerContext } from './context.types.js'
+export type { StoreMiddleware } from './mutation.types.js'
+export type { ViewDefinition, ViewPreview, ViewProps, ViewSnippets } from './view.types.js'

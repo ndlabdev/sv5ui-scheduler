@@ -3,6 +3,7 @@ import type { EventInput } from '../../lib/types/event.types.js'
 
 export const ZONE = 'Asia/Ho_Chi_Minh'
 export const anchor = parseZonedDateTime('2026-09-09T12:00[Asia/Ho_Chi_Minh]')
+export const NOW = new Date('2026-09-13T03:00:00Z')
 export const SLOT_MINUTES = 30
 export const SLOT_HEIGHT = 24
 

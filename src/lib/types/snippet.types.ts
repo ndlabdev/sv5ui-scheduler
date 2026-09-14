@@ -1,6 +1,7 @@
 import type { ZonedDateTime } from '@internationalized/date'
 import type { SchedulerEvent } from './event.types.js'
-import type { PositionedEvent, SchedulerContext } from './extension.types.js'
+import type { PositionedEvent } from './layout.types.js'
+import type { SchedulerContext } from './context.types.js'
 import type { DateRange, Holiday } from './range.types.js'
 
 /**

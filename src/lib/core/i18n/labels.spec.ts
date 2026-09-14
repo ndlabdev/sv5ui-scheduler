@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import type { SchedulerLabels } from '../../types/labels.types.js'
 import { defaultLabels, mergeLabels, viewLabel } from './labels.js'
-import { en } from './locales/en.js'
-import { vi } from './locales/vi.js'
-import * as all from '../../locales.js'
+import { en } from '../../locales/en.js'
+import { vi } from '../../locales/vi.js'
+import * as all from '../../locales/index.js'
 
 const keysOf = (labels: SchedulerLabels) => [
     ...Object.keys(labels).filter((k) => k !== 'announce'),

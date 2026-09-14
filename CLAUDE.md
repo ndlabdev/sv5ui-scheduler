@@ -46,21 +46,31 @@ Definition of done: `check`, `lint`, `test` green; `build` too when exports chan
 
 ```
 src/lib/
-  core/
-    store/        event-store.svelte.ts, mutations.svelte.ts, sources.ts
-    time/         scale.ts (public TimeScale), range.ts, zone.ts
-    layout/       overlap.ts, timegrid.ts, monthgrid.ts   INTERNAL, never exported
-    registry/     views.ts, layout.ts, middleware.ts, interactions.ts
-  components/     Scheduler/ MonthView/ WeekView/ DayView/ AgendaView/ EventChip/
-  interactions/   drag-create.ts, drag-move.ts, resize.ts, keyboard.ts
-  scheduler.types.ts
-  scheduler.variants.ts
-  index.ts        root: export * from each area barrel, nothing else
-  types/index.ts  area barrel: explicit named list, the semver contract
-  core/index.ts   area barrel: explicit named list
+  index.ts              root: export * from each area barrel, nothing else
+  types/                public types, one file per concern (context, layout, view, interaction, ...)
+  config/               defineSchedulerConfig, getComponentConfig
+  locales/              one file per locale; index.ts is the ./locales entry
+  dom/                  browser helpers shared by interactions and components
+  core/                 pure logic, tested in node
+    time/               zone, range, week, format, scale (public TimeScale)
+    layout/             overlap, lanes, spans, timegrid   INTERNAL, never exported
+    store/              event-store, mutations, sources, normalize, filters
+    recurrence/  registry/  a11y/  i18n/  utils/
+  interactions/
+    engine/             gesture controller, hit test, snapping, pointer, autoscroll, motion
+    plugins/            create, move, resize, keyboard, external, builtin
+  components/
+    Scheduler/          root component; state/ holds its runes classes, parts/ its Toolbar
+    views/              the five views, TimeGrid (internal, split into parts), builtin.ts
+    sidebar/            DateNavigator, CalendarList, SearchBox, DragSourceList, DefaultSidebar
+    event/              EventChip, EventPopover
+    shared/             internal parts used by more than one component
+src/tests/              cross-component specs grouped by area: a11y, interactions, views, sidebar, contract
 ```
 
-Each component: `Component.svelte`, `component.types.ts`, `component.variants.ts`, `Component.svelte.spec.ts`, `index.ts`.
+Each public component: `Component.svelte`, `component.types.ts`, `component.variants.ts`, `Component.svelte.spec.ts`, `index.ts`. A part private to one component lives in that component's folder; a part used by several lives in `components/shared/`. Every area barrel (`types`, `core`, `components`, `interactions`, `config`) is an explicit named list.
+
+Imports only point down the layers: `types`, then `config`, `locales` and `dom`, then `core`, `interactions` and `components` (`shared` and `event` below `views` and `sidebar`, `Scheduler` on top). `eslint.config.js` enforces the order with `no-restricted-imports`; when it fires, move the code, not the rule.
 
 ## Local notes
 

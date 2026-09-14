@@ -1,8 +1,6 @@
-import type {
-    InteractionPlugin,
-    LayoutStrategy,
-    ViewDefinition
-} from '../../types/extension.types.js'
+import type { InteractionPlugin } from '../../types/interaction.types.js'
+import type { LayoutStrategy } from '../../types/layout.types.js'
+import type { ViewDefinition } from '../../types/view.types.js'
 import { builtinLayouts } from '../layout/strategies.js'
 
 export interface RegistryOptions<T = unknown> {

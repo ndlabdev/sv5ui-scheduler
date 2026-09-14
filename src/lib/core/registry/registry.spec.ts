@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import type { LayoutStrategy, ViewDefinition } from '../../types/extension.types.js'
+import type { LayoutStrategy } from '../../types/layout.types.js'
+import type { ViewDefinition } from '../../types/view.types.js'
 import { createRegistry } from './registry.js'
 
 const view = (name: string, layout = 'time-grid'): ViewDefinition => ({

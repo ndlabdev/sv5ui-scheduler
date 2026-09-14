@@ -4,13 +4,10 @@ import type { HTMLAttributes } from 'svelte/elements'
 import type { ClassNameValue } from 'tailwind-merge'
 import type { PartialLabels } from '../../core/i18n/labels.js'
 import type { EventInput, SchedulerCalendar, SchedulerEvent } from '../../types/event.types.js'
-import type {
-    DragSourceData,
-    InteractionPlugin,
-    LayoutStrategy,
-    StoreMiddleware,
-    ViewDefinition
-} from '../../types/extension.types.js'
+import type { DragSourceData, InteractionPlugin } from '../../types/interaction.types.js'
+import type { LayoutStrategy } from '../../types/layout.types.js'
+import type { StoreMiddleware } from '../../types/mutation.types.js'
+import type { ViewDefinition } from '../../types/view.types.js'
 import type { MutationHandlers } from '../../types/mutation.types.js'
 import type { BusinessHours, Holiday, TimeZoneId, WeekDay } from '../../types/range.types.js'
 import type { EventSourceFn } from '../../types/source.types.js'

@@ -14,7 +14,7 @@ Prettier: 4 spaces, no tabs, single quotes, no semicolons, no trailing commas, p
 
 ## Component file layout
 
-Every component lives in `src/lib/components/<Component>/` with exactly these files:
+Every public component lives in `src/lib/components/<group>/<Component>/`, where the group is its domain (`views`, `sidebar`, `event`), or in `src/lib/components/Scheduler/` for the root component, with exactly these files:
 
 ```
 <Component>.svelte              component: imports types + variants, no inline types
@@ -25,6 +25,8 @@ index.ts                        exports the component + user-facing types only
 ```
 
 Component files are PascalCase; types/variants files are kebab-case. Runes-holding modules end in `.svelte.ts`.
+
+A part private to one component (a grid, a toolbar) sits in that component's folder with its own variants file and no `index.ts`. A part used by several components goes in `components/shared/`. Runes state that a component assembles lives in its `state/` folder, one class per concern, each with its own spec.
 
 ## Component skeleton
 
@@ -37,7 +39,7 @@ Component files are PascalCase; types/variants files are kebab-case. Runes-holdi
 
 <script lang="ts">
     import { eventChipVariants, eventChipDefaults } from './event-chip.variants.js'
-    import { getComponentConfig } from '../../config.js'
+    import { getComponentConfig } from '../../../config/config.js'
 
     const config = getComponentConfig('eventChip', eventChipDefaults)
 
@@ -165,7 +167,7 @@ export type EventChipProps = Omit<HTMLAttributes<HTMLDivElement>, 'class' | 'col
 
 - `index.ts` per component exports the component and user-facing types only: `Props`, and public `Size` / `Color` / `Variant` aliases. Never `Slots`, `Defaults` or `VariantProps`.
 - Type re-exports use `export type { }`.
-- The public surface has two levels. `src/lib/index.ts` is the root: it only contains `export * from './<area>/index.js'` lines, one per area (`types`, `core`, later `components`), nothing else. Each area barrel (`types/index.ts`, `core/index.ts`, ...) is an explicit named list grouped by source file, and never uses `export *`. So a star exists in exactly one file, and every public name is spelled out exactly once in the area that owns it. `src/tests/public-api.spec.ts` walks the root into the areas and pins the exact list.
+- The public surface has two levels. `src/lib/index.ts` is the root: it only contains `export * from './<area>/index.js'` lines, one per area (`types`, `core`, `components`, `interactions`, `config`), nothing else. Each area barrel (`types/index.ts`, `core/index.ts`, ...) is an explicit named list grouped by source file, and never uses `export *`. So a star exists in exactly one file, and every public name is spelled out exactly once in the area that owns it. `src/tests/contract/public-api.spec.ts` walks the root into the areas and pins the exact list.
 - Adding an export later is free; removing one is a breaking change. When in doubt, leave it out.
 - Inside the library import modules directly (`../../core/time/range.js`), not through a barrel. Barrels define contracts at boundaries; using them internally is how import cycles start.
 

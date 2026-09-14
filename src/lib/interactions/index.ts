@@ -1,1 +1,1 @@
-export { dragSource } from './external.js'
+export { dragSource } from './plugins/external.js'

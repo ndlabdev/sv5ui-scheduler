@@ -1,0 +1,200 @@
+import type { SchedulerEvent } from '../../types/event.types.js'
+import type { InteractionContext } from '../../types/interaction.types.js'
+import type { MutationKind } from '../../types/mutation.types.js'
+import { announceMutation } from '../../core/a11y/announce.js'
+import { isEditable } from '../../core/store/normalize.js'
+import {
+    applyDraft,
+    createDraft,
+    isUnchanged,
+    moveDraft,
+    resizeDraft,
+    type DraftRange,
+    type GestureMode,
+    type GesturePoint,
+    type ResizeEdge
+} from './gesture.js'
+
+export interface GestureSession<T = unknown> {
+    readonly mode: GestureMode
+    readonly anchor: GesturePoint
+    readonly event: SchedulerEvent<T>
+    readonly edge: ResizeEdge | null
+    readonly draft: DraftRange
+    readonly moved: boolean
+    readonly external: boolean
+}
+
+export interface GestureOptions {
+    readonly defaultMinutes?: number
+    readonly creatable?: boolean
+}
+
+const MUTATION_KIND: Record<GestureMode, MutationKind> = {
+    create: 'create',
+    move: 'move',
+    resize: 'resize'
+}
+
+export class GestureController<T = unknown> {
+    #session = $state.raw<GestureSession<T> | null>(null)
+    readonly #context: () => InteractionContext<T>
+    readonly #options: () => GestureOptions
+
+    constructor(context: () => InteractionContext<T>, options: () => GestureOptions = () => ({})) {
+        this.#context = context
+        this.#options = options
+    }
+
+    get session(): GestureSession<T> | null {
+        return this.#session
+    }
+
+    get active(): boolean {
+        return this.#session !== null
+    }
+
+    beginCreate(anchor: GesturePoint): void {
+        if (this.#options().creatable === false) return
+        const context = this.#context()
+        const draft = createDraft(anchor, anchor, context.scale.slotMinutes)
+        const event: SchedulerEvent<T> = {
+            id: context.newEventId(),
+            title: context.scheduler.labels.newEvent,
+            start: draft.start,
+            end: draft.end,
+            allDay: draft.allDay
+        }
+        this.#start({
+            mode: 'create',
+            anchor,
+            event,
+            edge: null,
+            draft,
+            moved: false,
+            external: false
+        })
+    }
+
+    beginInsert(event: SchedulerEvent<T>, anchor: GesturePoint): void {
+        const draft = moveDraft(event, anchor, anchor, this.#moveOptions())
+        this.#start({ mode: 'move', anchor, event, edge: null, draft, moved: true, external: true })
+    }
+
+    beginMove(event: SchedulerEvent<T>, anchor: GesturePoint): boolean {
+        if (!isEditable(event)) return false
+        const draft = moveDraft(event, anchor, anchor, this.#moveOptions())
+        this.#start({
+            mode: 'move',
+            anchor,
+            event,
+            edge: null,
+            draft,
+            moved: false,
+            external: false
+        })
+        return true
+    }
+
+    beginResize(event: SchedulerEvent<T>, edge: ResizeEdge, anchor: GesturePoint): boolean {
+        if (!isEditable(event)) return false
+        const draft = resizeDraft(event, edge, anchor, this.#context().scale.slotMinutes)
+        this.#start({ mode: 'resize', anchor, event, edge, draft, moved: false, external: false })
+        return true
+    }
+
+    update(current: GesturePoint): void {
+        const session = this.#session
+        if (!session) return
+        const draft = this.#draftFor(session, current)
+        if (session.moved && sameDraft(session.draft, draft)) return
+        this.#session = { ...session, draft, moved: true }
+        this.#context().setPreview({
+            kind: previewKind(session),
+            event: applyDraft(session.event, draft)
+        })
+    }
+
+    commit(): boolean {
+        const session = this.#session
+        if (!session) return false
+        this.#finish()
+        if (!session.moved) return false
+        const inserts = session.mode === 'create' || session.external
+        if (!inserts && isUnchanged(session.event, session.draft)) return false
+        const after = applyDraft(session.event, session.draft)
+        const context = this.#context()
+        const mutation = {
+            kind: inserts ? 'create' : MUTATION_KIND[session.mode],
+            eventId: session.event.id,
+            before: inserts ? null : session.event,
+            after
+        } as const
+        context.commit(mutation)
+        const message = announceMutation(
+            { id: '', ...mutation },
+            {
+                labels: context.scheduler.labels,
+                locale: context.scheduler.locale,
+                hour12: context.scheduler.hour12
+            }
+        )
+        if (message) context.announce(message)
+        return true
+    }
+
+    createAt(point: GesturePoint): void {
+        this.beginCreate(point)
+        const session = this.#session
+        if (!session) return
+        this.#session = { ...session, moved: true }
+        this.commit()
+    }
+
+    cancel(): void {
+        const session = this.#session
+        if (!session) return
+        this.#finish()
+        this.#context().announce(this.#context().scheduler.labels.announce.cancelled)
+    }
+
+    abandon(): void {
+        if (this.#session) this.#finish()
+    }
+
+    #start(session: GestureSession<T>): void {
+        this.#session = session
+        this.#context().setPreview({
+            kind: previewKind(session),
+            event: applyDraft(session.event, session.draft)
+        })
+    }
+
+    #finish(): void {
+        this.#session = null
+        this.#context().setPreview(null)
+    }
+
+    #draftFor(session: GestureSession<T>, current: GesturePoint): DraftRange {
+        const slotMinutes = this.#context().scale.slotMinutes
+        if (session.mode === 'create') return createDraft(session.anchor, current, slotMinutes)
+        if (session.mode === 'move')
+            return moveDraft(session.event, session.anchor, current, this.#moveOptions())
+        return resizeDraft(session.event, session.edge ?? 'end', current, slotMinutes)
+    }
+
+    #moveOptions() {
+        return {
+            slotMinutes: this.#context().scale.slotMinutes,
+            defaultMinutes: this.#options().defaultMinutes
+        }
+    }
+}
+
+function sameDraft(a: DraftRange, b: DraftRange): boolean {
+    return a.allDay === b.allDay && a.start.compare(b.start) === 0 && a.end.compare(b.end) === 0
+}
+
+function previewKind(session: GestureSession): GestureMode {
+    return session.external ? 'create' : session.mode
+}

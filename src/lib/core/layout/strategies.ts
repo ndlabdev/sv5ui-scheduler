@@ -1,5 +1,5 @@
 import type { SchedulerEvent } from '../../types/event.types.js'
-import type { LayoutContext, LayoutStrategy, PositionedEvent } from '../../types/extension.types.js'
+import type { LayoutContext, LayoutStrategy, PositionedEvent } from '../../types/layout.types.js'
 import type { DateRange } from '../../types/range.types.js'
 import { isWholeDay } from './segments.js'
 import { layoutSpans } from './spans.js'

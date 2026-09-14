@@ -74,3 +74,11 @@ export type EventPatch<T = unknown> =
     | { type: 'upsert'; event: SchedulerEvent<T> }
     | { type: 'remove'; eventId: string }
     | { type: 'reset'; events: SchedulerEvent<T>[] }
+
+/**
+ * Wraps the store's `apply`. Receives the next link in the chain and returns
+ * the function the store will call. Runs in registration order.
+ */
+export type StoreMiddleware<T = unknown> = (
+    next: (patch: EventPatch<T>) => void
+) => (patch: EventPatch<T>) => void

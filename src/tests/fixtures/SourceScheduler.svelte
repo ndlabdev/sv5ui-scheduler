@@ -1,6 +1,6 @@
 <script lang="ts">
     import type { ZonedDateTime } from '@internationalized/date'
-    import type { InteractionPlugin } from '../../lib/types/extension.types.js'
+    import type { InteractionPlugin } from '../../lib/types/interaction.types.js'
     import type { Mutation } from '../../lib/types/mutation.types.js'
     import type { EventSourceFn } from '../../lib/types/source.types.js'
     import { Scheduler } from '../../lib/index.js'

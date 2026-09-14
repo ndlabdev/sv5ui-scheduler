@@ -1,5 +1,5 @@
 import type { SchedulerEvent } from '../../types/event.types.js'
-import type { LayoutContext, SpanPosition } from '../../types/extension.types.js'
+import type { LayoutContext, SpanPosition } from '../../types/layout.types.js'
 import type { DateRange } from '../../types/range.types.js'
 import { assignLanes, type Span } from './lanes.js'
 import { segmentsInRange, type EventSegment } from './segments.js'

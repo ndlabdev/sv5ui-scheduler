@@ -1,7 +1,7 @@
 <script lang="ts">
     import type { ZonedDateTime } from '@internationalized/date'
     import type { EventInput } from '../../lib/types/event.types.js'
-    import type { DragSourceData } from '../../lib/types/extension.types.js'
+    import type { DragSourceData } from '../../lib/types/interaction.types.js'
     import type { MutationHandlers } from '../../lib/types/mutation.types.js'
     import { untrack } from 'svelte'
     import { Scheduler, dragSource } from '../../lib/index.js'

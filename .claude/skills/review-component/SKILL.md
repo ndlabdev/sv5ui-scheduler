@@ -11,7 +11,7 @@ Perform a full review of one component (`Scheduler`, `WeekView`, `EventChip`, ..
 
 ## 1. Gather all files
 
-For a component read every file in `src/lib/components/<Component>/`:
+For a component read every file in `src/lib/components/<group>/<Component>/` (for `Scheduler`, also its `state/` and `parts/` folders):
 
 ```
 <Component>.svelte
