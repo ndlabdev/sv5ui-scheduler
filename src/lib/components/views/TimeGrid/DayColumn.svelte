@@ -10,7 +10,13 @@
     import type { ViewProps, ViewSnippets } from '../../../types/view.types.js'
     import EventChip from '../../event/EventChip/EventChip.svelte'
     import EventPopover from '../../event/EventPopover/EventPopover.svelte'
-    import { COMPACT_HEIGHT, offHoursBlocks, type DayLayers } from './time-grid.js'
+    import {
+        COMPACT_HEIGHT,
+        TINY_CHIP,
+        TINY_HEIGHT,
+        offHoursBlocks,
+        type DayLayers
+    } from './time-grid.js'
     import { timeGridVariants } from './time-grid.variants.js'
 
     interface Props {
@@ -149,7 +155,7 @@
                                 showTime={!compact}
                                 selected={selectedEventId === position.event.id}
                                 dragging={draggingId === position.event.id}
-                                class="h-full"
+                                class={['h-full', position.height < TINY_HEIGHT ? TINY_CHIP : '']}
                             />
                         {/snippet}
                     </EventPopover>

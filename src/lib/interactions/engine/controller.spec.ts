@@ -34,6 +34,7 @@ function harness(options: GestureOptions = {}) {
     let ids = 0
     const context: InteractionContext = {
         view: 'week',
+        viewLabel: 'Week',
         range,
         days: eachDay(range),
         columnsPerRow: 7,

@@ -47,6 +47,11 @@ export interface HitTarget {
 export interface InteractionContext<T = unknown> {
     view: string
 
+    /**
+     * Display name of the active view, as the view switcher shows it.
+     */
+    viewLabel: string
+
     range: DateRange
 
     /**

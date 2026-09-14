@@ -44,6 +44,7 @@ function setup(attached = true) {
     const state = new InteractionState<unknown>({
         root: () => (attached ? root : null),
         view: () => 'week',
+        viewLabel: () => 'Week',
         range: () => ({ start: days[0], end: days[1].add({ days: 1 }) }),
         days: () => days,
         columnsPerRow: () => 2,

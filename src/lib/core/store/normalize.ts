@@ -4,8 +4,9 @@ import type { RecurrenceRule, RecurrenceRuleInput } from '../../types/recurrence
 import { isAfter, toZoned } from '../time/zone.js'
 
 export function normalizeEvent<T>(input: EventInput<T>, timeZone: TimeZoneId): SchedulerEvent<T> {
-    const start = toZoned(input.start, timeZone)
-    const end = toZoned(input.end, timeZone)
+    const zone = seriesZone(input, timeZone)
+    const start = toZoned(input.start, zone)
+    const end = toZoned(input.end, zone)
     if (!isAfter(end, start)) {
         throw new RangeError(`Event ${input.id} must end after it starts`)
     }
@@ -20,6 +21,10 @@ export function normalizeEvents<T>(
     timeZone: TimeZoneId
 ): SchedulerEvent<T>[] {
     return inputs.map((input) => normalizeEvent(input, timeZone))
+}
+
+function seriesZone<T>(input: EventInput<T>, timeZone: TimeZoneId): TimeZoneId {
+    return input.recurrence && typeof input.start !== 'string' ? input.start.timeZone : timeZone
 }
 
 function normalizeRecurrence(input: RecurrenceRuleInput, timeZone: TimeZoneId): RecurrenceRule {

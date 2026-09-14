@@ -16,6 +16,8 @@
     import {
         BODY_COLUMNS,
         COMPACT_HEIGHT,
+        TINY_CHIP,
+        TINY_HEIGHT,
         allDayLayout,
         columnTint,
         dayColumns,
@@ -181,13 +183,18 @@
                                 hour12={scheduler.hour12}
                                 size={position.height < COMPACT_HEIGHT ? 'sm' : 'md'}
                                 showTime={position.height >= COMPACT_HEIGHT}
-                                class={classes.ghostChip({ class: 'h-full' })}
+                                class={classes.ghostChip({
+                                    class: [
+                                        'h-full',
+                                        position.height < TINY_HEIGHT ? TINY_CHIP : ''
+                                    ]
+                                })}
                             />
                         </div>
                     {/each}
                     {#if positioned.length === 0}
                         <div
-                            class={classes.empty()}
+                            class={snippets.empty ? classes.emptyCustom() : classes.empty()}
                             style:top="{emptyTop(scale, nowTop)}px"
                             data-sch-empty
                         >

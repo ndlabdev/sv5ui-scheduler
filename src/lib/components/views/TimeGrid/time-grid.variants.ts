@@ -81,7 +81,8 @@ export const timeGridVariants = tv({
         empty: [
             'bg-surface-container-high text-on-surface-variant pointer-events-none absolute left-1/2 z-10',
             '-translate-x-1/2 rounded-full px-3 py-1 text-xs whitespace-nowrap'
-        ]
+        ],
+        emptyCustom: 'pointer-events-none absolute left-1/2 z-10 w-max max-w-[90%] -translate-x-1/2'
     }
 })
 

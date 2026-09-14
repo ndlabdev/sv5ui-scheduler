@@ -1,4 +1,4 @@
-import type { ZonedDateTime } from '@internationalized/date'
+import { parseZonedDateTime, type ZonedDateTime } from '@internationalized/date'
 import type { DateRange } from '../../types/range.types.js'
 
 const formatters = new Map<string, Intl.DateTimeFormat>()
@@ -43,7 +43,10 @@ export function formatWeekdayLong(date: ZonedDateTime, locale: string): string {
 }
 
 export function formatDayNumber(date: ZonedDateTime, locale: string): string {
-    return format(date, locale, { day: 'numeric' })
+    const parts = formatter(locale, { day: 'numeric' }, date.timeZone).formatToParts(date.toDate())
+    return (
+        parts.find((part) => part.type === 'day')?.value ?? format(date, locale, { day: 'numeric' })
+    )
 }
 
 export function formatLongDate(date: ZonedDateTime, locale: string): string {
@@ -97,6 +100,15 @@ export function formatMonthName(date: ZonedDateTime, locale: string): string {
 
 export function formatWeekdayNarrow(date: ZonedDateTime, locale: string): string {
     return format(date, locale, { weekday: 'narrow' })
+}
+
+const SAMPLE_WEEK = Array.from({ length: 7 }, (_, index) =>
+    parseZonedDateTime('2026-01-05T12:00[UTC]').add({ days: index })
+)
+
+export function compactWeekdayFormat(locale: string): 'narrow' | 'short' {
+    const narrow = SAMPLE_WEEK.map((day) => formatWeekdayNarrow(day, locale))
+    return new Set(narrow).size === narrow.length ? 'narrow' : 'short'
 }
 
 export function formatYear(date: ZonedDateTime, locale: string): string {

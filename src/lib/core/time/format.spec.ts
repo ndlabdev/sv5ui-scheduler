@@ -9,6 +9,7 @@ import {
     formatTimeRange,
     formatWeekday,
     formatAgendaDay,
+    compactWeekdayFormat,
     formatHourParts,
     formatMonthName,
     formatPopoverDay,
@@ -78,5 +79,22 @@ describe('reference formats', () => {
         expect(formatMonthName(date, 'en-US')).toBe('September')
         expect(formatWeekdayNarrow(date, 'en-US')).toBe('S')
         expect(formatYear(date, 'en-US')).toBe('2026')
+    })
+})
+
+describe('formatDayNumber in other scripts', () => {
+    it('keeps only the digits of the day', () => {
+        const day = at('2026-09-14T12:00')
+        expect(formatDayNumber(day, 'ja-JP')).toBe('14')
+        expect(formatDayNumber(day, 'zh-CN')).toBe('14')
+        expect(formatDayNumber(day, 'ar-EG')).toBe('١٤')
+    })
+})
+
+describe('compactWeekdayFormat', () => {
+    it('uses narrow weekday names only when all seven stay distinct', () => {
+        expect(compactWeekdayFormat('vi-VN')).toBe('narrow')
+        expect(compactWeekdayFormat('ja-JP')).toBe('narrow')
+        expect(compactWeekdayFormat('en-US')).toBe('short')
     })
 })

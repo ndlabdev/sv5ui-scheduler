@@ -36,7 +36,9 @@
     const continuesAfter = $derived(position?.kind === 'span' && position.continuesAfter)
     const timed = $derived(!isWholeDay(event))
     const prefix = $derived(
-        shape === 'pill' && timed && !continuesBefore ? formatTime(event.start, locale, hour12) : ''
+        shape === 'pill' && showTime && timed && !continuesBefore
+            ? formatTime(event.start, locale, hour12)
+            : ''
     )
     const range = $derived.by(() => {
         if (shape !== 'block' || !showTime || !timed) return ''

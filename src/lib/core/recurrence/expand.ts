@@ -1,6 +1,6 @@
-import { toCalendarDate, type ZonedDateTime } from '@internationalized/date'
+import { toCalendarDate, toTimeZone, type ZonedDateTime } from '@internationalized/date'
 import type { SchedulerEvent } from '../../types/event.types.js'
-import type { DateRange, WeekDay } from '../../types/range.types.js'
+import type { DateRange, TimeZoneId, WeekDay } from '../../types/range.types.js'
 import type { RecurrenceRule } from '../../types/recurrence.types.js'
 import { warnOnce } from '../utils/dev.js'
 import { overlaps } from '../time/range.js'
@@ -10,6 +10,7 @@ import { isAfter, isBefore } from '../time/zone.js'
 export interface ExpandOptions {
     readonly weekStartsOn: WeekDay
     readonly limit?: number
+    readonly timeZone?: TimeZoneId
 }
 
 const DEFAULT_LIMIT = 1000
@@ -38,10 +39,11 @@ export function expandSeries<T>(
     const rule = series.recurrence
     if (!rule) return overlaps(series, range) ? [series] : []
     warnUnsupported(series.id, rule)
+    const zone = options.timeZone ?? series.start.timeZone
 
     const duration = wallDuration(series.start, series.end)
     const excluded = new Set((rule.exDates ?? []).map(instant))
-    const horizon = range.start.subtract({ days: duration.days + 1 })
+    const horizon = inZone(range.start, series.start.timeZone).subtract({ days: duration.days + 1 })
     const skip = rule.count === undefined ? stepsBefore(series.start, horizon, rule, options) : 0
     const occurrences: SchedulerEvent<T>[] = []
 
@@ -49,7 +51,9 @@ export function expandSeries<T>(
         if (!isBefore(start, range.end)) break
         if (excluded.has(instant(start))) continue
         const end = shift(start, duration)
-        if (isAfter(end, range.start)) occurrences.push(occurrence(series, start, end))
+        if (isAfter(end, range.start)) {
+            occurrences.push(occurrence(series, inZone(start, zone), inZone(end, zone)))
+        }
     }
     return occurrences
 }
@@ -159,6 +163,10 @@ function* yearly(origin: ZonedDateTime, interval: number, skip: number): Generat
         const candidate = origin.add({ years }).set({ month, day })
         if (candidate.month === month && candidate.day === day) yield candidate
     }
+}
+
+function inZone(date: ZonedDateTime, timeZone: TimeZoneId): ZonedDateTime {
+    return date.timeZone === timeZone ? date : toTimeZone(date, timeZone)
 }
 
 function intervalOf(rule: RecurrenceRule): number {

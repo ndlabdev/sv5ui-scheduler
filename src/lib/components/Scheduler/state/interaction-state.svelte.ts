@@ -21,6 +21,7 @@ import type { DateRange } from '../../../types/range.types.js'
 export interface InteractionStateOptions<T> {
     readonly root: () => HTMLElement | null
     readonly view: () => string
+    readonly viewLabel: () => string
     readonly range: () => DateRange
     readonly days: () => ZonedDateTime[]
     readonly columnsPerRow: () => number
@@ -89,6 +90,9 @@ function createInteractionContext<T>(
     return {
         get view() {
             return options.view()
+        },
+        get viewLabel() {
+            return options.viewLabel()
         },
         get range() {
             return options.range()

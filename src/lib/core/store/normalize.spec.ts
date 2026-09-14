@@ -124,3 +124,30 @@ describe('sameEventList', () => {
         expect(sameEventList(zoned, [{ ...zoned[0], data: {} }, zoned[1]])).toBe(false)
     })
 })
+
+describe('zoned inputs', () => {
+    const sydney = parseZonedDateTime('2026-03-02T09:00[Australia/Sydney]')
+
+    it('keeps the time zone of a recurring series given as a zoned date', () => {
+        const event = normalizeEvent(
+            {
+                id: 's',
+                title: 'Sydney standup',
+                start: sydney,
+                end: sydney.add({ minutes: 30 }),
+                recurrence: { freq: 'weekly', byDay: [1] }
+            },
+            ZONE
+        )
+        expect(event.start.timeZone).toBe('Australia/Sydney')
+        expect(event.end.timeZone).toBe('Australia/Sydney')
+    })
+
+    it('still moves a single event into the display zone', () => {
+        const event = normalizeEvent(
+            { id: 's', title: 'Call', start: sydney, end: sydney.add({ minutes: 30 }) },
+            ZONE
+        )
+        expect(event.start.timeZone).toBe(ZONE)
+    })
+})

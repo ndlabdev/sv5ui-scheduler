@@ -18,6 +18,7 @@
     import { normalizeEvents } from '../../../core/store/normalize.js'
     import { indexFrom, queryIndex } from '../../../core/store/sorted-index.js'
     import { isoDate } from '../../../core/time/day-flags.js'
+    import { compactWeekdayFormat } from '../../../core/time/format.js'
     import { monthRange } from '../../../core/time/view-ranges.js'
     import { nowIn, startOfDay } from '../../../core/time/zone.js'
     import { dateNavigatorDefaults, dateNavigatorVariants } from './date-navigator.variants.js'
@@ -44,7 +45,7 @@
     const index = $derived(indexFrom(normalizeEvents(events, timeZone)))
     const busy = $derived.by(() => {
         const range = monthRange(shown, weekStartsOn)
-        return daysWithEvents(queryIndex(index, range, { weekStartsOn }), range)
+        return daysWithEvents(queryIndex(index, range, { weekStartsOn, timeZone }), range)
     })
 
     const classes = $derived.by(() => {
@@ -72,6 +73,7 @@
         bind:placeholder
         {weekStartsOn}
         {locale}
+        weekdayFormat={compactWeekdayFormat(locale)}
         size="sm"
         isDateHighlightable={(day) => busy.has(isoDate(toZoned(day, timeZone)))}
         onValueChange={pick}

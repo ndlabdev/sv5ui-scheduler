@@ -11,7 +11,6 @@ import {
     navigate,
     type GridShape
 } from '../../core/a11y/grid-navigation.js'
-import { viewLabel } from '../../core/i18n/labels.js'
 import { isInteractiveTarget, isTextField } from '../../dom/targets.js'
 import { formatLongDate, formatTime } from '../../core/time/format.js'
 import { isSameDay } from '../../core/time/zone.js'
@@ -28,10 +27,7 @@ export function keyboardInteraction<T>(controller: GestureController<T>): Intera
         attach: (context) => (node) => {
             if (!node.hasAttribute('tabindex')) node.tabIndex = 0
             node.setAttribute('role', 'application')
-            node.setAttribute(
-                'aria-label',
-                context.scheduler.labels.grid(viewLabel(context.scheduler.labels, context.view))
-            )
+            node.setAttribute('aria-label', context.scheduler.labels.grid(context.viewLabel))
 
             useEventListener(node, 'keydown', (event) => {
                 if (belongsToChild(event, node)) return

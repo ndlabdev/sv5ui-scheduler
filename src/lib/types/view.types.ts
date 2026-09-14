@@ -121,6 +121,13 @@ export interface ViewDefinition<T = unknown> {
     name: string
 
     /**
+     * Text for the view switcher and the grid's accessible name. The built-in
+     * views take theirs from `labels`.
+     * @default the view's `name`
+     */
+    label?: string
+
+    /**
      * Range to display for an anchor date.
      */
     range: (anchor: ZonedDateTime, context: SchedulerContext) => DateRange

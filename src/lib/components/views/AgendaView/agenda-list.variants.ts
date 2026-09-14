@@ -20,9 +20,9 @@ export const agendaListVariants = tv({
             'focus-visible:ring-primary transition-colors focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-inset'
         ],
         rowSelected: 'bg-surface-container',
-        time: 'w-16 shrink-0 pt-0.5 text-end',
-        start: 'text-on-surface block text-sm font-semibold tabular-nums',
-        end: 'text-on-surface-variant block text-xs tabular-nums',
+        time: 'w-20 shrink-0 pt-0.5 text-end',
+        start: 'text-on-surface block text-sm font-semibold whitespace-nowrap tabular-nums',
+        end: 'text-on-surface-variant block text-xs whitespace-nowrap tabular-nums',
         arrow: 'inline-block rtl:-scale-x-100',
         bar: 'w-1 shrink-0 rounded-full',
         body: 'min-w-0 flex-1',

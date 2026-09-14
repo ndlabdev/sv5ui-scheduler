@@ -11,7 +11,7 @@ export const monthGridVariants = tv({
             'text-on-surface-variant truncate px-3 py-2 text-start text-[11px] font-semibold tracking-wider uppercase',
             '@max-md:px-1 @max-md:text-center @max-md:text-[10px]'
         ],
-        body: 'relative grid min-h-0 flex-1 select-none focus-visible:outline-none',
+        body: 'relative grid min-h-0 flex-1 overflow-y-auto select-none focus-visible:outline-none',
         row: 'relative grid min-h-0',
         cells: 'grid min-h-0',
         cell: [

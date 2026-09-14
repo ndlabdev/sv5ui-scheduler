@@ -21,6 +21,7 @@
     import { formatDayRange } from '../../core/time/format.js'
     import { eachDay } from '../../core/time/range.js'
     import { createTimeScale } from '../../core/time/scale.js'
+    import { toZoned } from '../../core/time/zone.js'
     import { composeAttachments } from '../../interactions/engine/attachments.js'
     import { createBuiltinInteractions } from '../../interactions/plugins/builtin.js'
     import { captureEvent, playReturn } from '../../interactions/engine/motion.js'
@@ -102,11 +103,13 @@
         next(patch)
     }
     const store = new EventStore<T>([...untrack(() => middleware), mirrorToLoader], () => ({
-        weekStartsOn
+        weekStartsOn,
+        timeZone
     }))
     const interactionState: InteractionState<T> = new InteractionState<T>({
         root: () => ref,
         view: () => view,
+        viewLabel: () => viewItems.find((item) => item.value === view)?.label ?? view,
         range: () => range,
         days: () => days,
         columnsPerRow: () => layoutContext.columnsPerRow,
@@ -148,7 +151,7 @@
     let inheritedDirection = $state<'ltr' | 'rtl'>('ltr')
     let rootWidth = $state(0)
 
-    const anchor = $derived(date ?? clock.today)
+    const anchor = $derived(date ? toZoned(date, timeZone) : clock.today)
     const labels = $derived(mergeLabels(labelOverrides))
     const builtinViews = createBuiltinViews<T>()
     const builtinInteractions = createBuiltinInteractions<T>(interactionState.gesture)
@@ -208,7 +211,7 @@
     const eventFilter = $derived(createEventFilter({ hiddenCalendars, search, locale, filter }))
     const visibleEvents = $derived(store.query(range).filter(eventFilter))
     const viewItems = $derived(
-        registry.views.map((v) => ({ value: v.name, label: viewLabel(labels, v.name) }))
+        registry.views.map((v) => ({ value: v.name, label: v.label ?? viewLabel(labels, v.name) }))
     )
     const loader = $derived(source ? createSourceLoader(source, timeZone) : null)
     const sourceLoading = new SourceLoading<T>({

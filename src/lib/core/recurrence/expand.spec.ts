@@ -378,3 +378,24 @@ describe('unsupported fields', () => {
         expect(startsOf(out)).toEqual(['2026-09-07T09:00', '2026-09-14T09:00'])
     })
 })
+
+describe('time zones', () => {
+    it('evaluates the rule in the zone of the series and returns occurrences in the display zone', () => {
+        const sydney = parseZonedDateTime('2026-03-02T09:00[Australia/Sydney]')
+        const out = expandSeries(
+            {
+                id: 'syd',
+                title: 'Sydney standup',
+                start: sydney,
+                end: sydney.add({ minutes: 30 }),
+                recurrence: { freq: 'weekly', byDay: [1] }
+            },
+            range('2026-03-01T00:00', '2026-03-15T00:00'),
+            { weekStartsOn: 1, timeZone: ZONE }
+        )
+        expect(out.map((event) => event.start.toString())).toEqual([
+            '2026-03-01T17:00:00-05:00[America/New_York]',
+            '2026-03-08T18:00:00-04:00[America/New_York]'
+        ])
+    })
+})

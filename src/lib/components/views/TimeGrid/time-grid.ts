@@ -13,6 +13,8 @@ import type { ViewPreview } from '../../../types/view.types.js'
 import { timeGridVariants } from './time-grid.variants.js'
 
 export const COMPACT_HEIGHT = 38
+export const TINY_HEIGHT = 20
+export const TINY_CHIP = 'justify-center py-0 text-[10px] leading-none'
 export const BODY_COLUMNS = '4rem minmax(0, 1fr)'
 
 const DEFAULT_SCROLL_HOUR = 7

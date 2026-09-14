@@ -8,6 +8,7 @@
         formatDayNumber,
         formatLongDate,
         formatPopoverDay,
+        formatWeekday,
         formatWeekdayLong
     } from '../../../core/time/format.js'
     import { eachDay } from '../../../core/time/range.js'
@@ -25,6 +26,8 @@
     const COLUMNS = 7
     const LANE_HEIGHT = 24
     const HEADER_HEIGHT = 30
+    const MIN_ROW_HEIGHT = HEADER_HEIGHT + LANE_HEIGHT + 8
+    const COMPACT_WIDTH = 768
 
     let {
         view,
@@ -48,7 +51,11 @@
     const columnTemplate = `repeat(${COLUMNS}, minmax(0, 1fr))`
 
     let bodyHeight = $state(0)
-    const cellHeight = $derived(bodyHeight > 0 ? bodyHeight / rows.length : 120)
+    let bodyWidth = $state(0)
+    const compact = $derived(bodyWidth > 0 && bodyWidth < COMPACT_WIDTH)
+    const cellHeight = $derived(
+        bodyHeight > 0 ? Math.max(bodyHeight / rows.length, MIN_ROW_HEIGHT) : 120
+    )
     const maxLanes = $derived(
         Math.max(Math.floor((cellHeight - HEADER_HEIGHT - 4) / LANE_HEIGHT), 1)
     )
@@ -115,14 +122,19 @@
 <div class={classes.root()} data-sch-month-grid data-sch-gesture={preview?.kind}>
     <div class={classes.header()} style:grid-template-columns={columnTemplate}>
         {#each days.slice(0, COLUMNS) as day (isoDate(day))}
-            <div class={classes.weekday()}>{formatWeekdayLong(day, scheduler.locale)}</div>
+            <div class={classes.weekday()}>
+                {compact
+                    ? formatWeekday(day, scheduler.locale)
+                    : formatWeekdayLong(day, scheduler.locale)}
+            </div>
         {/each}
     </div>
 
     <div
         class={classes.body()}
-        style:grid-template-rows="repeat({rows.length}, minmax(0, 1fr))"
+        style:grid-template-rows="repeat({rows.length}, minmax({MIN_ROW_HEIGHT}px, 1fr))"
         bind:clientHeight={bodyHeight}
+        bind:clientWidth={bodyWidth}
         {@attach interactions.grid}
     >
         {#each rows as row (row)}
@@ -284,6 +296,7 @@
                                             hour12={scheduler.hour12}
                                             selected={selectedEventId === span.event.id}
                                             dragging={draggingId === span.event.id}
+                                            showTime={!compact}
                                         />
                                     {/snippet}
                                 </EventPopover>

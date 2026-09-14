@@ -50,8 +50,8 @@ export type EventChipProps<T = unknown> = Omit<HTMLButtonAttributes, 'class' | '
     variant?: NonNullable<EventChipVariantProps['variant']>
 
     /**
-     * Show the start and end time under the title. Ignored for all-day
-     * events and span placements, which never show it.
+     * Show the time: the range under the title in a block, the start time
+     * before the title in a pill.
      * @default true
      */
     showTime?: boolean
