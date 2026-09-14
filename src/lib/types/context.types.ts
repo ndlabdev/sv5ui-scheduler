@@ -40,6 +40,11 @@ export interface SchedulerContext {
     weekNumbers: boolean
 
     /**
+     * Week days the week and month views leave out, `0` is Sunday.
+     */
+    hiddenDays: WeekDay[]
+
+    /**
      * Text direction, from the scheduler's `dir` attribute or inherited from
      * the page when it mounts.
      */

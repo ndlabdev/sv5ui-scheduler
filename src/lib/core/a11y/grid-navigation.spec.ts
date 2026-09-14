@@ -105,3 +105,18 @@ describe('clampFocus', () => {
         expect(clampFocus(cell(40), month)).toEqual(cell(34))
     })
 })
+
+describe('visible hours', () => {
+    const hours: GridShape = { ...week, firstMinute: 420, minutesPerDay: 1320 }
+
+    it('keeps the focused slot inside the visible hours', () => {
+        expect(navigate(slot(2, 420), 'ArrowUp', hours)).toEqual({ focus: slot(2, 420), step: 0 })
+        expect(navigate(slot(2, 1290), 'ArrowDown', hours)).toEqual({
+            focus: slot(2, 1290),
+            step: 0
+        })
+        expect(navigate(slot(2, 900), 'Home', hours)).toEqual({ focus: slot(2, 420), step: 0 })
+        expect(navigate(slot(2, 900), 'End', hours)).toEqual({ focus: slot(2, 1290), step: 0 })
+        expect(clampFocus(slot(2, 60), hours)).toEqual(slot(2, 420))
+    })
+})

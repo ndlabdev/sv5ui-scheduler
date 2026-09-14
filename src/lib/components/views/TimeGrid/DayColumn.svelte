@@ -122,7 +122,10 @@
             {@const compact = position.height < COMPACT_HEIGHT}
             <div
                 class={classes.event({
-                    class: isEditable(position.event) ? classes.eventDraggable() : ''
+                    class: [
+                        isEditable(position.event) ? classes.eventDraggable() : '',
+                        position.height < TINY_HEIGHT ? 'pb-0' : ''
+                    ]
                 })}
                 style:top="{position.top}px"
                 style:height="{Math.max(position.height, scale.slotHeight / 2)}px"

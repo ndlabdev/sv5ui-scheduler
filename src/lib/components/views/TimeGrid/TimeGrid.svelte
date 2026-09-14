@@ -3,7 +3,6 @@
     import { untrack } from 'svelte'
     import { eventColor } from '../../../core/store/filters.js'
     import { holidaysByDate, isoDate } from '../../../core/time/day-flags.js'
-    import { eachDay } from '../../../core/time/range.js'
     import { isoWeek, isoWeekOfRow } from '../../../core/time/week.js'
     import { isSameDay } from '../../../core/time/zone.js'
     import type { ViewProps } from '../../../types/view.types.js'
@@ -26,6 +25,7 @@
         ghostColumn,
         gridLines,
         layersByDay,
+        nowOffset,
         scrollTop,
         slotTop,
         splitPositions
@@ -36,6 +36,7 @@
         view,
         anchor,
         range,
+        days,
         scheduler,
         scale,
         positioned,
@@ -50,7 +51,6 @@
     }: ViewProps<T> = $props()
 
     const classes = timeGridVariants()
-    const days = $derived(eachDay(range))
     const single = $derived(days.length === 1)
     const laidOut = $derived(splitPositions(positioned))
     const layers = $derived(layersByDay(laidOut.timed, days.length))
@@ -58,7 +58,7 @@
     const allDay = $derived(allDayLayout(laidOut.spans, preview, draggingId))
     const ghostTimed = $derived(splitPositions(preview?.positioned ?? []).timed)
     const todayIndex = $derived(days.findIndex((day) => isSameDay(day, scheduler.now)))
-    const nowTop = $derived(todayIndex >= 0 ? scale.toPixel(scheduler.now) : null)
+    const nowTop = $derived(todayIndex >= 0 ? nowOffset(scheduler.now, scale) : null)
     const holidays = $derived(holidaysByDate(scheduler.holidays))
     const week = $derived((single ? isoWeek(days[0]) : isoWeekOfRow(days[0])).week)
     const tints = $derived(
@@ -168,7 +168,9 @@
                     {#each ghostTimed as position, index (`${position.event.id}:${index}`)}
                         {@const column = ghostColumn(position, days.length)}
                         <div
-                            class={classes.ghost()}
+                            class={classes.ghost({
+                                class: position.height < TINY_HEIGHT ? 'pb-0' : ''
+                            })}
                             style:top="{position.top}px"
                             style:height="{Math.max(position.height, scale.slotHeight / 2)}px"
                             style:inset-inline-start={column.start}

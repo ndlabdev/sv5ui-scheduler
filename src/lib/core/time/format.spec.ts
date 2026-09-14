@@ -10,6 +10,7 @@ import {
     formatWeekday,
     formatAgendaDay,
     compactWeekdayFormat,
+    formatWeekdayCompact,
     formatHourParts,
     formatMonthName,
     formatPopoverDay,
@@ -96,5 +97,14 @@ describe('compactWeekdayFormat', () => {
         expect(compactWeekdayFormat('vi-VN')).toBe('narrow')
         expect(compactWeekdayFormat('ja-JP')).toBe('narrow')
         expect(compactWeekdayFormat('en-US')).toBe('short')
+    })
+})
+
+describe('formatWeekdayCompact', () => {
+    it('shortens weekday names in languages whose short and long names match', () => {
+        const monday = at('2026-09-14T12:00')
+        expect(formatWeekdayCompact(monday, 'ar-EG')).toHaveLength(1)
+        expect(formatWeekdayCompact(monday, 'en-US')).toBe('Mon')
+        expect(formatWeekdayCompact(monday, 'vi-VN')).toBe('T2')
     })
 })

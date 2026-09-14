@@ -106,9 +106,21 @@ const SAMPLE_WEEK = Array.from({ length: 7 }, (_, index) =>
     parseZonedDateTime('2026-01-05T12:00[UTC]').add({ days: index })
 )
 
+const compactFormats = new Map<string, 'narrow' | 'short'>()
+
 export function compactWeekdayFormat(locale: string): 'narrow' | 'short' {
+    const known = compactFormats.get(locale)
+    if (known) return known
     const narrow = SAMPLE_WEEK.map((day) => formatWeekdayNarrow(day, locale))
-    return new Set(narrow).size === narrow.length ? 'narrow' : 'short'
+    const chosen = new Set(narrow).size === narrow.length ? 'narrow' : 'short'
+    compactFormats.set(locale, chosen)
+    return chosen
+}
+
+export function formatWeekdayCompact(date: ZonedDateTime, locale: string): string {
+    return compactWeekdayFormat(locale) === 'narrow'
+        ? formatWeekdayNarrow(date, locale)
+        : formatWeekday(date, locale)
 }
 
 export function formatYear(date: ZonedDateTime, locale: string): string {

@@ -46,6 +46,7 @@ function harness(options: GestureOptions = {}) {
             holidays: [],
             calendars: [],
             weekNumbers: false,
+            hiddenDays: [],
             direction: 'ltr',
             labels: defaultLabels,
             now: at('2026-09-09T12:00')

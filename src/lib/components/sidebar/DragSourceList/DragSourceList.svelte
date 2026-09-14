@@ -70,7 +70,7 @@
                         {@render itemSnippet({ item, color })}
                     {:else}
                         <span class={swatchClass(color)}></span>
-                        <span class={classes.name}>{item.title}</span>
+                        <span class={classes.name} dir="auto">{item.title}</span>
                         {#if item.durationMinutes}
                             <span class={classes.duration}>
                                 {formatDuration(item.durationMinutes)}

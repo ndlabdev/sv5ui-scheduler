@@ -19,6 +19,11 @@
     import { MutationPipeline } from '../../core/store/mutations.svelte.js'
     import { createSourceLoader } from '../../core/store/sources.js'
     import { formatDayRange } from '../../core/time/format.js'
+    import {
+        normalizeHiddenDays,
+        visibleColumns,
+        visibleDays
+    } from '../../core/time/hidden-days.js'
     import { eachDay } from '../../core/time/range.js'
     import { createTimeScale } from '../../core/time/scale.js'
     import { toZoned } from '../../core/time/zone.js'
@@ -58,6 +63,7 @@
         businessHours,
         holidays = [],
         weekNumbers = false,
+        hiddenDays = [],
         calendars = [],
         hiddenCalendars = $bindable([]),
         search = $bindable(''),
@@ -65,6 +71,8 @@
         labels: labelOverrides,
         slotMinutes = 30,
         slotHeight = 24,
+        dayStartHour = 0,
+        dayEndHour = 24,
         views = [],
         layouts = [],
         middleware = [],
@@ -192,6 +200,9 @@
         get weekNumbers() {
             return weekNumbers
         },
+        get hiddenDays() {
+            return hidden
+        },
         get direction() {
             return dir === 'rtl' || dir === 'ltr' ? dir : inheritedDirection
         },
@@ -203,8 +214,12 @@
         }
     }
     const range = $derived(definition.range(anchor, context))
-    const days = $derived(eachDay(range))
-    const scale = $derived(createTimeScale({ slotMinutes, slotHeight }))
+    const hidden = $derived(normalizeHiddenDays(hiddenDays))
+    const allDays = $derived(eachDay(range))
+    const days = $derived(definition.layout === 'list' ? allDays : visibleDays(allDays, hidden))
+    const scale = $derived(
+        createTimeScale({ slotMinutes, slotHeight, startHour: dayStartHour, endHour: dayEndHour })
+    )
     const title = $derived(
         definition.title?.(anchor, range, context) ?? formatDayRange(range, locale)
     )
@@ -224,7 +239,7 @@
     const layoutContext = $derived({
         scale,
         days,
-        columnsPerRow: definition.columnsPerRow ?? days.length,
+        columnsPerRow: visibleColumns(definition.columnsPerRow, days.length, allDays.length),
         maxLanes: 3,
         scheduler: context
     })
@@ -433,6 +448,8 @@
                 {view}
                 {anchor}
                 {range}
+                {days}
+                columnsPerRow={layoutContext.columnsPerRow}
                 events={visibleEvents}
                 scheduler={context}
                 {scale}

@@ -65,6 +65,7 @@ describe('time grid and agenda text', () => {
         const line = parseFloat(getComputedStyle(title).lineHeight)
         const box = title.getBoundingClientRect()
         expect(box.height).toBeGreaterThanOrEqual(line - 0.5)
+        expect(line).toBeGreaterThanOrEqual(parseFloat(getComputedStyle(title).fontSize) * 1.15)
         expect(box.bottom).toBeLessThanOrEqual(chip.getBoundingClientRect().bottom + 0.5)
     })
 
@@ -89,5 +90,58 @@ describe('time grid and agenda text', () => {
         expect(wrapper.querySelector('.custom-empty')).not.toBeNull()
         expect(getComputedStyle(wrapper).backgroundColor).toBe('rgba(0, 0, 0, 0)')
         expect(getComputedStyle(wrapper).whiteSpace).not.toBe('nowrap')
+    })
+})
+
+describe('narrow and right to left month grids', () => {
+    it('shortens weekday names in Arabic, where short and long names match', async () => {
+        const { container } = mount(
+            { view: 'month', events: [], locale: 'ar-EG', dir: 'rtl' },
+            520,
+            600
+        )
+        await layout()
+        const names = weekdays(container)
+        expect(new Set(names).size).toBe(7)
+        expect(names.every((name) => (name ?? '').length <= 2)).toBe(true)
+    })
+
+    it('keeps the overflow button clear of the day number in a very narrow grid', async () => {
+        const events = ['a', 'b', 'c', 'd'].map((id, index) =>
+            input(id, `2026-09-16T0${index + 1}:00`, `2026-09-16T0${index + 1}:30`)
+        )
+        const { container } = mount({ view: 'month', events }, 360, 640)
+        await layout()
+        const cell = container.querySelector<HTMLElement>('[data-sch-day="2026-09-16"]')!
+        const more = cell.querySelector<HTMLElement>('[data-sch-more]')!.getBoundingClientRect()
+        const number = cell.querySelector<HTMLElement>('span')!.getBoundingClientRect()
+        const bounds = cell.getBoundingClientRect()
+        const apart =
+            more.left >= number.right - 0.5 ||
+            more.right <= number.left + 0.5 ||
+            more.top >= number.bottom - 0.5
+        expect(apart).toBe(true)
+        expect(more.bottom).toBeLessThanOrEqual(bounds.bottom + 0.5)
+    })
+
+    it('lets each title keep its own direction so it is cut at its own end', async () => {
+        const events = [
+            input('late', '2026-09-09T09:00', '2026-09-09T10:00'),
+            input('meeting', '2026-09-10T09:00', '2026-09-10T10:00', { title: 'اجتماع الفريق' })
+        ]
+        const { container } = mount(
+            { view: 'month', events, locale: 'ar-EG', dir: 'rtl' },
+            520,
+            700
+        )
+        await layout()
+        const title = (id: string, text: string) =>
+            [
+                ...container.querySelectorAll<HTMLElement>(
+                    `[data-sch-month-grid] [data-sch-event-id="${id}"] span`
+                )
+            ].find((span) => span.textContent?.trim() === text)!
+        expect(getComputedStyle(title('late', 'late')).direction).toBe('ltr')
+        expect(getComputedStyle(title('meeting', 'اجتماع الفريق')).direction).toBe('rtl')
     })
 })

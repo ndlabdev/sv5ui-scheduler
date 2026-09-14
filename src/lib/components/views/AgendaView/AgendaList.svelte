@@ -176,7 +176,7 @@
                                                             isSelected: selectedEventId === event.id
                                                         })}
                                                     {:else}
-                                                        <span class={classes.title()}
+                                                        <span class={classes.title()} dir="auto"
                                                             >{event.title}</span
                                                         >
                                                     {/if}

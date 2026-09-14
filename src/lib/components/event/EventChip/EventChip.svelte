@@ -83,7 +83,7 @@
         {#if prefix}
             <span class={classes.time}>{prefix}</span>
         {/if}
-        <span class={classes.title}>{event.title}</span>
+        <span class={classes.title} dir="auto">{event.title}</span>
         {#if range}
             <span class={classes.time}>{range}</span>
         {/if}

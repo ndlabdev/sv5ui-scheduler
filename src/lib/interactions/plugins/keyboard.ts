@@ -17,7 +17,7 @@ import { isSameDay } from '../../core/time/zone.js'
 import type { GestureController } from '../engine/controller.svelte.js'
 import type { GesturePoint } from '../engine/gesture.js'
 
-const MINUTES_PER_DAY = 1440
+const MINUTES_PER_HOUR = 60
 const DEFAULT_MINUTES = 540
 const TIMED_CELL = '[data-sch-day-index]:not([data-sch-all-day])'
 
@@ -102,7 +102,8 @@ function shapeOf<T>(context: InteractionContext<T>, node: HTMLElement): GridShap
         days: context.days.length,
         columnsPerRow: context.columnsPerRow,
         slotMinutes: context.scale.slotMinutes,
-        minutesPerDay: MINUTES_PER_DAY,
+        firstMinute: context.scale.startHour * MINUTES_PER_HOUR,
+        minutesPerDay: context.scale.endHour * MINUTES_PER_HOUR,
         rtl: getComputedStyle(node).direction === 'rtl'
     }
 }

@@ -92,7 +92,7 @@
             <div class={classes.card()} data-sch-detail={event.id}>
                 <div class={classes.swatch({ class: EVENT_SWATCH[color] })}></div>
                 <div class={classes.header()}>
-                    <h3 class={classes.title()}>{event.title}</h3>
+                    <h3 class={classes.title()} dir="auto">{event.title}</h3>
                     <div class={classes.actions()}>
                         {#if deletable}
                             <Button

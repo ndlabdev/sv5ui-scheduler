@@ -8,10 +8,9 @@
         formatDayNumber,
         formatLongDate,
         formatPopoverDay,
-        formatWeekday,
+        formatWeekdayCompact,
         formatWeekdayLong
     } from '../../../core/time/format.js'
-    import { eachDay } from '../../../core/time/range.js'
     import { dayFlags, holidaysByDate, isoDate } from '../../../core/time/day-flags.js'
     import { isoWeekOfRow, weekDayOf } from '../../../core/time/week.js'
     import { eventColor } from '../../../core/store/filters.js'
@@ -23,16 +22,16 @@
     import WeekNumber from '../../shared/WeekNumber.svelte'
     import { monthGridVariants } from './month-grid.variants.js'
 
-    const COLUMNS = 7
     const LANE_HEIGHT = 24
     const HEADER_HEIGHT = 30
-    const MIN_ROW_HEIGHT = HEADER_HEIGHT + LANE_HEIGHT + 8
+    const MORE_HEIGHT = 18
     const COMPACT_WIDTH = 768
 
     let {
         view,
         anchor,
-        range,
+        days,
+        columnsPerRow,
         scheduler,
         positioned,
         snippets,
@@ -46,18 +45,25 @@
     }: ViewProps<T> = $props()
 
     const classes = monthGridVariants()
-    const days = $derived(eachDay(range))
-    const rows = $derived(Array.from({ length: Math.ceil(days.length / COLUMNS) }, (_, row) => row))
-    const columnTemplate = `repeat(${COLUMNS}, minmax(0, 1fr))`
+    const rows = $derived(
+        Array.from({ length: Math.ceil(days.length / columnsPerRow) }, (_, row) => row)
+    )
+    const columnTemplate = $derived(`repeat(${columnsPerRow}, minmax(0, 1fr))`)
 
     let bodyHeight = $state(0)
     let bodyWidth = $state(0)
     const compact = $derived(bodyWidth > 0 && bodyWidth < COMPACT_WIDTH)
+    const minRowHeight = $derived(HEADER_HEIGHT + LANE_HEIGHT + 8 + (compact ? MORE_HEIGHT : 0))
     const cellHeight = $derived(
-        bodyHeight > 0 ? Math.max(bodyHeight / rows.length, MIN_ROW_HEIGHT) : 120
+        bodyHeight > 0 ? Math.max(bodyHeight / rows.length, minRowHeight) : 120
     )
     const maxLanes = $derived(
-        Math.max(Math.floor((cellHeight - HEADER_HEIGHT - 4) / LANE_HEIGHT), 1)
+        Math.max(
+            Math.floor(
+                (cellHeight - HEADER_HEIGHT - 4 - (compact ? MORE_HEIGHT : 0)) / LANE_HEIGHT
+            ),
+            1
+        )
     )
 
     const laidOut = $derived(positioned.filter((p): p is SpanPosition<T> => p.kind === 'span'))
@@ -74,8 +80,8 @@
     const ghosts = $derived(inserted.ghosts)
     const lifted = $derived(laidOut.filter((span) => span.event.id === draggingId))
     const visible = $derived([...spans, ...lifted].filter((span) => span.lane < maxLanes))
-    const overflow = $derived(overflowByCell(spans, maxLanes, COLUMNS))
-    const counts = $derived(countByCell(spans, COLUMNS))
+    const overflow = $derived(overflowByCell(spans, maxLanes, columnsPerRow))
+    const counts = $derived(countByCell(spans, columnsPerRow))
     const todayWeekDay = $derived(weekDayOf(scheduler.now))
     const showTodayColumn = $derived(days.some((day) => isSameDay(day, scheduler.now)))
     const holidays = $derived(holidaysByDate(scheduler.holidays))
@@ -91,8 +97,8 @@
         isEditable(event) ? classes.eventDraggable() : ''
 
     function spansOn(dayIndex: number) {
-        const row = Math.floor(dayIndex / COLUMNS)
-        const column = dayIndex % COLUMNS
+        const row = Math.floor(dayIndex / columnsPerRow)
+        const column = dayIndex % columnsPerRow
         return spans
             .filter(
                 (span) => span.row === row && span.startColumn <= column && span.endColumn > column
@@ -121,10 +127,10 @@
 
 <div class={classes.root()} data-sch-month-grid data-sch-gesture={preview?.kind}>
     <div class={classes.header()} style:grid-template-columns={columnTemplate}>
-        {#each days.slice(0, COLUMNS) as day (isoDate(day))}
+        {#each days.slice(0, columnsPerRow) as day (isoDate(day))}
             <div class={classes.weekday()}>
                 {compact
-                    ? formatWeekday(day, scheduler.locale)
+                    ? formatWeekdayCompact(day, scheduler.locale)
                     : formatWeekdayLong(day, scheduler.locale)}
             </div>
         {/each}
@@ -132,7 +138,7 @@
 
     <div
         class={classes.body()}
-        style:grid-template-rows="repeat({rows.length}, minmax({MIN_ROW_HEIGHT}px, 1fr))"
+        style:grid-template-rows="repeat({rows.length}, minmax({minRowHeight}px, 1fr))"
         bind:clientHeight={bodyHeight}
         bind:clientWidth={bodyWidth}
         {@attach interactions.grid}
@@ -140,8 +146,8 @@
         {#each rows as row (row)}
             <div class={classes.row()}>
                 <div class={classes.cells()} style:grid-template-columns={columnTemplate}>
-                    {#each days.slice(row * COLUMNS, row * COLUMNS + COLUMNS) as day, column (isoDate(day))}
-                        {@const dayIndex = row * COLUMNS + column}
+                    {#each days.slice(row * columnsPerRow, row * columnsPerRow + columnsPerRow) as day, column (isoDate(day))}
+                        {@const dayIndex = row * columnsPerRow + column}
                         {@const more = overflow.get(dayIndex) ?? 0}
                         {@const holiday = holidays.get(isoDate(day))}
                         {@const week = column === 0 ? isoWeekOfRow(day).week : null}
@@ -152,7 +158,8 @@
                                     showTodayColumn && weekDayOf(day) === todayWeekDay
                                         ? classes.cellTodayColumn()
                                         : '',
-                                    focus?.dayIndex === dayIndex ? classes.cellFocus() : ''
+                                    focus?.dayIndex === dayIndex ? classes.cellFocus() : '',
+                                    column === columnsPerRow - 1 ? classes.cellLast() : ''
                                 ]
                             })}
                             data-sch-day={isoDate(day)}
@@ -164,7 +171,11 @@
                             role="group"
                             aria-label={cellLabel(day, dayIndex)}
                         >
-                            <div class={classes.cellHeader()}>
+                            <div
+                                class={classes.cellHeader({
+                                    class: compact ? classes.cellHeaderCompact() : ''
+                                })}
+                            >
                                 <div class={classes.cellLead()}>
                                     <span
                                         class={classes.dayNumber({
@@ -197,7 +208,9 @@
                                     <AnchoredPopover
                                         side="bottom"
                                         align="end"
-                                        class={classes.moreTrigger()}
+                                        class={classes.moreTrigger({
+                                            class: compact ? classes.moreTriggerCompact() : ''
+                                        })}
                                         contentClass={classes.popover()}
                                     >
                                         {#snippet trigger(props)}
@@ -311,8 +324,8 @@
                 class={classes.ghost()}
                 style:top="{ghostTop(span)}px"
                 style:height="{LANE_HEIGHT}px"
-                style:inset-inline-start="{(span.startColumn * 100) / COLUMNS}%"
-                style:width="{((span.endColumn - span.startColumn) * 100) / COLUMNS}%"
+                style:inset-inline-start="{(span.startColumn * 100) / columnsPerRow}%"
+                style:width="{((span.endColumn - span.startColumn) * 100) / columnsPerRow}%"
                 data-sch-ghost
             >
                 <EventChip

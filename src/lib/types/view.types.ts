@@ -54,6 +54,17 @@ export interface ViewProps<T = unknown> {
     range: DateRange
 
     /**
+     * Start of each day column the view draws, in order. Days in the
+     * scheduler's `hiddenDays` are left out.
+     */
+    days: ZonedDateTime[]
+
+    /**
+     * How many of `days` form one row.
+     */
+    columnsPerRow: number
+
+    /**
      * Events overlapping `range`, already normalised and expanded.
      */
     events: SchedulerEvent<T>[]

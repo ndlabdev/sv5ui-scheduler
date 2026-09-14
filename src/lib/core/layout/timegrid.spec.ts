@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { at, contextFor, event, week } from '../../../tests/fixtures/layout.js'
+import { createTimeScale } from '../time/scale.js'
 import { layoutTimeGrid } from './timegrid.js'
 
 const range = week('2026-09-07')
@@ -120,5 +121,39 @@ describe('layoutTimeGrid', () => {
 
     it('returns nothing for an empty input', () => {
         expect(layoutTimeGrid([], range, context)).toEqual([])
+    })
+})
+
+describe('layoutTimeGrid with visible hours', () => {
+    const hours = {
+        ...context,
+        scale: createTimeScale({ slotMinutes: 30, slotHeight: 20, startHour: 8, endHour: 18 })
+    }
+
+    it('clips events to the visible hours and leaves out those outside', () => {
+        const positions = layoutTimeGrid(
+            [
+                event('early', '2026-09-09T07:00', '2026-09-09T09:00'),
+                event('late', '2026-09-09T19:00', '2026-09-09T20:00'),
+                event('evening', '2026-09-09T17:30', '2026-09-09T19:00')
+            ],
+            range,
+            hours
+        )
+        expect(byId(positions, 'early')).toMatchObject([{ top: 0, height: 2 * 20 }])
+        expect(byId(positions, 'late')).toEqual([])
+        expect(byId(positions, 'evening')).toMatchObject([{ top: 19 * 20, height: 20 }])
+    })
+
+    it('gives no column to an event hidden outside the visible hours', () => {
+        const positions = layoutTimeGrid(
+            [
+                event('hidden', '2026-09-09T06:00', '2026-09-09T07:00'),
+                event('shown', '2026-09-09T06:30', '2026-09-09T09:00')
+            ],
+            range,
+            hours
+        )
+        expect(byId(positions, 'shown')).toMatchObject([{ columns: 1, width: 1 }])
     })
 })

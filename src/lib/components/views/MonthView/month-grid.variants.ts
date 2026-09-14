@@ -14,10 +14,8 @@ export const monthGridVariants = tv({
         body: 'relative grid min-h-0 flex-1 overflow-y-auto select-none focus-visible:outline-none',
         row: 'relative grid min-h-0',
         cells: 'grid min-h-0',
-        cell: [
-            'border-outline-variant/60 relative flex min-w-0 flex-col overflow-hidden border-e border-b p-1.5',
-            '[&:nth-child(7n)]:border-e-0'
-        ],
+        cell: 'border-outline-variant/60 relative flex min-w-0 flex-col overflow-hidden border-e border-b p-1.5',
+        cellLast: 'border-e-0',
         cellHoliday: 'bg-surface-container-low/70',
         cellTodayColumn: 'bg-primary/5',
         cellFocus: 'ring-primary ring-inset [[role=application]:focus-visible_&]:ring-2',
@@ -34,7 +32,9 @@ export const monthGridVariants = tv({
         dayNumberToday: [
             'bg-primary text-on-primary flex size-6 items-center justify-center rounded-full px-0'
         ],
+        cellHeaderCompact: 'static',
         moreTrigger: 'inline-flex',
+        moreTriggerCompact: 'absolute inset-x-1 bottom-1 z-10 justify-center',
         more: [
             'bg-on-surface/5 text-on-surface-variant hover:bg-on-surface/10 cursor-pointer rounded-full',
             'px-1.5 py-0.5 text-[10px] leading-none font-semibold',

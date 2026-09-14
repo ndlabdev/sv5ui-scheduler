@@ -6,6 +6,7 @@ export interface GridShape {
     readonly days: number
     readonly columnsPerRow: number
     readonly slotMinutes: number
+    readonly firstMinute?: number
     readonly minutesPerDay: number
     readonly rtl?: boolean
 }
@@ -47,7 +48,9 @@ const HANDLERS: Record<NavigationKey, Handler> = {
             ? moveColumn(focus, shape.columnsPerRow, shape)
             : moveSlot(focus, 1, shape),
     Home: (focus, shape) =>
-        focus.minutes === null ? stay(startOfRow(focus, shape)) : stay({ ...focus, minutes: 0 }),
+        focus.minutes === null
+            ? stay(startOfRow(focus, shape))
+            : stay({ ...focus, minutes: firstSlot(shape) }),
     End: (focus, shape) =>
         focus.minutes === null
             ? stay(endOfRow(focus, shape))
@@ -64,7 +67,7 @@ export function clampFocus(focus: GridFocus, shape: GridShape): GridFocus {
     const dayIndex = Math.min(Math.max(focus.dayIndex, 0), Math.max(shape.days - 1, 0))
     if (focus.minutes === null) return { dayIndex, minutes: null }
     const slots = Math.round(focus.minutes / shape.slotMinutes)
-    const minutes = Math.min(Math.max(slots * shape.slotMinutes, 0), lastSlot(shape))
+    const minutes = Math.min(Math.max(slots * shape.slotMinutes, firstSlot(shape)), lastSlot(shape))
     return { dayIndex, minutes }
 }
 
@@ -78,7 +81,7 @@ function moveColumn(focus: GridFocus, delta: number, shape: GridShape): Navigati
 
 function moveSlot(focus: GridFocus, direction: 1 | -1, shape: GridShape): NavigationResult {
     const minutes = (focus.minutes ?? 0) + direction * shape.slotMinutes
-    if (minutes < 0) return stay({ ...focus, minutes: 0 })
+    if (minutes < firstSlot(shape)) return stay({ ...focus, minutes: firstSlot(shape) })
     if (minutes > lastSlot(shape)) return stay({ ...focus, minutes: lastSlot(shape) })
     return stay({ ...focus, minutes })
 }
@@ -100,6 +103,10 @@ function wrapBack(next: number, shape: GridShape): number {
 
 function wrapForward(next: number, shape: GridShape): number {
     return next % shape.days
+}
+
+function firstSlot(shape: GridShape): number {
+    return shape.firstMinute ?? 0
 }
 
 function lastSlot(shape: GridShape): number {

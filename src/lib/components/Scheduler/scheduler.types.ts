@@ -106,6 +106,13 @@ export type SchedulerProps<T = unknown> = Omit<HTMLAttributes<HTMLDivElement>, '
         weekNumbers?: boolean
 
         /**
+         * Week days the week and month views leave out, `0` is Sunday. Pass
+         * `[0, 6]` for a working week. The day view always shows its day.
+         * @default []
+         */
+        hiddenDays?: WeekDay[]
+
+        /**
          * Groups events can belong to through `calendarId`.
          * @default []
          */
@@ -146,6 +153,22 @@ export type SchedulerProps<T = unknown> = Omit<HTMLAttributes<HTMLDivElement>, '
          * @default 24
          */
         slotHeight?: number
+
+        /**
+         * First hour the week and day views draw, from `0`. Events that start
+         * earlier are cut at the top of the grid; events that end before it are
+         * not drawn.
+         * @default 0
+         */
+        dayStartHour?: number
+
+        /**
+         * Hour the week and day views end at, up to `24`. Events that end later
+         * are cut at the bottom of the grid; events that start after it are not
+         * drawn.
+         * @default 24
+         */
+        dayEndHour?: number
 
         /**
          * Extra or replacement views, matched to `view` by name.

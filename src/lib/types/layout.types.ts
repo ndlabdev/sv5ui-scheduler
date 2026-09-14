@@ -25,12 +25,23 @@ export interface TimeScale {
     readonly slotHeight: number
 
     /**
-     * Height of every day column: 24 hours of slots.
+     * First hour drawn in a day column, from `0`.
+     */
+    readonly startHour: number
+
+    /**
+     * Hour a day column ends at, up to `24`.
+     */
+    readonly endHour: number
+
+    /**
+     * Height of every day column: the visible hours, in slots.
      */
     readonly dayHeight: number
 
     /**
      * Pixel offset of `date` inside its day column, from its clock time.
+     * Negative before `startHour` and past `dayHeight` after `endHour`.
      */
     toPixel(date: ZonedDateTime): number
 

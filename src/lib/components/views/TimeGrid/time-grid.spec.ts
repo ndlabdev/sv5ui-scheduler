@@ -12,6 +12,7 @@ import {
     ghostColumn,
     hourLabels,
     layersByDay,
+    nowOffset,
     offHoursBlocks,
     scrollTop,
     slotTop,
@@ -202,5 +203,31 @@ describe('all day row', () => {
         const classes = timeGridVariants()
         expect(columnTint(true, false)).toEqual([classes.holidayColumn(), ''])
         expect(columnTint(false, true)).toEqual(['', classes.todayColumn()])
+    })
+})
+
+describe('visible hours', () => {
+    const visible = createTimeScale({ slotMinutes: 30, slotHeight: 24, startHour: 7, endHour: 22 })
+
+    it('labels only the hours inside the window, measured from its start', () => {
+        const labels = hourLabels(visible, 'en-US', false, null)
+        expect(labels.map((label) => label.hour)).toEqual(
+            Array.from({ length: 14 }, (_, i) => i + 8)
+        )
+        expect(labels[0].top).toBe(48)
+    })
+
+    it('clips off hours shading to the window', () => {
+        expect(offHoursBlocks(wednesday, visible, hours, new Map())).toEqual([
+            { top: 0, height: 96 },
+            { top: 480, height: 240 }
+        ])
+    })
+
+    it('places the current time and the focus ring from the start of the window', () => {
+        expect(nowOffset(wednesday.set({ hour: 6 }), visible)).toBeNull()
+        expect(nowOffset(wednesday.set({ hour: 23 }), visible)).toBeNull()
+        expect(nowOffset(wednesday.set({ hour: 8 }), visible)).toBe(48)
+        expect(slotTop(480, visible)).toBe(48)
     })
 })

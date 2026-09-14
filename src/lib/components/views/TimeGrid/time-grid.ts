@@ -14,13 +14,12 @@ import { timeGridVariants } from './time-grid.variants.js'
 
 export const COMPACT_HEIGHT = 38
 export const TINY_HEIGHT = 20
-export const TINY_CHIP = 'justify-center py-0 text-[10px] leading-none'
+export const TINY_CHIP = 'justify-center py-0 text-[10px] leading-3'
 export const BODY_COLUMNS = '4rem minmax(0, 1fr)'
 
 const DEFAULT_SCROLL_HOUR = 7
 const NOW_LABEL_CLEARANCE = 12
 const MINUTES_PER_HOUR = 60
-const LABELLED_HOURS = 23
 const EMPTY_OFFSET = 20
 
 const tints = timeGridVariants()
@@ -74,7 +73,7 @@ export function gridLines(scale: TimeScale): string {
 }
 
 export function slotTop(minutes: number, scale: TimeScale): number {
-    return (minutes / scale.slotMinutes) * scale.slotHeight
+    return ((minutes - scale.startHour * MINUTES_PER_HOUR) / scale.slotMinutes) * scale.slotHeight
 }
 
 export function splitPositions<T>(positioned: readonly PositionedEvent<T>[]) {
@@ -132,8 +131,8 @@ export function offHoursBlocks(
     holidays: ReadonlyMap<string, Holiday>
 ): PixelBlock[] {
     if (!hours || holidays.has(isoDate(day)) || !isBusinessDay(day, hours)) return []
-    const open = scale.toPixel(day.set(parseClock(hours.start)))
-    const close = scale.toPixel(day.set(parseClock(hours.end)))
+    const open = clampPixel(scale.toPixel(day.set(parseClock(hours.start))), scale)
+    const close = clampPixel(scale.toPixel(day.set(parseClock(hours.end))), scale)
     return [
         { top: 0, height: open },
         { top: close, height: scale.dayHeight - close }
@@ -146,12 +145,12 @@ export function hourLabels(
     hour12: boolean | undefined,
     nowTop: number | null
 ): HourLabel[] {
-    return Array.from({ length: LABELLED_HOURS }, (_, i) => {
-        const hour = i + 1
+    return Array.from({ length: scale.endHour - scale.startHour - 1 }, (_, i) => {
+        const hour = scale.startHour + i + 1
         const clock = parseZonedDateTime(`2000-01-03T${String(hour).padStart(2, '0')}:00[UTC]`)
         return {
             hour,
-            top: (hour * MINUTES_PER_HOUR * scale.slotHeight) / scale.slotMinutes,
+            top: (hour - scale.startHour) * hourHeight(scale),
             parts: formatHourParts(clock, locale, hour12)
         }
     }).filter((label) => nowTop === null || Math.abs(label.top - nowTop) >= NOW_LABEL_CLEARANCE)
@@ -181,4 +180,13 @@ export function ghostColumn<T>(position: TimePosition<T>, dayCount: number) {
         start: `${((position.dayIndex + position.left) * 100) / dayCount}%`,
         width: `${(position.width * 100) / dayCount}%`
     }
+}
+
+export function nowOffset(now: ZonedDateTime, scale: TimeScale): number | null {
+    const pixel = scale.toPixel(now)
+    return pixel < 0 || pixel > scale.dayHeight ? null : pixel
+}
+
+function clampPixel(pixel: number, scale: TimeScale): number {
+    return Math.min(Math.max(pixel, 0), scale.dayHeight)
 }
