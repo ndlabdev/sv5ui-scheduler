@@ -78,11 +78,10 @@ export const timeGridVariants = tv({
         nowLabel: [
             'text-error absolute end-2 z-20 -translate-y-1/2 text-[10px] leading-none font-semibold tabular-nums'
         ],
-        empty: [
-            'bg-surface-container-high text-on-surface-variant pointer-events-none absolute left-1/2 z-10',
-            '-translate-x-1/2 rounded-full px-3 py-1 text-xs whitespace-nowrap'
-        ],
-        emptyCustom: 'pointer-events-none absolute left-1/2 z-10 w-max max-w-[90%] -translate-x-1/2'
+        emptyLayer:
+            'pointer-events-none absolute inset-0 z-10 flex items-center justify-center p-4 ps-20',
+        empty: 'bg-surface-container-high text-on-surface-variant rounded-full px-3 py-1 text-xs whitespace-nowrap',
+        emptyCustom: 'max-h-full max-w-full'
     }
 })
 

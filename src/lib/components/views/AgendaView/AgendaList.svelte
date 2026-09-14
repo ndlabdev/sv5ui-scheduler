@@ -78,7 +78,7 @@
     {#if groups.length === 0}
         <div class={classes.empty()}>
             {#if snippets.empty}
-                {@render snippets.empty()}
+                {@render snippets.empty({ view, range })}
             {:else}
                 <Empty icon="lucide:calendar-x" title={scheduler.labels.noEvents} />
             {/if}

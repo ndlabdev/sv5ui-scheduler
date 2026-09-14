@@ -8,7 +8,6 @@ import {
     allDayLayout,
     columnTint,
     draggedEventId,
-    emptyTop,
     ghostColumn,
     hourLabels,
     layersByDay,
@@ -129,14 +128,6 @@ describe('scrollTop', () => {
 
     it('never scrolls above the top', () => {
         expect(scrollTop({ ...base, timed: [], nowTop: 10 })).toBe(0)
-    })
-})
-
-describe('emptyTop', () => {
-    it('centres the message without the current time and follows it otherwise', () => {
-        expect(emptyTop(scale, null)).toBe(576)
-        expect(emptyTop(scale, 100)).toBe(120)
-        expect(emptyTop(scale, 1150)).toBe(1112)
     })
 })
 

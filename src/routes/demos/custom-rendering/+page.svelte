@@ -3,7 +3,9 @@
     import {
         Scheduler,
         type CellSnippetProps,
+        type EmptySnippetProps,
         type EventDetailSnippetProps,
+        type EventPanelSnippetProps,
         type EventInput,
         type EventSnippetProps,
         type HeaderSnippetProps,
@@ -11,6 +13,7 @@
     } from '$lib/index.js'
     import DemoCard from '../../../demo/DemoCard.svelte'
     import PageHeader from '../../../demo/PageHeader.svelte'
+    import { describeTime } from '../../../demo/format.js'
     import { holidays, timeAt, timeZone } from '../../../demo/data.js'
 
     interface Meeting {
@@ -75,8 +78,23 @@
     let emptyEvents = $state<EventInput<Meeting>[]>([])
 
     const initials = (name: string) => name.slice(0, 2).toUpperCase()
+    const period = (view: string) => (view === 'agenda' ? 'month' : view)
 
     let toolbarEvents = $state<EventInput<Meeting>[]>(meetings())
+    let panelEvents = $state<EventInput<Meeting>[]>(meetings())
+
+    const panelCode = `<Scheduler bind:events detail="slideover" eventPanel={panel} />
+
+{#snippet panel({ event, close, remove, deletable })}
+    <p>{event.data.location}</p>
+    {#each event.data.attendees as person (person)}
+        <Avatar text={person.slice(0, 2)} alt={person} />
+    {/each}
+    <Button label="Done" onclick={close} />
+    {#if deletable}
+        <Button label="Cancel meeting" color="error" variant="soft" onclick={remove} />
+    {/if}
+{/snippet}`
 
     const toolbarCode = `<Scheduler bind:events toolbar={header} />
 
@@ -208,11 +226,51 @@
     </div>
 {/snippet}
 
-{#snippet nothing()}
+{#snippet meetingPanel({ event, close, remove, deletable }: EventPanelSnippetProps<Meeting>)}
+    <div class="flex flex-col gap-5">
+        <p class="flex items-center gap-2 text-sm text-on-surface">
+            <Icon name="lucide:clock" size="16" class="text-on-surface-variant" />
+            {describeTime(event)}
+        </p>
+        {#if event.data}
+            <section class="space-y-2">
+                <h4 class="text-xs font-semibold tracking-wide text-on-surface-variant uppercase">
+                    Location
+                </h4>
+                <p class="flex items-center gap-2 text-sm text-on-surface">
+                    <Icon name="lucide:map-pin" size="16" class="text-on-surface-variant" />
+                    {event.data.location}
+                </p>
+            </section>
+            <section class="space-y-2">
+                <h4 class="text-xs font-semibold tracking-wide text-on-surface-variant uppercase">
+                    Attendees
+                </h4>
+                <ul class="space-y-2">
+                    {#each event.data.attendees as person (person)}
+                        <li class="flex items-center gap-3 text-sm text-on-surface">
+                            <Avatar text={initials(person)} alt={person} size="sm" />
+                            {person}
+                        </li>
+                    {/each}
+                </ul>
+            </section>
+        {/if}
+        <div class="flex flex-wrap gap-2 pt-2">
+            <Button label="Done" color="primary" onclick={close} />
+            {#if deletable}
+                <Button label="Cancel meeting" color="error" variant="soft" onclick={remove} />
+            {/if}
+        </div>
+    </div>
+{/snippet}
+
+{#snippet nothing({ view }: EmptySnippetProps)}
     <Empty
         icon="lucide:coffee"
-        title="A quiet week"
-        description="Nothing is planned for this week."
+        class="bg-surface"
+        title={`A quiet ${period(view)}`}
+        description={`Nothing is planned for this ${period(view)}.`}
     />
 {/snippet}
 
@@ -276,7 +334,7 @@
 
         <DemoCard
             title="Empty state"
-            description="The empty snippet replaces the message shown when the range holds nothing."
+            description="The empty snippet receives the view and range and replaces the message the week, day and agenda views show when nothing is planned."
             height="h-[560px]"
         >
             <Scheduler
@@ -288,4 +346,20 @@
             />
         </DemoCard>
     </div>
+
+    <DemoCard
+        title="Details in a panel"
+        description="Set detail to slideover and a click opens the event in a panel inside the calendar. The eventPanel snippet decides what the panel shows; here a meeting lists its room and attendees. Click an event."
+        code={panelCode}
+        height="h-[640px]"
+    >
+        <Scheduler
+            creatable={false}
+            bind:events={panelEvents}
+            {timeZone}
+            detail="slideover"
+            eventPanel={meetingPanel}
+            class="h-full"
+        />
+    </DemoCard>
 </div>

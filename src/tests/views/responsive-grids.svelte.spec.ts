@@ -90,6 +90,7 @@ describe('time grid and agenda text', () => {
         expect(wrapper.querySelector('.custom-empty')).not.toBeNull()
         expect(getComputedStyle(wrapper).backgroundColor).toBe('rgba(0, 0, 0, 0)')
         expect(getComputedStyle(wrapper).whiteSpace).not.toBe('nowrap')
+        expect(getComputedStyle(wrapper).overflow).toBe('visible')
     })
 })
 

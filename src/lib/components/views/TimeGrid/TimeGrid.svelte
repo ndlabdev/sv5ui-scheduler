@@ -21,7 +21,6 @@
         columnTint,
         dayColumns,
         draggedEventId,
-        emptyTop,
         ghostColumn,
         gridLines,
         layersByDay,
@@ -194,21 +193,22 @@
                             />
                         </div>
                     {/each}
-                    {#if positioned.length === 0}
-                        <div
-                            class={snippets.empty ? classes.emptyCustom() : classes.empty()}
-                            style:top="{emptyTop(scale, nowTop)}px"
-                            data-sch-empty
-                        >
-                            {#if snippets.empty}
-                                {@render snippets.empty()}
-                            {:else}
-                                {scheduler.labels.noEvents}
-                            {/if}
-                        </div>
-                    {/if}
                 </div>
             </div>
         </ScrollArea>
+        {#if positioned.length === 0}
+            <div class={classes.emptyLayer()}>
+                <div
+                    class={snippets.empty ? classes.emptyCustom() : classes.empty()}
+                    data-sch-empty
+                >
+                    {#if snippets.empty}
+                        {@render snippets.empty({ view, range })}
+                    {:else}
+                        {scheduler.labels.noEvents}
+                    {/if}
+                </div>
+            </div>
+        {/if}
     </div>
 </div>

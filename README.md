@@ -125,13 +125,29 @@ The built-in popover shows an event's details and lets the user delete it. To op
 <Scheduler
     bind:events
     creatable={false}
-    detailPopover={false}
+    detail={false}
     onEventClick={(event) => openEditor(event)}
     onSelectSlot={({ start, end, allDay }) => openEditor({ start, end, allDay })}
 />
 ```
 
 `onEventClick` fires for every event, including occurrences of a series. `onSelectSlot` fires when an empty slot or day is clicked, and on Enter when `creatable` is off, with the slot already snapped to the grid.
+
+### Details in a panel
+
+Set `detail="slideover"` and a click opens the event in a panel inside the calendar instead of a popover. Without a snippet it shows the date, time, calendar and a delete button. Pass `eventPanel` to fill it with whatever the kind of event needs:
+
+```svelte
+<Scheduler bind:events detail="slideover" eventPanel={panel} />
+
+{#snippet panel({ event, close, remove, deletable })}
+    <p>{event.data.location}</p>
+    <Button label="Done" onclick={close} />
+    {#if deletable}
+        <Button label="Cancel meeting" color="error" onclick={remove} />
+    {/if}
+{/snippet}
+```
 
 ## Loading events on demand
 
@@ -185,12 +201,12 @@ Pass a snippet as `toolbar` to put navigation anywhere in your page. It receives
 
 ## Interactions
 
-| Prop            | Default |                                                                                   |
-| --------------- | ------- | --------------------------------------------------------------------------------- |
-| `creatable`     | `true`  | Create events by dragging over empty slots or pressing Enter on a focused slot    |
-| `editable`      | `true`  | Move, resize and delete events. `false` locks every event                         |
-| `detailPopover` | `true`  | Open a popover with details when an event is clicked                              |
-| `dragSources`   | `[]`    | Items the built-in sidebar lists; dropping one on the grid creates an event there |
+| Prop          | Default     |                                                                                        |
+| ------------- | ----------- | -------------------------------------------------------------------------------------- |
+| `creatable`   | `true`      | Create events by dragging over empty slots or pressing Enter on a focused slot         |
+| `editable`    | `true`      | Move, resize and delete events. `false` locks every event                              |
+| `detail`      | `'popover'` | `'popover'` or `'slideover'` opens an event's details on click; `false` turns them off |
+| `dragSources` | `[]`        | Items the built-in sidebar lists; dropping one on the grid creates an event there      |
 
 Any element on the page can become a drag source:
 
@@ -275,16 +291,17 @@ Time outside business hours is shaded, and holidays are named in every view.
 
 Every visual part can be replaced with a snippet. Your `data` payload arrives typed.
 
-| Snippet          | Receives                                                                              |
-| ---------------- | ------------------------------------------------------------------------------------- |
-| `event`          | `{ event, position, view, isDragging, isResizing, isSelected }`                       |
-| `cell`           | `{ date, view, isToday, isAnchor, isWeekend, isHoliday, isBusinessHours, isOutside }` |
-| `header`         | `{ date, view, label, isToday, isAnchor, holiday }`                                   |
-| `eventDetail`    | `{ event, close }`, shown under the default details in the popover                    |
-| `empty`          | Nothing; replaces the message shown when the range holds no events                    |
-| `toolbar`        | `{ title, date, range, view, views, step, today, navigate, setView, toggleSidebar }`  |
-| `toolbarActions` | Nothing; extra controls at the end of the built-in toolbar                            |
-| `sidebar`        | `{ date, view, range, events, navigate, close, docked }`                              |
+| Snippet          | Receives                                                                                                   |
+| ---------------- | ---------------------------------------------------------------------------------------------------------- |
+| `event`          | `{ event, position, view, isDragging, isResizing, isSelected }`                                            |
+| `cell`           | `{ date, view, isToday, isAnchor, isWeekend, isHoliday, isBusinessHours, isOutside }`                      |
+| `header`         | `{ date, view, label, isToday, isAnchor, holiday }`                                                        |
+| `eventDetail`    | `{ event, close }`, shown under the default details in the popover or slide-over                           |
+| `eventPanel`     | `{ event, close, remove, deletable }`, replaces the body of the slide-over                                 |
+| `empty`          | `{ view, range }`; replaces the message the week, day and agenda views show when the range holds no events |
+| `toolbar`        | `{ title, date, range, view, views, step, today, navigate, setView, toggleSidebar }`                       |
+| `toolbarActions` | Nothing; extra controls at the end of the built-in toolbar                                                 |
+| `sidebar`        | `{ date, view, range, events, navigate, close, docked }`                                                   |
 
 ```svelte
 <Scheduler bind:events event={card} />

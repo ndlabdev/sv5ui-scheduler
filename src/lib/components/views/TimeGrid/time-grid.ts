@@ -20,7 +20,6 @@ export const BODY_COLUMNS = '4rem minmax(0, 1fr)'
 const DEFAULT_SCROLL_HOUR = 7
 const NOW_LABEL_CLEARANCE = 12
 const MINUTES_PER_HOUR = 60
-const EMPTY_OFFSET = 20
 
 const tints = timeGridVariants()
 
@@ -167,12 +166,6 @@ export function scrollTop<T>(input: ScrollInput<T>): number {
         ? (first ?? input.nowTop ?? fallback)
         : (input.nowTop ?? first ?? fallback)
     return Math.max(target - hourHeight(input.scale) / 2, 0)
-}
-
-export function emptyTop(scale: TimeScale, nowTop: number | null): number {
-    return nowTop === null
-        ? scale.dayHeight / 2
-        : Math.min(nowTop + EMPTY_OFFSET, scale.dayHeight - EMPTY_OFFSET * 2)
 }
 
 export function ghostColumn<T>(position: TimePosition<T>, dayCount: number) {
