@@ -1,6 +1,6 @@
 import { parseZonedDateTime } from '@internationalized/date'
 import { describe, expect, it } from 'vitest'
-import { isSameEvent, normalizeEvent, normalizeEvents } from './normalize.js'
+import { isSameEvent, normalizeEvent, normalizeEvents, sameEventList } from './normalize.js'
 
 const ZONE = 'Asia/Ho_Chi_Minh'
 
@@ -102,5 +102,25 @@ describe('isSameEvent', () => {
         expect(isSameEvent(base, { ...base, title: 'y' })).toBe(false)
         expect(isSameEvent(base, { ...base, allDay: true })).toBe(false)
         expect(isSameEvent(base, { ...base, id: 'b' })).toBe(false)
+    })
+})
+
+describe('sameEventList', () => {
+    const zoned = normalizeEvents(
+        [
+            { id: 'a', title: 'A', start: '2026-09-09T09:00', end: '2026-09-09T10:00' },
+            { id: 'b', title: 'B', start: '2026-09-10T09:00', end: '2026-09-10T10:00' }
+        ],
+        'UTC'
+    )
+
+    it('matches the same events in any order', () => {
+        expect(sameEventList(zoned, [...zoned].reverse())).toBe(true)
+    })
+
+    it('differs on length, on a changed field, and on a new data object', () => {
+        expect(sameEventList(zoned, zoned.slice(1))).toBe(false)
+        expect(sameEventList(zoned, [{ ...zoned[0], title: 'Changed' }, zoned[1]])).toBe(false)
+        expect(sameEventList(zoned, [{ ...zoned[0], data: {} }, zoned[1]])).toBe(false)
     })
 })

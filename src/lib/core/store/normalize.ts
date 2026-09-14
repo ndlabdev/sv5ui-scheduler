@@ -45,6 +45,18 @@ export function isEditable(event: Pick<SchedulerEvent, 'editable' | 'background'
     return event.editable !== false && event.background !== true
 }
 
+export function sameEventList<T>(
+    a: readonly SchedulerEvent<T>[],
+    b: readonly SchedulerEvent<T>[]
+): boolean {
+    if (a.length !== b.length) return false
+    const byId = new Map(b.map((event) => [event.id, event]))
+    return a.every((event) => {
+        const other = byId.get(event.id)
+        return other !== undefined && isSameEvent(other, event) && other.data === event.data
+    })
+}
+
 export function isSameEvent(a: SchedulerEvent, b: SchedulerEvent): boolean {
     if (a.id !== b.id) return false
     if (a.start.compare(b.start) !== 0 || a.end.compare(b.end) !== 0) return false
