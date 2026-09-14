@@ -14,6 +14,7 @@ export const nl: SchedulerLabels = {
     allDay: 'Hele dag',
     views: 'Weergave',
     menu: 'Zijbalk tonen of verbergen',
+    sidebar: 'Kalender',
     actions: 'Meer acties',
     noEvents: 'Geen afspraken',
     calendars: "Mijn agenda's",

@@ -14,6 +14,7 @@ export const fr: SchedulerLabels = {
     allDay: 'Toute la journée',
     views: 'Vue',
     menu: 'Afficher ou masquer la barre latérale',
+    sidebar: 'Calendrier',
     actions: "Plus d'actions",
     noEvents: 'Aucun événement',
     calendars: 'Mes agendas',

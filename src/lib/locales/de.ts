@@ -14,6 +14,7 @@ export const de: SchedulerLabels = {
     allDay: 'Ganztägig',
     views: 'Ansicht',
     menu: 'Seitenleiste ein- oder ausblenden',
+    sidebar: 'Kalender',
     actions: 'Weitere Aktionen',
     noEvents: 'Keine Termine',
     calendars: 'Meine Kalender',

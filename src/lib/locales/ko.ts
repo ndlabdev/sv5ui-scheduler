@@ -12,6 +12,7 @@ export const ko: SchedulerLabels = {
     allDay: '종일',
     views: '보기',
     menu: '사이드바 표시 전환',
+    sidebar: '캘린더',
     actions: '추가 작업',
     noEvents: '일정 없음',
     calendars: '내 캘린더',

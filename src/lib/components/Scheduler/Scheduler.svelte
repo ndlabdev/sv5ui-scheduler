@@ -437,6 +437,9 @@
             sidebarScroll: slots.sidebarScroll({
                 class: [config.slots.sidebarScroll, overrides.sidebarScroll]
             }),
+            slideoverOverlay: slots.slideoverOverlay({
+                class: [config.slots.slideoverOverlay, overrides.slideoverOverlay]
+            }),
             slideover: slots.slideover({ class: [config.slots.slideover, overrides.slideover] }),
             slideoverBody: slots.slideoverBody({
                 class: [config.slots.slideoverBody, overrides.slideoverBody]
@@ -521,8 +524,14 @@
         <Slideover
             bind:open={panel.overlayOpen}
             side={slideoverSide}
-            title={labels.menu}
-            ui={{ content: classes.slideover, body: classes.slideoverBody }}
+            title={labels.sidebar}
+            portal={false}
+            preventScroll={false}
+            ui={{
+                overlay: classes.slideoverOverlay,
+                content: classes.slideover,
+                body: classes.slideoverBody
+            }}
         >
             {#snippet body()}
                 <div data-sch-sidebar>

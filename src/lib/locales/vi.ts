@@ -12,6 +12,7 @@ export const vi: SchedulerLabels = {
     allDay: 'Cả ngày',
     views: 'Chế độ xem',
     menu: 'Ẩn hiện thanh bên',
+    sidebar: 'Lịch',
     actions: 'Thao tác khác',
     noEvents: 'Không có sự kiện',
     calendars: 'Lịch của tôi',

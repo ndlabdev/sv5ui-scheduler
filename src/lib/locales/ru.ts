@@ -16,6 +16,7 @@ export const ru: SchedulerLabels = {
     allDay: 'Весь день',
     views: 'Вид',
     menu: 'Показать или скрыть боковую панель',
+    sidebar: 'Календарь',
     actions: 'Другие действия',
     noEvents: 'Нет событий',
     calendars: 'Мои календари',

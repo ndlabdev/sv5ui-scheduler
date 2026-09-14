@@ -12,6 +12,7 @@ export const zh: SchedulerLabels = {
     allDay: '全天',
     views: '视图',
     menu: '显示或隐藏侧边栏',
+    sidebar: '日历',
     actions: '更多操作',
     noEvents: '没有日程',
     calendars: '我的日历',

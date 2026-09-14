@@ -22,6 +22,7 @@ export const ar: SchedulerLabels = {
     allDay: 'طوال اليوم',
     views: 'العرض',
     menu: 'إظهار الشريط الجانبي أو إخفاؤه',
+    sidebar: 'التقويم',
     actions: 'إجراءات أخرى',
     noEvents: 'لا توجد أحداث',
     calendars: 'تقاويمي',

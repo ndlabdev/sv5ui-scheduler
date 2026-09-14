@@ -26,6 +26,11 @@ export interface SchedulerLabels {
     menu: string
 
     /**
+     * Title of the sidebar when it opens as a slide-over.
+     */
+    sidebar: string
+
+    /**
      * Accessible name of the overflow menu.
      */
     actions: string

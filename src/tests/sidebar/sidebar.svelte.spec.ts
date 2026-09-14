@@ -379,6 +379,28 @@ describe('built-in sidebar', () => {
         const navigator = dialog.querySelector<HTMLElement>('[data-sch-date-navigator]')!
         const inset = navigator.getBoundingClientRect().left - body.getBoundingClientRect().left
         expect(inset).toBe(dockedInset)
+        expect(getComputedStyle(body).paddingLeft).toBe('0px')
+        expect(body.className.split(' ').filter((name) => /^(sm:)?p-/.test(name))).toEqual([
+            'p-0',
+            'sm:p-0'
+        ])
+    })
+
+    it('opens the slide-over inside the scheduler with its own title', async () => {
+        const { container } = await boot({}, 700)
+        menu(container).click()
+        await wait(400)
+        const root = container.querySelector<HTMLElement>('[data-sch-scheduler]')!
+        const dialog = document.querySelector<HTMLElement>('[role="dialog"]')!
+        expect(root.contains(dialog)).toBe(true)
+        expect(dialog.textContent).toContain('Calendar')
+        expect(dialog.textContent).not.toContain('Toggle sidebar')
+        const rootBox = root.getBoundingClientRect()
+        const dialogBox = dialog.getBoundingClientRect()
+        expect(dialogBox.top).toBe(rootBox.top)
+        expect(dialogBox.height).toBe(rootBox.height)
+        expect(dialogBox.left).toBe(rootBox.left)
+        expect(getComputedStyle(document.body).overflow).not.toBe('hidden')
     })
 
     it('hides calendars and searches without any binding in the app', async () => {

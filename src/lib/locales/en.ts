@@ -12,6 +12,7 @@ export const en: SchedulerLabels = {
     allDay: 'All day',
     views: 'View',
     menu: 'Toggle sidebar',
+    sidebar: 'Calendar',
     actions: 'More actions',
     noEvents: 'No events',
     calendars: 'My calendars',

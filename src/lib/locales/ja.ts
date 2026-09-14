@@ -12,6 +12,7 @@ export const ja: SchedulerLabels = {
     allDay: '終日',
     views: '表示',
     menu: 'サイドバーの表示切り替え',
+    sidebar: 'カレンダー',
     actions: 'その他の操作',
     noEvents: '予定はありません',
     calendars: 'マイカレンダー',
