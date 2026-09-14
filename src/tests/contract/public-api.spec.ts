@@ -57,6 +57,7 @@ const PUBLIC_TYPES = [
     'SchedulerContext',
     'SchedulerEvent',
     'SchedulerLabels',
+    'SchedulerResource',
     'SearchBoxProps',
     'SidebarSnippetProps',
     'SlotSelection',

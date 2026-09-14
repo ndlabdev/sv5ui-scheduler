@@ -7,7 +7,13 @@ export type {
     WeekDay
 } from './range.types.js'
 
-export type { EventColor, EventInput, SchedulerCalendar, SchedulerEvent } from './event.types.js'
+export type {
+    EventColor,
+    EventInput,
+    SchedulerCalendar,
+    SchedulerEvent,
+    SchedulerResource
+} from './event.types.js'
 
 export type {
     OrdinalWeekDay,
