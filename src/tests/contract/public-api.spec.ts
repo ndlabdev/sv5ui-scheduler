@@ -59,12 +59,14 @@ const PUBLIC_TYPES = [
     'SchedulerLabels',
     'SearchBoxProps',
     'SidebarSnippetProps',
+    'SlotSelection',
     'SpanPosition',
     'StoreMiddleware',
     'TimePosition',
     'TimeScale',
     'TimeScaleOptions',
     'TimeZoneId',
+    'ToolbarSnippetProps',
     'ViewDefinition',
     'ViewPreview',
     'ViewProps',
@@ -87,8 +89,7 @@ const PUBLIC_VALUES = [
     'createTimeScale',
     'defineSchedulerConfig',
     'dragSource',
-    'mergeLabels',
-    'resetSchedulerConfig'
+    'mergeLabels'
 ]
 
 const LOCALES_ENTRY = 'src/lib/locales/index.ts'

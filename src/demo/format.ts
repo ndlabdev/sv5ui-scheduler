@@ -12,7 +12,7 @@ const dateFormat = new Intl.DateTimeFormat('en-US', {
     day: 'numeric'
 })
 
-export function describeTime(event: SchedulerEvent): string {
+export function describeTime(event: Pick<SchedulerEvent, 'start' | 'end' | 'allDay'>): string {
     if (event.allDay) return dateFormat.format(event.start.toDate())
     return `${timeFormat.format(event.start.toDate())} to ${timeFormat.format(event.end.toDate())}`
 }

@@ -1,12 +1,12 @@
 import { afterEach, describe, expect, it } from 'vitest'
-import { defineSchedulerConfig, getComponentConfig, resetSchedulerConfig } from './config.js'
+import { defineSchedulerConfig, getComponentConfig } from './config.js'
 
 const defaults = {
     defaultVariants: { color: 'primary', size: 'md' },
     slots: { root: '', title: '' }
 }
 
-afterEach(resetSchedulerConfig)
+afterEach(() => defineSchedulerConfig({}))
 
 describe('getComponentConfig', () => {
     it('returns the defaults untouched when nothing is configured', () => {

@@ -14,6 +14,10 @@ export type EventChipProps<T = unknown> = Omit<HTMLButtonAttributes, 'class' | '
      */
     ref?: HTMLElement | null
 
+    /**
+     * The event the chip represents. Its title and times are shown unless
+     * `children` renders its own content.
+     */
     event: SchedulerEvent<T>
 
     /**

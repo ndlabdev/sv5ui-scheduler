@@ -11,6 +11,9 @@ import type { DragSourceListSlots } from './drag-source-list.variants.js'
  * draggable button of one item.
  */
 export interface DragSourceListItemProps<T = unknown> {
+    /**
+     * The item this row stands for.
+     */
     item: DragSourceData<T>
 
     /**
@@ -29,6 +32,9 @@ export type DragSourceListProps<T = unknown> = Omit<HTMLAttributes<HTMLElement>,
      */
     ref?: HTMLElement | null
 
+    /**
+     * Items to list, one draggable row each, in the given order.
+     */
     items: DragSourceData<T>[]
 
     /**

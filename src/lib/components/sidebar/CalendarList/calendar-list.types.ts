@@ -9,6 +9,9 @@ import type { CalendarListSlots } from './calendar-list.variants.js'
  * Argument of the `item` snippet of `CalendarList`, rendered once per calendar.
  */
 export interface CalendarListItemProps {
+    /**
+     * The calendar this row stands for.
+     */
     calendar: SchedulerCalendar
 
     /**
@@ -32,6 +35,9 @@ export type CalendarListProps = Omit<HTMLAttributes<HTMLElement>, 'class'> & {
      */
     ref?: HTMLElement | null
 
+    /**
+     * Calendars to list, one row each, in the given order.
+     */
     calendars: SchedulerCalendar[]
 
     /**

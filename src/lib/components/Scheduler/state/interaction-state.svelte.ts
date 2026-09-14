@@ -29,6 +29,7 @@ export interface InteractionStateOptions<T> {
     readonly scheduler: () => SchedulerContext
     readonly slotMinutes: () => number
     readonly creatable: () => boolean
+    readonly selectSlot: (point: Pick<HitTarget, 'date' | 'allDay'>) => void
     readonly store: EventStore<T>
     readonly commit: (request: MutationRequest<T>) => void
     readonly step: (direction: 1 | -1) => void
@@ -119,6 +120,7 @@ function createInteractionContext<T>(
         setFocus: (next) => (state.focus = next),
         step: (direction) => options.step(direction),
         navigate: (date, view) => options.navigate(date, view),
+        selectSlot: (point) => options.selectSlot(point),
         newEventId: () => state.nextEventId(),
         hitTest: (clientX, clientY) => state.hitTest(clientX, clientY),
         snap: (value) => snapToSlot(value, options.slotMinutes()),

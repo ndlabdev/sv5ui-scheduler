@@ -57,7 +57,7 @@
             ? scheduler.labels.allDay
             : formatTimeRange(event.start, event.end, scheduler.locale, scheduler.hour12)
     )
-    const deletable = $derived(isEditable(event))
+    const deletable = $derived(isEditable(event, scheduler.editable))
     const color = $derived(eventColor(event, scheduler.calendars))
     const calendar = $derived(
         scheduler.calendars.find((candidate) => candidate.id === event.calendarId)

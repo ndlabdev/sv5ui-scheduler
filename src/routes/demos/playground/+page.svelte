@@ -1,6 +1,6 @@
 <script lang="ts">
     import { Button, Card, Icon, toast } from 'sv5ui'
-    import { Scheduler, type EventInput, type Mutation } from '$lib/index.js'
+    import { Scheduler, type EventInput, type Mutation, type SlotSelection } from '$lib/index.js'
     import DemoCard from '../../../demo/DemoCard.svelte'
     import PageHeader from '../../../demo/PageHeader.svelte'
     import {
@@ -11,7 +11,7 @@
         teamEvents,
         timeZone
     } from '../../../demo/data.js'
-    import { MUTATION_COLORS, describeMutation } from '../../../demo/format.js'
+    import { MUTATION_COLORS, describeMutation, describeTime } from '../../../demo/format.js'
 
     let events = $state<EventInput[]>(teamEvents())
     let view = $state('week')
@@ -42,6 +42,14 @@
         })
     }
 
+    function onSelectSlot(selection: SlotSelection) {
+        toast('Slot picked', {
+            color: 'info',
+            icon: 'lucide:mouse-pointer-click',
+            description: describeTime(selection)
+        })
+    }
+
     const code = `<Scheduler
     bind:events
     bind:view
@@ -54,6 +62,7 @@
     weekNumbers
     sidebar
     {onMutate}
+    {onSelectSlot}
     creatable={false}
 />`
 </script>
@@ -63,7 +72,7 @@
         icon="lucide:layout-dashboard"
         badge="Get started"
         title="Playground"
-        description="Everything together: calendars you can hide, a search box, items to drag onto the grid, business hours, holidays and week numbers. Every change you make is written back into the bound array."
+        description="Everything together: calendars you can hide, a search box, items to drag onto the grid, business hours, holidays and week numbers. Every change you make is written back into the bound array, and clicking an empty slot reports it so an app can open its own form."
     >
         {#snippet actions()}
             <Button
@@ -114,6 +123,7 @@
             weekNumbers
             sidebar
             {onMutate}
+            {onSelectSlot}
             class="h-full"
         />
     </DemoCard>

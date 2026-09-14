@@ -40,7 +40,13 @@ function setup(attached = true) {
             ZONE
         )
     })
-    const spies = { commit: vi.fn(), step: vi.fn(), navigate: vi.fn(), announce: vi.fn() }
+    const spies = {
+        commit: vi.fn(),
+        step: vi.fn(),
+        navigate: vi.fn(),
+        announce: vi.fn(),
+        selectSlot: vi.fn()
+    }
     const state = new InteractionState<unknown>({
         root: () => (attached ? root : null),
         view: () => 'week',

@@ -14,7 +14,11 @@ export function resizeInteraction<T>(controller: GestureController<T>): Interact
             let pending: { edge: ResizeEdge; hit: HitTarget } | null = null
             const stopDrag = pointerDrag(node, {
                 onStart: ({ event }) => {
-                    if (!isPrimaryButton(event) || !isEditable(position.event)) return false
+                    if (
+                        !isPrimaryButton(event) ||
+                        !isEditable(position.event, context.scheduler.editable)
+                    )
+                        return false
                     const edge = edgeAt(options(), event)
                     const hit = edge && context.hitTest(event.clientX, event.clientY)
                     if (!edge || !hit) return false

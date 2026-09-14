@@ -1,12 +1,13 @@
 <script lang="ts">
-    import { Avatar, Badge, Empty, Icon } from 'sv5ui'
+    import { Avatar, Badge, Button, Empty, Icon, ToggleGroup } from 'sv5ui'
     import {
         Scheduler,
         type CellSnippetProps,
         type EventDetailSnippetProps,
         type EventInput,
         type EventSnippetProps,
-        type HeaderSnippetProps
+        type HeaderSnippetProps,
+        type ToolbarSnippetProps
     } from '$lib/index.js'
     import DemoCard from '../../../demo/DemoCard.svelte'
     import PageHeader from '../../../demo/PageHeader.svelte'
@@ -74,6 +75,24 @@
     let emptyEvents = $state<EventInput<Meeting>[]>([])
 
     const initials = (name: string) => name.slice(0, 2).toUpperCase()
+
+    let toolbarEvents = $state<EventInput<Meeting>[]>(meetings())
+
+    const toolbarCode = `<Scheduler bind:events toolbar={header} />
+
+{#snippet header({ title, step, today, view, views, setView })}
+    <div class="flex items-center gap-3 border-b px-4 py-3">
+        <Button icon="lucide:chevron-left" onclick={() => step(-1)} />
+        <Button label="Today" onclick={today} />
+        <Button icon="lucide:chevron-right" onclick={() => step(1)} />
+        <h2 class="text-lg font-semibold">{title}</h2>
+        <ToggleGroup
+            items={views.map(({ name, label }) => ({ value: name, label }))}
+            value={view}
+            onValueChange={setView}
+        />
+    </div>
+{/snippet}`
 
     const code = `<Scheduler bind:events event={card} cell={weekend} header={dayHeader} />
 
@@ -154,6 +173,41 @@
     {/if}
 {/snippet}
 
+{#snippet header({ title, step, today, view, views, setView }: ToolbarSnippetProps)}
+    <div class="flex flex-wrap items-center gap-3 border-b border-outline-variant/60 px-4 py-3">
+        <div class="flex items-center gap-1">
+            <Button
+                icon="lucide:chevron-left"
+                aria-label="Previous"
+                variant="ghost"
+                color="surface"
+                size="sm"
+                onclick={() => step(-1)}
+            />
+            <Button label="Today" variant="outline" color="surface" size="sm" onclick={today} />
+            <Button
+                icon="lucide:chevron-right"
+                aria-label="Next"
+                variant="ghost"
+                color="surface"
+                size="sm"
+                onclick={() => step(1)}
+            />
+        </div>
+        <h2 class="text-lg font-semibold text-on-surface">{title}</h2>
+        <ToggleGroup
+            class="ms-auto"
+            items={views
+                .filter(({ name }) => name !== 'year')
+                .map(({ name, label }) => ({ value: name, label }))}
+            value={view}
+            onValueChange={setView}
+            size="sm"
+            variant="outline"
+        />
+    </div>
+{/snippet}
+
 {#snippet nothing()}
     <Empty
         icon="lucide:coffee"
@@ -185,6 +239,21 @@
             event={card}
             cell={weekend}
             header={dayHeader}
+            class="h-full"
+        />
+    </DemoCard>
+
+    <DemoCard
+        title="Your own toolbar"
+        description="A toolbar snippet replaces the built-in bar. It receives the title, the registered views and the same navigation the built-in buttons use, so the controls can sit anywhere in the page."
+        code={toolbarCode}
+        height="h-[640px]"
+    >
+        <Scheduler
+            creatable={false}
+            bind:events={toolbarEvents}
+            {timeZone}
+            toolbar={header}
             class="h-full"
         />
     </DemoCard>

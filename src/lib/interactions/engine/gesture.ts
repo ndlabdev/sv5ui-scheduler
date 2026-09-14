@@ -1,5 +1,6 @@
 import { toCalendarDate, type ZonedDateTime } from '@internationalized/date'
 import type { SchedulerEvent } from '../../types/event.types.js'
+import type { SlotSelection } from '../../types/interaction.types.js'
 import { endOfDay, startOfDay } from '../../core/time/zone.js'
 import { snapToSlot } from './snap.js'
 
@@ -40,6 +41,11 @@ export function wallOffset(from: ZonedDateTime, to: ZonedDateTime): WallOffset {
 export function shiftWall(date: ZonedDateTime, offset: WallOffset): ZonedDateTime {
     const byDays = offset.days === 0 ? date : date.add({ days: offset.days })
     return offset.minutes === 0 ? byDays : byDays.add({ minutes: offset.minutes })
+}
+
+export function slotSelection(point: GesturePoint, slotMinutes: number): SlotSelection {
+    const { start, end, allDay } = createDraft(point, point, slotMinutes)
+    return { start, end, allDay }
 }
 
 export function createDraft(

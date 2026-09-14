@@ -46,8 +46,11 @@ const COMPARED_FIELDS = [
     'color'
 ] as const
 
-export function isEditable(event: Pick<SchedulerEvent, 'editable' | 'background'>): boolean {
-    return event.editable !== false && event.background !== true
+export function isEditable(
+    event: Pick<SchedulerEvent, 'editable' | 'background'>,
+    enabled = true
+): boolean {
+    return enabled && event.editable !== false && event.background !== true
 }
 
 export function sameEventList<T>(

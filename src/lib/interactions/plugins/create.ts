@@ -9,6 +9,10 @@ export function createInteraction<T>(controller: GestureController<T>): Interact
         name: 'create',
         attach: (context) => (node) => {
             let anchor: HitTarget | null = null
+            const pick = (hit: HitTarget) => {
+                if (hit.keepsTime) context.navigate(hit.date)
+                context.selectSlot(hit)
+            }
             const stopDrag = pointerDrag(node, {
                 onStart: ({ event }) => {
                     if (controller.active || !isPrimaryButton(event)) return false
@@ -31,14 +35,14 @@ export function createInteraction<T>(controller: GestureController<T>): Interact
                     if (hit) controller.update(hit)
                 },
                 onEnd: () => {
-                    if (anchor?.keepsTime) context.navigate(anchor.date)
+                    if (anchor) pick(anchor)
                     anchor = null
                     controller.commit()
                 },
                 onTap: (event) => {
                     if (eventIdAt(event.target) || isInteractiveTarget(event.target, node)) return
                     const hit = context.hitTest(event.clientX, event.clientY)
-                    if (hit?.keepsTime) context.navigate(hit.date)
+                    if (hit) pick(hit)
                 }
             })
             return stopDrag

@@ -1,5 +1,6 @@
 import type { ZonedDateTime } from '@internationalized/date'
 import { untrack } from 'svelte'
+import { useInterval } from 'sv5ui'
 import { isSameDay, nowIn, startOfDay, toZoned } from '../../../core/time/zone.js'
 import type { TimeZoneId } from '../../../types/range.types.js'
 
@@ -22,10 +23,6 @@ export class SchedulerClock {
     constructor(timeZone: () => TimeZoneId) {
         this.#timeZone = timeZone
         this.#instant = $state.raw(nowIn(untrack(timeZone)))
-        $effect(() => {
-            const zone = timeZone()
-            const id = setInterval(() => (this.#instant = nowIn(zone)), TICK_MS)
-            return () => clearInterval(id)
-        })
+        useInterval(() => (this.#instant = nowIn(this.#timeZone())), TICK_MS)
     }
 }

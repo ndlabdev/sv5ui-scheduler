@@ -1,1 +1,1 @@
-export { defineSchedulerConfig, resetSchedulerConfig, type SchedulerConfig } from './config.js'
+export { defineSchedulerConfig, type SchedulerConfig } from './config.js'

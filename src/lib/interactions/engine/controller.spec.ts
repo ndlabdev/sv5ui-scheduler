@@ -47,6 +47,7 @@ function harness(options: GestureOptions = {}) {
             calendars: [],
             weekNumbers: false,
             hiddenDays: [],
+            editable: true,
             direction: 'ltr',
             labels: defaultLabels,
             now: at('2026-09-09T12:00')
@@ -57,6 +58,7 @@ function harness(options: GestureOptions = {}) {
         setFocus: vi.fn(),
         step: vi.fn(),
         navigate: vi.fn(),
+        selectSlot: vi.fn(),
         newEventId: () => `new-${++ids}`,
         hitTest: () => null,
         snap: (date) => date,

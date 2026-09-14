@@ -41,6 +41,21 @@ export interface HitTarget {
 }
 
 /**
+ * An empty slot or day the user picked, as handed to `onSelectSlot`. Times
+ * are snapped to the grid; `end` is exclusive.
+ */
+export interface SlotSelection {
+    start: ZonedDateTime
+
+    end: ZonedDateTime
+
+    /**
+     * A whole day was picked rather than a time slot.
+     */
+    allDay: boolean
+}
+
+/**
  * Handle given to an interaction plugin. Everything an interaction needs to
  * read the grid and commit a change, without touching the store directly.
  */
@@ -86,6 +101,12 @@ export interface InteractionContext<T = unknown> {
      * Move the scheduler to `date`, switching to `view` when given.
      */
     navigate: (date: ZonedDateTime, view?: string) => void
+
+    /**
+     * Report an empty slot or day the user picked to the application's
+     * `onSelectSlot`. The slot is widened to one grid slot or one day.
+     */
+    selectSlot: (point: Pick<HitTarget, 'date' | 'allDay'>) => void
 
     /**
      * Identifier for an event the interaction is about to create.

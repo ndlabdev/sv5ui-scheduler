@@ -27,11 +27,12 @@
     } from '../../core/time/hidden-days.js'
     import { eachDay } from '../../core/time/range.js'
     import { createTimeScale } from '../../core/time/scale.js'
+    import { slotSelection } from '../../interactions/engine/gesture.js'
     import { toZoned } from '../../core/time/zone.js'
     import { composeAttachments } from '../../interactions/engine/attachments.js'
     import { createBuiltinInteractions } from '../../interactions/plugins/builtin.js'
     import { captureEvent, playReturn } from '../../interactions/engine/motion.js'
-    import type { SidebarSnippetProps } from '../../types/snippet.types.js'
+    import type { SidebarSnippetProps, ToolbarSnippetProps } from '../../types/snippet.types.js'
     import type { PositionedEvent } from '../../types/layout.types.js'
     import type { SchedulerContext } from '../../types/context.types.js'
     import type { StoreMiddleware } from '../../types/mutation.types.js'
@@ -80,6 +81,9 @@
         interactions = [],
         toolbar = true,
         creatable = true,
+        editable = true,
+        onEventClick,
+        onSelectSlot,
         sidebar = false,
         sidebarHeader,
         sidebarFooter,
@@ -126,6 +130,7 @@
         scheduler: () => context,
         slotMinutes: () => slotMinutes,
         creatable: () => creatable,
+        selectSlot: (point) => onSelectSlot?.(slotSelection(point, slotMinutes)),
         store,
         commit: (request) => void pipeline.commit(request),
         step,
@@ -203,6 +208,9 @@
         },
         get hiddenDays() {
             return hidden
+        },
+        get editable() {
+            return editable
         },
         get direction() {
             return dir === 'rtl' || dir === 'ltr' ? dir : inheritedDirection
@@ -311,6 +319,34 @@
         void store.version
         return store.all().filter(eventFilter)
     })
+    const toolbarProps: ToolbarSnippetProps = {
+        get title() {
+            return title
+        },
+        get date() {
+            return anchor
+        },
+        get range() {
+            return range
+        },
+        get view() {
+            return view
+        },
+        get views() {
+            return viewItems.map((item) => ({ name: item.value, label: item.label }))
+        },
+        get scheduler() {
+            return context
+        },
+        get sidebarOpen() {
+            return panel.expanded
+        },
+        step,
+        today: goToday,
+        navigate,
+        setView,
+        toggleSidebar
+    }
     const sidebarProps: SidebarSnippetProps<T> = {
         get date() {
             return anchor
@@ -347,6 +383,9 @@
 
     function selectEvent(eventId: string | null) {
         interactionState.selectedEventId = eventId
+        if (eventId === null || !onEventClick) return
+        const clicked = visibleEvents.find((item) => item.id === eventId) ?? store.get(eventId)
+        if (clicked) onEventClick(clicked)
     }
 
     function deleteEvent(eventId: string) {
@@ -419,7 +458,7 @@
     data-sch-view={view}
     onscrollcapture={() => interactionState.invalidateColumns()}
 >
-    {#if toolbar}
+    {#if toolbar === true}
         <Toolbar
             {title}
             {view}
@@ -433,6 +472,8 @@
             menuOpen={sidebar ? panel.expanded : undefined}
             actions={toolbarActions}
         />
+    {:else if toolbar}
+        {@render toolbar(toolbarProps)}
     {/if}
     <div class={classes.body}>
         {#if sidebar && panel.docked && sidebarOpen}

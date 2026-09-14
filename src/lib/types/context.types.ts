@@ -45,6 +45,12 @@ export interface SchedulerContext {
     hiddenDays: WeekDay[]
 
     /**
+     * Whether events may be moved, resized or deleted through the UI at all.
+     * `false` overrides `editable` on every event.
+     */
+    editable: boolean
+
+    /**
      * Text direction, from the scheduler's `dir` attribute or inherited from
      * the page when it mounts.
      */

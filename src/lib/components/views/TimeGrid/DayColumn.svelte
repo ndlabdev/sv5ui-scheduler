@@ -123,7 +123,9 @@
             <div
                 class={classes.event({
                     class: [
-                        isEditable(position.event) ? classes.eventDraggable() : '',
+                        isEditable(position.event, scheduler.editable)
+                            ? classes.eventDraggable()
+                            : '',
                         position.height < TINY_HEIGHT ? 'pb-0' : ''
                     ]
                 })}

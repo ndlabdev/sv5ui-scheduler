@@ -69,7 +69,9 @@
                 <div
                     class={classes.allDayEvent({
                         class: [
-                            isEditable(position.event) ? classes.allDayEventDraggable() : '',
+                            isEditable(position.event, scheduler.editable)
+                                ? classes.allDayEventDraggable()
+                                : '',
                             position.event.id === draggingId ? classes.allDayEventLifted() : ''
                         ]
                     })}

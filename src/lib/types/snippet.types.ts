@@ -83,6 +83,60 @@ export interface HeaderSnippetProps {
 }
 
 /**
+ * Argument of the `toolbar` snippet, which replaces the built-in toolbar so
+ * navigation can live anywhere in the page.
+ */
+export interface ToolbarSnippetProps {
+    /**
+     * The built-in title for the visible range, such as `Sep 7 – 13, 2026`.
+     */
+    title: string
+
+    /**
+     * Date the visible range is computed from.
+     */
+    date: ZonedDateTime
+
+    range: DateRange
+
+    view: string
+
+    /**
+     * Every registered view with its display name, in switcher order.
+     */
+    views: { name: string; label: string }[]
+
+    scheduler: SchedulerContext
+
+    /**
+     * Move one period back or forward, as the built-in arrows do.
+     */
+    step: (direction: 1 | -1) => void
+
+    /**
+     * Move the range to the current day.
+     */
+    today: () => void
+
+    /**
+     * Move the scheduler to `date`, switching to `view` when given.
+     */
+    navigate: (date: ZonedDateTime, view?: string) => void
+
+    setView: (view: string) => void
+
+    /**
+     * Show or hide the sidebar, or call `onMenu` when there is none.
+     */
+    toggleSidebar: () => void
+
+    /**
+     * Whether the sidebar is currently shown.
+     */
+    sidebarOpen: boolean
+}
+
+/**
  * Argument of the `sidebar` snippet, rendered beside the view or, below the
  * sidebar breakpoint, inside a slide-over panel.
  */

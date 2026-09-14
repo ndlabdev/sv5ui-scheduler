@@ -34,7 +34,8 @@ export type {
     EventDetailSnippetProps,
     EventSnippetProps,
     HeaderSnippetProps,
-    SidebarSnippetProps
+    SidebarSnippetProps,
+    ToolbarSnippetProps
 } from './snippet.types.js'
 
 export type {
@@ -43,7 +44,8 @@ export type {
     HitTarget,
     InteractionContext,
     InteractionPlugin,
-    InteractionPreview
+    InteractionPreview,
+    SlotSelection
 } from './interaction.types.js'
 export type {
     LayoutContext,

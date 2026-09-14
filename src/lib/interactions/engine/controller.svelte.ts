@@ -82,7 +82,7 @@ export class GestureController<T = unknown> {
     }
 
     beginMove(event: SchedulerEvent<T>, anchor: GesturePoint): boolean {
-        if (!isEditable(event)) return false
+        if (!isEditable(event, this.#context().scheduler.editable)) return false
         const draft = moveDraft(event, anchor, anchor, this.#moveOptions())
         this.#start({
             mode: 'move',
@@ -97,7 +97,7 @@ export class GestureController<T = unknown> {
     }
 
     beginResize(event: SchedulerEvent<T>, edge: ResizeEdge, anchor: GesturePoint): boolean {
-        if (!isEditable(event)) return false
+        if (!isEditable(event, this.#context().scheduler.editable)) return false
         const draft = resizeDraft(event, edge, anchor, this.#context().scale.slotMinutes)
         this.#start({ mode: 'resize', anchor, event, edge, draft, moved: false, external: false })
         return true
@@ -143,12 +143,12 @@ export class GestureController<T = unknown> {
         return true
     }
 
-    createAt(point: GesturePoint): void {
+    createAt(point: GesturePoint): boolean {
         this.beginCreate(point)
         const session = this.#session
-        if (!session) return
+        if (!session) return false
         this.#session = { ...session, moved: true }
-        this.commit()
+        return this.commit()
     }
 
     cancel(): void {

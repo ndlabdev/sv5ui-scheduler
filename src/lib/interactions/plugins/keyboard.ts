@@ -14,6 +14,7 @@ import {
 import { isInteractiveTarget, isTextField } from '../../dom/targets.js'
 import { formatLongDate, formatTime } from '../../core/time/format.js'
 import { isSameDay } from '../../core/time/zone.js'
+import { isEditable } from '../../core/store/normalize.js'
 import type { GestureController } from '../engine/controller.svelte.js'
 import type { GesturePoint } from '../engine/gesture.js'
 
@@ -83,14 +84,15 @@ function escape<T>(context: InteractionContext<T>, controller: GestureController
 
 function enter<T>(context: InteractionContext<T>, controller: GestureController<T>): boolean {
     if (!context.focus) return false
-    controller.createAt(pointFor(context.focus, context))
+    const point = pointFor(context.focus, context)
+    if (!controller.createAt(point)) context.selectSlot(point)
     return true
 }
 
 function remove<T>(context: InteractionContext<T>): boolean {
     const id = context.selectedEventId
     const before = id === null ? undefined : context.getEvent(id)
-    if (!before || before.editable === false) return false
+    if (!before || !isEditable(before, context.scheduler.editable)) return false
     context.commit({ kind: 'delete', eventId: before.id, before, after: null })
     context.select(null)
     context.announce(context.scheduler.labels.announce.deleted(before))

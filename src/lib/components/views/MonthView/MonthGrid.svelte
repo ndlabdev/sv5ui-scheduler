@@ -94,7 +94,7 @@
         span.row * cellHeight + HEADER_HEIGHT + span.lane * LANE_HEIGHT
 
     const draggable = (event: SchedulerEvent<T>) =>
-        isEditable(event) ? classes.eventDraggable() : ''
+        isEditable(event, scheduler.editable) ? classes.eventDraggable() : ''
 
     function spansOn(dayIndex: number) {
         const row = Math.floor(dayIndex / columnsPerRow)

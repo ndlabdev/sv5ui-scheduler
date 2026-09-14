@@ -4,7 +4,11 @@ import type { HTMLAttributes } from 'svelte/elements'
 import type { ClassNameValue } from 'tailwind-merge'
 import type { PartialLabels } from '../../core/i18n/labels.js'
 import type { EventInput, SchedulerCalendar, SchedulerEvent } from '../../types/event.types.js'
-import type { DragSourceData, InteractionPlugin } from '../../types/interaction.types.js'
+import type {
+    DragSourceData,
+    InteractionPlugin,
+    SlotSelection
+} from '../../types/interaction.types.js'
 import type { LayoutStrategy } from '../../types/layout.types.js'
 import type { StoreMiddleware } from '../../types/mutation.types.js'
 import type { ViewDefinition } from '../../types/view.types.js'
@@ -16,7 +20,8 @@ import type {
     EventDetailSnippetProps,
     EventSnippetProps,
     HeaderSnippetProps,
-    SidebarSnippetProps
+    SidebarSnippetProps,
+    ToolbarSnippetProps
 } from '../../types/snippet.types.js'
 import type { SchedulerSlots } from './scheduler.variants.js'
 
@@ -91,6 +96,10 @@ export type SchedulerProps<T = unknown> = Omit<HTMLAttributes<HTMLDivElement>, '
          */
         hour12?: boolean
 
+        /**
+         * Opening hours. Slots outside them are drawn muted in the time views
+         * and holidays fall outside them. Every hour is open when unset.
+         */
         businessHours?: BusinessHours
 
         /**
@@ -191,10 +200,12 @@ export type SchedulerProps<T = unknown> = Omit<HTMLAttributes<HTMLDivElement>, '
         interactions?: InteractionPlugin<T>[]
 
         /**
-         * Show the navigation toolbar.
+         * The navigation toolbar. `true` renders the built-in one, `false`
+         * hides it, and a snippet replaces it with your own controls fed by
+         * `ToolbarSnippetProps`.
          * @default true
          */
-        toolbar?: boolean
+        toolbar?: boolean | Snippet<[ToolbarSnippetProps]>
 
         /**
          * Let users create events by dragging over empty slots or pressing
@@ -203,6 +214,28 @@ export type SchedulerProps<T = unknown> = Omit<HTMLAttributes<HTMLDivElement>, '
          * @default true
          */
         creatable?: boolean
+
+        /**
+         * Let users move, resize and delete events through the UI. `false`
+         * locks every event regardless of its own `editable`; creation follows
+         * `creatable`.
+         * @default true
+         */
+        editable?: boolean
+
+        /**
+         * Called when an event is clicked or activated with the keyboard,
+         * whether or not `detailPopover` is shown. Occurrences of a series
+         * arrive with their `seriesId`.
+         */
+        onEventClick?: (event: SchedulerEvent<T>) => void
+
+        /**
+         * Called when an empty slot or day is clicked, or Enter is pressed on
+         * a focused slot while `creatable` is `false`. The selection covers one
+         * grid slot, or one day in the month view and all-day row.
+         */
+        onSelectSlot?: (selection: SlotSelection) => void
 
         /**
          * Open a popover with an event's details when it is clicked.

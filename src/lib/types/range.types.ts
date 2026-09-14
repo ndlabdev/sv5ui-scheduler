@@ -28,7 +28,7 @@ export interface DateRange {
 
 /**
  * Wall clock hours during which the calendar is considered open. Slots outside
- * are rendered muted and can be excluded from creation by drag.
+ * them are drawn muted; interactions are not restricted by them.
  */
 export interface BusinessHours {
     /**

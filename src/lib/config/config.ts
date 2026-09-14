@@ -10,10 +10,6 @@ export function defineSchedulerConfig(next: SchedulerConfig): void {
     resolved = new Map()
 }
 
-export function resetSchedulerConfig(): void {
-    defineSchedulerConfig({})
-}
-
 export function getComponentConfig<T extends ComponentDefaults>(name: string, defaults: T): T {
     const cached = resolved.get(name)
     if (cached) return cached as T

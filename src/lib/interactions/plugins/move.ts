@@ -15,7 +15,7 @@ export function moveInteraction<T>(controller: GestureController<T>): Interactio
                     if (!isPrimaryButton(event) || edgeAt({ node, position, rtl }, event)) {
                         return false
                     }
-                    if (!isEditable(position.event)) return false
+                    if (!isEditable(position.event, context.scheduler.editable)) return false
                     anchor = context.hitTest(event.clientX, event.clientY)
                     if (!anchor) return false
                     context.select(position.event.id)
