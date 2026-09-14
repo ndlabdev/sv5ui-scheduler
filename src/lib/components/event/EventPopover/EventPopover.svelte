@@ -7,17 +7,16 @@
 </script>
 
 <script lang="ts" generics="T">
-    import { Button, Icon } from 'sv5ui'
+    import { Button } from 'sv5ui'
     import type { Snippet } from 'svelte'
     import type { SchedulerEvent } from '../../../types/event.types.js'
     import type { SchedulerContext } from '../../../types/context.types.js'
     import type { EventDetailSnippetProps } from '../../../types/snippet.types.js'
-    import { formatDayRange, formatLongDate, formatTimeRange } from '../../../core/time/format.js'
     import { eventColor } from '../../../core/store/filters.js'
     import { isEditable } from '../../../core/store/normalize.js'
-    import { isSameDay } from '../../../core/time/zone.js'
     import { EVENT_SWATCH } from '../EventChip/event-chip.variants.js'
     import AnchoredPopover from '../../shared/AnchoredPopover.svelte'
+    import EventDetails from '../EventDetails/EventDetails.svelte'
     import { eventPopoverVariants } from './event-popover.variants.js'
 
     interface Props {
@@ -45,23 +44,8 @@
     let open = $state(false)
 
     const classes = eventPopoverVariants()
-    const allDay = $derived(event.allDay === true)
-    const lastDay = $derived(allDay ? event.end.subtract({ days: 1 }) : event.end)
-    const primary = $derived(
-        allDay && !isSameDay(event.start, lastDay)
-            ? formatDayRange(event, scheduler.locale)
-            : formatLongDate(event.start, scheduler.locale)
-    )
-    const secondary = $derived(
-        allDay
-            ? scheduler.labels.allDay
-            : formatTimeRange(event.start, event.end, scheduler.locale, scheduler.hour12)
-    )
     const deletable = $derived(isEditable(event, scheduler.editable))
     const color = $derived(eventColor(event, scheduler.calendars))
-    const calendar = $derived(
-        scheduler.calendars.find((candidate) => candidate.id === event.calendarId)
-    )
 
     function select() {
         onSelect(event.id)
@@ -116,19 +100,7 @@
                         />
                     </div>
                 </div>
-                <div class={classes.row()}>
-                    <Icon name="lucide:calendar" size={16} class={classes.icon()} />
-                    <div>
-                        <p class={classes.primary()}>{primary}</p>
-                        <p class={classes.secondary()}>{secondary}</p>
-                    </div>
-                </div>
-                {#if calendar}
-                    <div class={classes.row()} data-sch-detail-calendar>
-                        <span class={classes.calendarSwatch({ class: EVENT_SWATCH[color] })}></span>
-                        <p class={classes.secondary()}>{calendar.title}</p>
-                    </div>
-                {/if}
+                <EventDetails {event} {scheduler} class={classes.details()} />
                 {@render detail?.({ event, close })}
             </div>
         {/snippet}

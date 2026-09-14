@@ -37,7 +37,9 @@ export type { SchedulerLabels } from './labels.types.js'
 
 export type {
     CellSnippetProps,
+    EmptySnippetProps,
     EventDetailSnippetProps,
+    EventPanelSnippetProps,
     EventSnippetProps,
     HeaderSnippetProps,
     SidebarSnippetProps,

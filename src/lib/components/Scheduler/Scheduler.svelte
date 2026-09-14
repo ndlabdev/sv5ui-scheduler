@@ -35,11 +35,13 @@
     import type { SidebarSnippetProps, ToolbarSnippetProps } from '../../types/snippet.types.js'
     import type { PositionedEvent } from '../../types/layout.types.js'
     import type { SchedulerContext } from '../../types/context.types.js'
+    import type { SchedulerEvent } from '../../types/event.types.js'
     import type { StoreMiddleware } from '../../types/mutation.types.js'
     import type { ViewProps } from '../../types/view.types.js'
     import DefaultSidebar from '../sidebar/DefaultSidebar/DefaultSidebar.svelte'
     import Toolbar from './parts/Toolbar.svelte'
     import { syncBoundEvents } from './state/bound-events.svelte.js'
+    import EventPanel from '../event/EventPanel/EventPanel.svelte'
     import { createBuiltinViews } from '../views/builtin.js'
     import { SchedulerClock } from './state/clock.svelte.js'
     import { InteractionState } from './state/interaction-state.svelte.js'
@@ -91,8 +93,9 @@
         sidebarOpen = $bindable(true),
         sidebarSide = 'start',
         sidebarBreakpoint = 1024,
-        detailPopover = true,
+        detail = 'popover',
         eventDetail,
+        eventPanel,
         onMenu,
         toolbarActions,
         empty,
@@ -381,11 +384,27 @@
         onMenu?.()
     }
 
+    let panelEvent = $state.raw<SchedulerEvent<T> | null>(null)
+    let panelOpen = $state(false)
+    const currentPanelEvent = $derived(panelEvent ? findEvent(panelEvent.id) : null)
+    const panelSide = $derived(context.direction === 'rtl' ? 'left' : 'right')
+
+    function findEvent(eventId: string) {
+        return visibleEvents.find((item) => item.id === eventId) ?? store.get(eventId) ?? null
+    }
+
     function selectEvent(eventId: string | null) {
         interactionState.selectedEventId = eventId
-        if (eventId === null || !onEventClick) return
-        const clicked = visibleEvents.find((item) => item.id === eventId) ?? store.get(eventId)
-        if (clicked) onEventClick(clicked)
+        const clicked = eventId === null ? null : findEvent(eventId)
+        if (!clicked) return
+        onEventClick?.(clicked)
+        if (detail !== 'slideover') return
+        panelEvent = clicked
+        panelOpen = true
+    }
+
+    function closePanel() {
+        panelOpen = false
     }
 
     function deleteEvent(eventId: string) {
@@ -441,6 +460,9 @@
                 class: [config.slots.slideoverOverlay, overrides.slideoverOverlay]
             }),
             slideover: slots.slideover({ class: [config.slots.slideover, overrides.slideover] }),
+            detailPanel: slots.detailPanel({
+                class: [config.slots.detailPanel, overrides.detailPanel]
+            }),
             slideoverBody: slots.slideoverBody({
                 class: [config.slots.slideoverBody, overrides.slideoverBody]
             }),
@@ -508,7 +530,7 @@
                 focus={interactionState.focus}
                 selectedEventId={interactionState.selectedEventId}
                 onSelectEvent={selectEvent}
-                {detailPopover}
+                detailPopover={detail === 'popover'}
                 onDeleteEvent={deleteEvent}
                 {navigate}
                 interactions={viewInteractions}
@@ -539,6 +561,20 @@
                 </div>
             {/snippet}
         </Slideover>
+    {/if}
+    {#if detail === 'slideover' && panelEvent}
+        <EventPanel
+            event={currentPanelEvent ?? panelEvent}
+            open={panelOpen && currentPanelEvent !== null}
+            scheduler={context}
+            side={panelSide}
+            overlayClass={classes.slideoverOverlay}
+            contentClass={classes.detailPanel}
+            detail={eventDetail}
+            panel={eventPanel}
+            onClose={closePanel}
+            onDelete={deleteEvent}
+        />
     {/if}
     <div class="sr-only" aria-live="polite" aria-atomic="true">{announcer.message}</div>
 </div>

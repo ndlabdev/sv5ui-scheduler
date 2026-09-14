@@ -2,7 +2,7 @@ import { tv } from 'tailwind-variants'
 
 export const schedulerVariants = tv({
     slots: {
-        root: 'bg-surface text-on-surface relative flex h-full min-h-0 flex-col overflow-hidden',
+        root: 'bg-surface text-on-surface relative flex h-full min-h-0 flex-col overflow-clip',
         toolbar:
             'border-outline-variant flex shrink-0 flex-wrap items-center gap-2 border-b px-3 py-2',
         body: 'flex min-h-0 flex-1',
@@ -16,6 +16,7 @@ export const schedulerVariants = tv({
         slideoverOverlay: 'absolute',
         slideover: 'absolute w-80 max-w-full',
         slideoverBody: 'p-0 sm:p-0',
+        detailPanel: 'absolute w-96 max-w-full',
         view: 'relative min-h-0 flex-1',
         loading: 'bg-surface/60 absolute inset-0 z-20 p-4'
     }

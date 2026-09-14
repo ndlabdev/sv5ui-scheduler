@@ -188,7 +188,7 @@ describe('event detail popover', () => {
             props: {
                 timeZone: ZONE,
                 date: anchor,
-                detailPopover: false,
+                detail: false,
                 events: [input('z', '2026-09-09T09:00', '2026-09-09T10:00')]
             }
         })

@@ -175,14 +175,55 @@ export interface SidebarSnippetProps<T = unknown> {
 }
 
 /**
+ * Argument of the `empty` snippet, shown by the week, day and agenda views
+ * when the visible range holds no events.
+ */
+export interface EmptySnippetProps {
+    /**
+     * Name of the view showing the message, as registered.
+     */
+    view: string
+
+    /**
+     * The visible range that holds no events.
+     */
+    range: DateRange
+}
+
+/**
  * Argument of the `eventDetail` snippet, rendered under the default details
- * in the popover an event opens.
+ * in the popover or slide-over an event opens.
  */
 export interface EventDetailSnippetProps<T = unknown> {
     event: SchedulerEvent<T>
 
     /**
-     * Closes the popover.
+     * Closes the popover or slide-over.
      */
     close: () => void
+}
+
+/**
+ * Argument of the `eventPanel` snippet, which fills the slide-over an event
+ * opens when `detail` is `'slideover'`.
+ */
+export interface EventPanelSnippetProps<T = unknown> {
+    event: SchedulerEvent<T>
+
+    /**
+     * Closes the slide-over.
+     */
+    close: () => void
+
+    /**
+     * Deletes the event through the mutation pipeline and closes the panel.
+     * Does nothing when `deletable` is `false`.
+     */
+    remove: () => void
+
+    /**
+     * Whether the event may be deleted, following `editable` on the event
+     * and on the scheduler.
+     */
+    deletable: boolean
 }

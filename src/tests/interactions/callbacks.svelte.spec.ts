@@ -70,7 +70,7 @@ describe('onEventClick', () => {
     })
 
     it('reports the clicked event when the popover is off', async () => {
-        const { container, onEventClick } = mount({ detailPopover: false })
+        const { container, onEventClick } = mount({ detail: false })
         await wait(60)
         tap(chip(container, 'a'))
         await settle()
@@ -79,7 +79,7 @@ describe('onEventClick', () => {
     })
 
     it('hands over an occurrence with its series id', async () => {
-        const { container, onEventClick } = mount({ detailPopover: false })
+        const { container, onEventClick } = mount({ detail: false })
         await wait(60)
         const occurrence = [
             ...container.querySelectorAll<HTMLElement>('[data-sch-event^="standup@"]')
@@ -92,7 +92,7 @@ describe('onEventClick', () => {
     })
 
     it('fires from the keyboard on a focused chip', async () => {
-        const { container, onEventClick } = mount({ detailPopover: false })
+        const { container, onEventClick } = mount({ detail: false })
         await wait(60)
         const target = chip(container, 'a')
         target.focus()

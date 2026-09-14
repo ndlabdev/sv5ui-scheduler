@@ -8,6 +8,7 @@ import type { PositionedEvent, TimeScale } from './layout.types.js'
 import type { DateRange } from './range.types.js'
 import type {
     CellSnippetProps,
+    EmptySnippetProps,
     EventDetailSnippetProps,
     EventSnippetProps,
     HeaderSnippetProps
@@ -25,9 +26,12 @@ export interface ViewSnippets<T = unknown> {
     header?: Snippet<[HeaderSnippetProps]>
 
     /**
-     * Replaces the message a view shows when the range holds no events.
+     * Replaces the message a view shows when the range holds no events. The
+     * built-in week, day and agenda views centre it in the visible area; the
+     * month and year grids show none, since their empty cells already read as
+     * empty.
      */
-    empty?: Snippet
+    empty?: Snippet<[EmptySnippetProps]>
 
     /**
      * Extra content under the default details in an event's popover.

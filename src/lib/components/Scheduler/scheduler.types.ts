@@ -17,7 +17,9 @@ import type { BusinessHours, Holiday, TimeZoneId, WeekDay } from '../../types/ra
 import type { EventSourceFn } from '../../types/source.types.js'
 import type {
     CellSnippetProps,
+    EmptySnippetProps,
     EventDetailSnippetProps,
+    EventPanelSnippetProps,
     EventSnippetProps,
     HeaderSnippetProps,
     SidebarSnippetProps,
@@ -225,7 +227,7 @@ export type SchedulerProps<T = unknown> = Omit<HTMLAttributes<HTMLDivElement>, '
 
         /**
          * Called when an event is clicked or activated with the keyboard,
-         * whether or not `detailPopover` is shown. Occurrences of a series
+         * whichever `detail` mode is set. Occurrences of a series
          * arrive with their `seriesId`.
          */
         onEventClick?: (event: SchedulerEvent<T>) => void
@@ -238,10 +240,13 @@ export type SchedulerProps<T = unknown> = Omit<HTMLAttributes<HTMLDivElement>, '
         onSelectSlot?: (selection: SlotSelection) => void
 
         /**
-         * Open a popover with an event's details when it is clicked.
-         * @default true
+         * How an event's details open when it is clicked. `'popover'` anchors a
+         * small card to the event, `'slideover'` opens a panel inside the
+         * scheduler whose body `eventPanel` can replace, and `false` shows
+         * nothing so `onEventClick` can open your own view.
+         * @default 'popover'
          */
-        detailPopover?: boolean
+        detail?: 'popover' | 'slideover' | false
 
         /**
          * Panel beside the view. `true` renders the built-in sidebar: a date
@@ -310,14 +315,24 @@ export type SchedulerProps<T = unknown> = Omit<HTMLAttributes<HTMLDivElement>, '
         toolbarActions?: Snippet
 
         /**
-         * Replaces the message shown when the visible range holds no events.
+         * Replaces the message the week, day and agenda views show, centred in
+         * the visible area, when the range holds no events. The month and year
+         * grids show none, since their empty cells already read as empty.
          */
-        empty?: Snippet
+        empty?: Snippet<[EmptySnippetProps]>
 
         /**
-         * Extra content under the default details in an event's popover.
+         * Extra content under the default details in an event's popover or
+         * slide-over.
          */
         eventDetail?: Snippet<[EventDetailSnippetProps<T>]>
+
+        /**
+         * Replaces the body of the slide-over opened when `detail` is
+         * `'slideover'`, so its content can follow the kind of event. The
+         * panel keeps its title and close button.
+         */
+        eventPanel?: Snippet<[EventPanelSnippetProps<T>]>
 
         /**
          * Renders one event.
