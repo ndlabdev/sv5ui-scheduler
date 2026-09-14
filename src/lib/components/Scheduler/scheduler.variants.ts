@@ -14,6 +14,7 @@ export const schedulerVariants = tv({
         sidebarScroll: 'min-h-0 w-72 flex-1',
         sidebarEnd: 'border-s border-e-0',
         slideover: 'w-80 max-w-full',
+        slideoverBody: 'p-0',
         view: 'relative min-h-0 flex-1',
         loading: 'bg-surface/60 absolute inset-0 z-20 p-4'
     }

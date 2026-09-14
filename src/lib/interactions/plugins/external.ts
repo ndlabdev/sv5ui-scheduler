@@ -11,6 +11,7 @@ import type { GestureController } from '../engine/controller.svelte.js'
 import { pointerDrag } from '../engine/pointer.js'
 
 const DROP_TARGET = 'data-sch-drop-target'
+const SCHEDULER = 'data-sch-scheduler'
 const EVENT_NAME = 'sch-external-drag'
 const SLOTS_PER_EVENT = 2
 
@@ -97,7 +98,15 @@ export function externalInteraction<T>(controller: GestureController<T>): Intera
 }
 
 function dropTargetAt(document: Document, x: number, y: number): HTMLElement | null {
-    return document.elementFromPoint(x, y)?.closest<HTMLElement>(`[${DROP_TARGET}]`) ?? null
+    const element = document.elementFromPoint(x, y)
+    if (!element) return null
+    return (
+        element.closest<HTMLElement>(`[${DROP_TARGET}]`) ??
+        element
+            .closest<HTMLElement>(`[${SCHEDULER}]`)
+            ?.querySelector<HTMLElement>(`[${DROP_TARGET}]`) ??
+        null
+    )
 }
 
 function draftEvent<T>(

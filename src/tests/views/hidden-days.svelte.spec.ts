@@ -30,6 +30,7 @@ describe('hidden days', () => {
             '2026-09-10',
             '2026-09-11'
         ])
+        expect(container.querySelector('h2')?.textContent).toBe('Sep 7 \u2013 11, 2026')
     })
 
     it('draws five columns in the month view and splits spans across the weekend', async () => {

@@ -7,6 +7,7 @@ import {
     centre,
     column as timeColumn,
     frame,
+    input,
     iso,
     pointAt,
     pointer,
@@ -95,6 +96,39 @@ describe('drag from outside', () => {
         expect(mutation.after!.allDay).toBe(true)
         expect(iso(mutation.after!.start)).toBe('2026-09-15T00:00')
         expect(iso(mutation.after!.end)).toBe('2026-09-16T00:00')
+    })
+
+    it('drops onto the all-day row of the week grid as an all-day event', async () => {
+        const onMutate = vi.fn()
+        const screen = render(DragSourceScheduler, {
+            item,
+            onMutate,
+            date: anchor,
+            initial: [input('trip', '2026-09-09', '2026-09-10', { allDay: true })]
+        })
+        const handle = source(screen.container)
+        const cell = screen.container.querySelector<HTMLElement>(
+            '[data-sch-day-index="3"][data-sch-all-day]'
+        )!
+        const target = centre(cell)
+        handle.dispatchEvent(pointer('pointerdown', centre(handle)))
+        handle.dispatchEvent(pointer('pointermove', target))
+        await frame()
+        expect(ghost(screen.container)).not.toBeNull()
+        const ghostBox = ghost(screen.container)!.getBoundingClientRect()
+        const cellBox = cell.getBoundingClientRect()
+        expect(ghostBox.top).toBeGreaterThanOrEqual(cellBox.top)
+        expect(ghostBox.bottom).toBeLessThanOrEqual(cellBox.bottom)
+        expect(ghostBox.left).toBeGreaterThanOrEqual(cellBox.left - 1)
+        expect(ghostBox.right).toBeLessThanOrEqual(cellBox.right + 1)
+        handle.dispatchEvent(pointer('pointerup', target))
+        await settle()
+        const mutation: Mutation = onMutate.mock.calls[0][0]
+        expect(mutation.kind).toBe('create')
+        expect(mutation.after!.allDay).toBe(true)
+        expect(iso(mutation.after!.start)).toBe('2026-09-10T00:00')
+        expect(iso(mutation.after!.end)).toBe('2026-09-11T00:00')
+        expect(screen.component.getEvents()).toHaveLength(2)
     })
 
     it('removes the ghost when the pointer leaves the grid and creates nothing on release', async () => {

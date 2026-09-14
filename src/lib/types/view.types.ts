@@ -160,8 +160,9 @@ export interface ViewDefinition<T = unknown> {
     columnsPerRow?: number
 
     /**
-     * Title the toolbar shows for the current range. Falls back to the
-     * formatted range when omitted.
+     * Title the toolbar shows for the current range. `range` spans the days
+     * left after `hiddenDays`, so a week without weekends reads Monday to
+     * Friday. Falls back to the formatted range when omitted.
      */
     title?: (anchor: ZonedDateTime, range: DateRange, context: SchedulerContext) => string
 

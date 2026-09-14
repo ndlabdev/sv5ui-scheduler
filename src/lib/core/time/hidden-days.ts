@@ -1,5 +1,5 @@
 import type { ZonedDateTime } from '@internationalized/date'
-import type { WeekDay } from '../../types/range.types.js'
+import type { DateRange, WeekDay } from '../../types/range.types.js'
 import { warnOnce } from '../utils/dev.js'
 import { weekDayOf } from './week.js'
 
@@ -29,4 +29,10 @@ export function visibleColumns(
 ): number {
     if (columnsPerRow === undefined || total === 0) return shown
     return Math.max(Math.round((columnsPerRow * shown) / total), 1)
+}
+
+export function visibleRange(range: DateRange, days: readonly ZonedDateTime[]): DateRange {
+    const last = days[days.length - 1]
+    if (!last) return range
+    return { start: days[0], end: last.add({ days: 1 }) }
 }

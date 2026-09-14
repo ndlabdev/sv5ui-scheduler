@@ -1,7 +1,7 @@
 import { parseZonedDateTime } from '@internationalized/date'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { resetWarnings } from '../utils/dev.js'
-import { normalizeHiddenDays, visibleColumns, visibleDays } from './hidden-days.js'
+import { normalizeHiddenDays, visibleColumns, visibleDays, visibleRange } from './hidden-days.js'
 
 const monday = parseZonedDateTime('2026-09-07T00:00[Asia/Ho_Chi_Minh]')
 const week = Array.from({ length: 7 }, (_, index) => monday.add({ days: index }))
@@ -49,5 +49,18 @@ describe('visibleColumns', () => {
 
     it('puts every day in one row when the view sets no row size', () => {
         expect(visibleColumns(undefined, 5, 7)).toBe(5)
+    })
+})
+
+describe('visibleRange', () => {
+    const range = { start: monday, end: monday.add({ days: 7 }) }
+
+    it('spans the first to the last shown day', () => {
+        const shown = visibleRange(range, visibleDays(week, [0, 6]))
+        expect(iso([shown.start, shown.end])).toEqual(['2026-09-07', '2026-09-12'])
+    })
+
+    it('keeps the full range when no day is shown', () => {
+        expect(visibleRange(range, [])).toBe(range)
     })
 })

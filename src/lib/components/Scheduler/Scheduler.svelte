@@ -22,7 +22,8 @@
     import {
         normalizeHiddenDays,
         visibleColumns,
-        visibleDays
+        visibleDays,
+        visibleRange
     } from '../../core/time/hidden-days.js'
     import { eachDay } from '../../core/time/range.js'
     import { createTimeScale } from '../../core/time/scale.js'
@@ -220,8 +221,9 @@
     const scale = $derived(
         createTimeScale({ slotMinutes, slotHeight, startHour: dayStartHour, endHour: dayEndHour })
     )
+    const shownRange = $derived(visibleRange(range, days))
     const title = $derived(
-        definition.title?.(anchor, range, context) ?? formatDayRange(range, locale)
+        definition.title?.(anchor, shownRange, context) ?? formatDayRange(shownRange, locale)
     )
     const eventFilter = $derived(createEventFilter({ hiddenCalendars, search, locale, filter }))
     const visibleEvents = $derived(store.query(range).filter(eventFilter))
@@ -397,6 +399,9 @@
                 class: [config.slots.sidebarScroll, overrides.sidebarScroll]
             }),
             slideover: slots.slideover({ class: [config.slots.slideover, overrides.slideover] }),
+            slideoverBody: slots.slideoverBody({
+                class: [config.slots.slideoverBody, overrides.slideoverBody]
+            }),
             view: slots.view({ class: [config.slots.view, overrides.view] }),
             loading: slots.loading({ class: [config.slots.loading, overrides.loading] })
         }
@@ -476,7 +481,7 @@
             bind:open={panel.overlayOpen}
             side={slideoverSide}
             title={labels.menu}
-            ui={{ content: classes.slideover }}
+            ui={{ content: classes.slideover, body: classes.slideoverBody }}
         >
             {#snippet body()}
                 <div data-sch-sidebar>

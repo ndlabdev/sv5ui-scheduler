@@ -360,6 +360,27 @@ describe('built-in sidebar', () => {
         }
     })
 
+    it('keeps one padding around the panel inside the slide-over', async () => {
+        const docked = await boot()
+        const dockedPanel = docked.container.querySelector<HTMLElement>(
+            '[data-sch-default-sidebar]'
+        )!
+        const dockedInset =
+            dockedPanel
+                .querySelector<HTMLElement>('[data-sch-date-navigator]')!
+                .getBoundingClientRect().left - dockedPanel.getBoundingClientRect().left
+        docked.unmount()
+
+        const narrow = await boot({}, 700)
+        menu(narrow.container).click()
+        await wait(400)
+        const dialog = document.querySelector<HTMLElement>('[role="dialog"]')!
+        const body = dialog.querySelector<HTMLElement>('[data-sch-sidebar]')!.parentElement!
+        const navigator = dialog.querySelector<HTMLElement>('[data-sch-date-navigator]')!
+        const inset = navigator.getBoundingClientRect().left - body.getBoundingClientRect().left
+        expect(inset).toBe(dockedInset)
+    })
+
     it('hides calendars and searches without any binding in the app', async () => {
         const screen = await boot()
         expect(shownIds(screen.container)).toEqual(['gym', 'standup'])
