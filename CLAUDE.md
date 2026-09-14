@@ -66,6 +66,8 @@ src/lib/
     event/              EventChip, EventPopover
     shared/             internal parts used by more than one component
 src/tests/              cross-component specs grouped by area: a11y, interactions, views, sidebar, contract
+src/routes/             demo site: overview plus one page per feature under demos/
+src/demo/               demo-only parts (nav, sample data, PageHeader, DemoCard, CodeBlock, LogPanel), never packaged
 ```
 
 Each public component: `Component.svelte`, `component.types.ts`, `component.variants.ts`, `Component.svelte.spec.ts`, `index.ts`. A part private to one component lives in that component's folder; a part used by several lives in `components/shared/`. Every area barrel (`types`, `core`, `components`, `interactions`, `config`) is an explicit named list.
