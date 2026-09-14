@@ -64,6 +64,7 @@
     {onMutate}
     {onSelectSlot}
     creatable={false}
+    height={780}
 />`
 </script>
 
@@ -107,7 +108,7 @@
         title="A calendar app in one component"
         description="Drag events to move them, pull their edges to resize, and drop items from the sidebar list onto the grid. Narrow the window to see the sidebar turn into a slide-over."
         {code}
-        height="h-[780px]"
+        height="h-auto"
     >
         <Scheduler
             creatable={false}
@@ -124,7 +125,7 @@
             sidebar
             {onMutate}
             {onSelectSlot}
-            class="h-full"
+            height={780}
         />
     </DemoCard>
 </div>

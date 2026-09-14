@@ -105,6 +105,7 @@
         ui,
         class: className,
         dir,
+        height,
         event: eventSnippet,
         cell,
         header,
@@ -479,6 +480,7 @@
     {@attach readDirection}
     bind:clientWidth={rootWidth}
     class={classes.root}
+    style:height={typeof height === 'number' ? `${height}px` : height}
     data-sch-scheduler
     data-sch-view={view}
     onscrollcapture={() => interactionState.invalidateColumns()}

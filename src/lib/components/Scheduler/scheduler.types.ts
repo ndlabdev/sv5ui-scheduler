@@ -38,6 +38,15 @@ export type SchedulerProps<T = unknown> = Omit<HTMLAttributes<HTMLDivElement>, '
         ref?: HTMLElement | null
 
         /**
+         * Height of the scheduler, in pixels or any CSS length such as
+         * `'70dvh'`. Leave unset to fill the container: give the container a
+         * height, or place the scheduler in a flex column with
+         * `class="min-h-0 flex-1"` so it takes the remaining space. Without
+         * either, it grows with its content.
+         */
+        height?: number | string
+
+        /**
          * The events, as a plain bindable array. Changes made through the UI
          * are written back into it, so it stays the single source of truth.
          * Ignored when `source` is set.

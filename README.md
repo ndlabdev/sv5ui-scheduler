@@ -33,9 +33,7 @@ Bind an array of events and you have a working calendar. Every change the user m
     ])
 </script>
 
-<div style="height: 720px">
-    <Scheduler bind:events view="week" timeZone="Europe/London" onMutate={api.save} />
-</div>
+<Scheduler bind:events view="week" timeZone="Europe/London" onMutate={api.save} height="80dvh" />
 ```
 
 ## Why @sv5ui/scheduler
@@ -75,12 +73,23 @@ The `@source` path is relative to the stylesheet. Add `<ModeWatcher />` from `mo
     let events = $state<EventInput[]>([])
 </script>
 
-<div style="height: 720px">
-    <Scheduler bind:events />
+<div class="flex h-dvh flex-col">
+    <header>Your app header</header>
+    <Scheduler bind:events class="min-h-0 flex-1" />
 </div>
 ```
 
-The scheduler fills its container, so give the container a height.
+The scheduler takes the remaining height of the page and scrolls inside it. See [Sizing](#sizing) for the other layouts.
+
+## Sizing
+
+The scheduler fills whatever height its layout gives it and scrolls inside. Three layouts cover every case, and none of them needs a hard-coded number for the common one:
+
+| Layout             | How                                                                               | When                                       |
+| ------------------ | --------------------------------------------------------------------------------- | ------------------------------------------ |
+| Rest of the page   | Put it in a flex column: `<Scheduler class="min-h-0 flex-1" />` under your header | The calendar is the main screen of the app |
+| Grows with content | Nothing to do; without a bounded height every view expands to its content         | A calendar in the middle of a long page    |
+| Fixed size         | `height={640}` or `height="70dvh"`, or size the parent                            | A card, a dashboard tile, a modal          |
 
 ## Events
 
