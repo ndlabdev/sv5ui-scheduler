@@ -13,6 +13,47 @@
 
     let events = $state<EventInput[]>(teamEvents())
     let customEvents = $state<EventInput[]>(teamEvents())
+
+    interface Meeting {
+        status: 'confirmed' | 'tentative'
+        mine: boolean
+    }
+
+    const STATUSES: Meeting['status'][] = ['confirmed', 'tentative']
+    let filteredEvents = $state<EventInput<Meeting>[]>(
+        teamEvents().map((event, index) => ({
+            ...event,
+            data: { status: STATUSES[index % 2], mine: index % 3 !== 0 }
+        }))
+    )
+    let status = $state('all')
+    let onlyMine = $state(false)
+
+    const statusItems = [
+        { label: 'All', value: 'all' },
+        { label: 'Confirmed', value: 'confirmed', icon: 'lucide:check' },
+        { label: 'Tentative', value: 'tentative', icon: 'lucide:help-circle' }
+    ]
+
+    function keep(event: SchedulerEvent<Meeting>) {
+        if (!event.data) return true
+        if (status !== 'all' && event.data.status !== status) return false
+        return !onlyMine || event.data.mine
+    }
+
+    const filterCode = `<ToggleGroup items={statusItems} bind:value={status} />
+<Switch bind:checked={onlyMine} />
+
+<Scheduler
+    bind:events
+    {calendars}
+    bind:hiddenCalendars
+    bind:search
+    sidebar
+    filter={(event) =>
+        (status === 'all' || event.data?.status === status) &&
+        (!onlyMine || event.data?.mine)}
+/>`
     let side = $state('start')
     let open = $state(true)
 
@@ -49,6 +90,15 @@
 
 {#snippet header()}
     <p class="px-1 text-sm font-semibold text-on-surface">Team calendar</p>
+{/snippet}
+
+{#snippet filterControls()}
+    <FormField label="Status">
+        <ToggleGroup items={statusItems} bind:value={status} size="sm" variant="outline" />
+    </FormField>
+    <FormField label="Only my meetings">
+        <Switch bind:checked={onlyMine} />
+    </FormField>
 {/snippet}
 
 {#snippet footer()}
@@ -153,6 +203,24 @@
             {timeZone}
             {calendars}
             sidebar={agenda}
+            class="h-full"
+        />
+    </DemoCard>
+
+    <DemoCard
+        title="Filter by your own data"
+        description="Calendars and search are built in; filter adds any rule of yours on top, here the status and owner stored in event.data. All three run together, so the sidebar checklist still applies."
+        code={filterCode}
+        controls={filterControls}
+        height="h-[680px]"
+    >
+        <Scheduler
+            creatable={false}
+            bind:events={filteredEvents}
+            {timeZone}
+            {calendars}
+            sidebar
+            filter={keep}
             class="h-full"
         />
     </DemoCard>
