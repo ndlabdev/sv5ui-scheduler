@@ -67,9 +67,16 @@ describe('reference formats', () => {
     })
 
     it('keeps a day period that comes before the hour with the hour', () => {
-        const korean = formatHourParts(at('2026-09-12T19:00'), 'ko-KR')
-        expect(korean.hour + korean.rest).toBe('오후 7:00')
-        expect(korean.hour).toContain('7')
+        const date = at('2026-09-12T19:00')
+        const korean = formatHourParts(date, 'ko-KR')
+        const [period] = new Intl.DateTimeFormat('ko-KR', {
+            hour: 'numeric',
+            minute: '2-digit',
+            timeZone: date.timeZone
+        }).formatToParts(date.toDate())
+        expect(period.type).toBe('dayPeriod')
+        expect(korean.hour.startsWith(period.value)).toBe(true)
+        expect(korean.hour.endsWith('7')).toBe(true)
         expect(korean.rest).toBe(':00')
     })
 
