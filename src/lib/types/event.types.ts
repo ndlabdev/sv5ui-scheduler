@@ -103,6 +103,13 @@ export type EventInput<T = unknown> = Omit<SchedulerEvent<T>, 'start' | 'end' | 
 }
 
 /**
+ * An event to create, as the `createPanel` snippet hands it to `create`.
+ * Identical to `EventInput` except that `id` may be left for the scheduler
+ * to generate.
+ */
+export type NewEventInput<T = unknown> = Omit<EventInput<T>, 'id'> & { id?: string }
+
+/**
  * A named group of events, such as Work or Personal. Events join one through
  * `calendarId`.
  */

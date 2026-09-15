@@ -42,14 +42,6 @@ export function minutesBetween(from: ZonedDateTime, to: ZonedDateTime): number {
     return (to.toDate().getTime() - from.toDate().getTime()) / MS_PER_MINUTE
 }
 
-export function minutesFromDayStart(date: ZonedDateTime): number {
-    return minutesBetween(startOfDay(date), date)
-}
-
-export function dayLengthMinutes(dayStart: ZonedDateTime): number {
-    return minutesBetween(dayStart, endOfDay(dayStart))
-}
-
 export function isSameDay(a: ZonedDateTime, b: ZonedDateTime): boolean {
     return a.year === b.year && a.month === b.month && a.day === b.day
 }

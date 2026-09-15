@@ -59,6 +59,7 @@ function harness(options: GestureOptions = {}) {
         step: vi.fn(),
         navigate: vi.fn(),
         selectSlot: vi.fn(),
+        selectRange: vi.fn(),
         newEventId: () => `new-${++ids}`,
         hitTest: () => null,
         snap: (date) => date,

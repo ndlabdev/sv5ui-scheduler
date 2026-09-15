@@ -53,6 +53,11 @@ export interface SchedulerLabels {
     newEvent: string
 
     /**
+     * Title of the panel that opens to create an event.
+     */
+    createEvent: string
+
+    /**
      * Label of the "+N more" link in a full month cell.
      */
     more: (count: number) => string

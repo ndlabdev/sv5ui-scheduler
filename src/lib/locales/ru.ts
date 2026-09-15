@@ -23,6 +23,7 @@ export const ru: SchedulerLabels = {
     searchEvents: 'Поиск событий',
     unscheduled: 'Не запланировано',
     newEvent: 'Новое событие',
+    createEvent: 'Создать событие',
     more: (count) => `+${count} ещё`,
     dayCell: (date, count) =>
         count === 0 ? `${date}, нет событий` : `${date}, ${sobytiya(count)}`,

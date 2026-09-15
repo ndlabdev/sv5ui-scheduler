@@ -45,7 +45,8 @@ function setup(attached = true) {
         step: vi.fn(),
         navigate: vi.fn(),
         announce: vi.fn(),
-        selectSlot: vi.fn()
+        selectSlot: vi.fn(),
+        selectRange: vi.fn()
     }
     const state = new InteractionState<unknown>({
         root: () => (attached ? root : null),
@@ -58,6 +59,7 @@ function setup(attached = true) {
         scheduler: () => scheduler,
         slotMinutes: () => 30,
         creatable: () => true,
+        proposeCreate: () => false,
         store,
         ...spies
     })

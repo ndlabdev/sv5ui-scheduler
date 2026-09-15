@@ -16,6 +16,7 @@
     import { createRegistry } from '../../core/registry/registry.js'
     import { EventStore } from '../../core/store/event-store.svelte.js'
     import { createEventFilter } from '../../core/store/filters.js'
+    import { normalizeEvent } from '../../core/store/normalize.js'
     import { MutationPipeline } from '../../core/store/mutations.svelte.js'
     import { createSourceLoader } from '../../core/store/sources.js'
     import { formatDayRange } from '../../core/time/format.js'
@@ -35,12 +36,14 @@
     import type { SidebarSnippetProps, ToolbarSnippetProps } from '../../types/snippet.types.js'
     import type { PositionedEvent } from '../../types/layout.types.js'
     import type { SchedulerContext } from '../../types/context.types.js'
-    import type { SchedulerEvent } from '../../types/event.types.js'
+    import type { NewEventInput, SchedulerEvent } from '../../types/event.types.js'
+    import type { SlotSelection } from '../../types/interaction.types.js'
     import type { StoreMiddleware } from '../../types/mutation.types.js'
     import type { ViewProps } from '../../types/view.types.js'
     import DefaultSidebar from '../sidebar/DefaultSidebar/DefaultSidebar.svelte'
     import Toolbar from './parts/Toolbar.svelte'
     import { syncBoundEvents } from './state/bound-events.svelte.js'
+    import CreatePanel from '../event/CreatePanel/CreatePanel.svelte'
     import EventPanel from '../event/EventPanel/EventPanel.svelte'
     import { createBuiltinViews } from '../views/builtin.js'
     import { SchedulerClock } from './state/clock.svelte.js'
@@ -86,6 +89,8 @@
         editable = true,
         onEventClick,
         onSelectSlot,
+        createPanel,
+        draft = $bindable(null),
         sidebar = false,
         sidebarHeader,
         sidebarFooter,
@@ -134,7 +139,9 @@
         scheduler: () => context,
         slotMinutes: () => slotMinutes,
         creatable: () => creatable,
-        selectSlot: (point) => onSelectSlot?.(slotSelection(point, slotMinutes)),
+        proposeCreate: () => createPanel !== undefined,
+        selectSlot: (point) => proposeSlot(slotSelection(point, slotMinutes)),
+        selectRange: proposeSlot,
         store,
         commit: (request) => void pipeline.commit(request),
         step,
@@ -408,6 +415,24 @@
         panelOpen = false
     }
 
+    function proposeSlot(selection: SlotSelection) {
+        onSelectSlot?.(selection)
+        if (createPanel) draft = selection
+    }
+
+    function closeDraft() {
+        draft = null
+    }
+
+    function createEvent(input: NewEventInput<T>) {
+        const after = normalizeEvent(
+            { ...input, id: input.id ?? interactionState.nextEventId() },
+            timeZone
+        )
+        void pipeline.commit({ kind: 'create', eventId: after.id, before: null, after })
+        announcer.announce(labels.announce.created(after))
+    }
+
     function deleteEvent(eventId: string) {
         const before = store.get(eventId)
         if (!before || before.editable === false) return
@@ -563,6 +588,18 @@
                 </div>
             {/snippet}
         </Slideover>
+    {/if}
+    {#if createPanel}
+        <CreatePanel
+            {draft}
+            scheduler={context}
+            side={panelSide}
+            overlayClass={classes.slideoverOverlay}
+            contentClass={classes.detailPanel}
+            panel={createPanel}
+            onClose={closeDraft}
+            onCreate={createEvent}
+        />
     {/if}
     {#if detail === 'slideover' && panelEvent}
         <EventPanel

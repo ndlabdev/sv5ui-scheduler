@@ -10,6 +10,7 @@ export type {
 export type {
     EventColor,
     EventInput,
+    NewEventInput,
     SchedulerCalendar,
     SchedulerEvent,
     SchedulerResource
@@ -37,6 +38,7 @@ export type { SchedulerLabels } from './labels.types.js'
 
 export type {
     CellSnippetProps,
+    CreatePanelSnippetProps,
     EmptySnippetProps,
     EventDetailSnippetProps,
     EventPanelSnippetProps,

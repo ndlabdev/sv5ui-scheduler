@@ -12,7 +12,8 @@ import type {
     GridFocus,
     HitTarget,
     InteractionContext,
-    InteractionPreview
+    InteractionPreview,
+    SlotSelection
 } from '../../../types/interaction.types.js'
 import type { SchedulerContext } from '../../../types/context.types.js'
 import type { TimeScale } from '../../../types/layout.types.js'
@@ -29,7 +30,9 @@ export interface InteractionStateOptions<T> {
     readonly scheduler: () => SchedulerContext
     readonly slotMinutes: () => number
     readonly creatable: () => boolean
+    readonly proposeCreate: () => boolean
     readonly selectSlot: (point: Pick<HitTarget, 'date' | 'allDay'>) => void
+    readonly selectRange: (selection: SlotSelection) => void
     readonly store: EventStore<T>
     readonly commit: (request: MutationRequest<T>) => void
     readonly step: (direction: 1 | -1) => void
@@ -51,7 +54,11 @@ export class InteractionState<T> {
         this.#options = options
         this.gesture = new GestureController<T>(
             () => this.context,
-            () => ({ defaultMinutes: options.slotMinutes() * 2, creatable: options.creatable() })
+            () => ({
+                defaultMinutes: options.slotMinutes() * 2,
+                creatable: options.creatable(),
+                proposeCreate: options.proposeCreate()
+            })
         )
         this.context = createInteractionContext(this, options)
     }
@@ -121,6 +128,7 @@ function createInteractionContext<T>(
         step: (direction) => options.step(direction),
         navigate: (date, view) => options.navigate(date, view),
         selectSlot: (point) => options.selectSlot(point),
+        selectRange: (selection) => options.selectRange(selection),
         newEventId: () => state.nextEventId(),
         hitTest: (clientX, clientY) => state.hitTest(clientX, clientY),
         snap: (value) => snapToSlot(value, options.slotMinutes()),

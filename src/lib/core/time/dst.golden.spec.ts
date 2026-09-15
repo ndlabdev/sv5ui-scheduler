@@ -3,14 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { createRange, splitByDay } from './range.js'
 import { createTimeScale } from './scale.js'
 import { startOfWeek } from './week.js'
-import {
-    dayLengthMinutes,
-    endOfDay,
-    minutesBetween,
-    minutesFromDayStart,
-    startOfDay,
-    toZoned
-} from './zone.js'
+import { endOfDay, minutesBetween, startOfDay, toZoned } from './zone.js'
 
 interface Transition {
     zone: string
@@ -93,7 +86,7 @@ describe.each(TRANSITIONS)('$zone $day ($kind)', (t) => {
     })
 
     it(`is ${t.length} minutes long`, () => {
-        expect(dayLengthMinutes(dayStart)).toBe(t.length)
+        expect(minutesBetween(dayStart, endOfDay(dayStart))).toBe(t.length)
         expect(minutesBetween(dayStart, endOfDay(nine))).toBe(t.length)
     })
 
@@ -121,7 +114,7 @@ describe.each(TRANSITIONS)('$zone $day ($kind)', (t) => {
     it('measures 09:00 from day start in real minutes, not wall clock', () => {
         const wallMinutes = 9 * 60
         const shift = t.kind === 'gap' ? -60 : 60
-        expect(minutesFromDayStart(nine)).toBe(wallMinutes + shift)
+        expect(minutesBetween(startOfDay(nine), nine)).toBe(wallMinutes + shift)
     })
 
     it('splits an event crossing the change into segments of real length', () => {
@@ -146,7 +139,7 @@ describe.each(TRANSITIONS)('$zone $day ($kind)', (t) => {
         const weekStart = startOfWeek(nine, 1)
         expect(weekStart.hour).toBe(0)
         expect(weekStart.minute).toBe(0)
-        expect(minutesFromDayStart(weekStart)).toBe(0)
+        expect(minutesBetween(startOfDay(weekStart), weekStart)).toBe(0)
     })
 
     describe('TimeScale', () => {
@@ -209,7 +202,10 @@ describe('repeated wall time', () => {
             expect(first.hour).toBe(second.hour)
             expect(first.minute).toBe(second.minute)
             expect(minutesBetween(first, second)).toBe(60)
-            expect(minutesFromDayStart(second) - minutesFromDayStart(first)).toBe(60)
+            expect(
+                minutesBetween(startOfDay(second), second) -
+                    minutesBetween(startOfDay(first), first)
+            ).toBe(60)
         }
     )
 
@@ -237,11 +233,11 @@ describe('day that starts after midnight', () => {
 
     it('starts at the first valid instant, 01:00', () => {
         expect(startOfDay(day).toString()).toBe('2026-09-06T01:00:00-03:00[America/Santiago]')
-        expect(minutesFromDayStart(startOfDay(day))).toBe(0)
+        expect(minutesBetween(startOfDay(startOfDay(day)), startOfDay(day))).toBe(0)
     })
 
     it('is 23 hours long counted from that instant', () => {
-        expect(dayLengthMinutes(startOfDay(day))).toBe(1380)
+        expect(minutesBetween(startOfDay(day), endOfDay(startOfDay(day)))).toBe(1380)
     })
 
     it('treats 23:30 of the previous day as the previous day', () => {

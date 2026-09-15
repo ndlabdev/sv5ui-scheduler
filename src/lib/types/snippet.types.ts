@@ -1,5 +1,5 @@
 import type { ZonedDateTime } from '@internationalized/date'
-import type { SchedulerEvent } from './event.types.js'
+import type { NewEventInput, SchedulerEvent } from './event.types.js'
 import type { PositionedEvent } from './layout.types.js'
 import type { SchedulerContext } from './context.types.js'
 import type { DateRange, Holiday } from './range.types.js'
@@ -201,6 +201,39 @@ export interface EventDetailSnippetProps<T = unknown> {
      * Closes the popover or slide-over.
      */
     close: () => void
+}
+
+/**
+ * Argument of the `createPanel` snippet, which fills the panel that opens
+ * when the user picks an empty slot, drags over empty slots or presses Enter,
+ * and when the application sets `draft`.
+ */
+export interface CreatePanelSnippetProps<T = unknown> {
+    /**
+     * Start of the picked range, snapped to the grid.
+     */
+    start: ZonedDateTime
+
+    /**
+     * Exclusive end of the picked range.
+     */
+    end: ZonedDateTime
+
+    /**
+     * A whole day or several days were picked rather than a time range.
+     */
+    allDay: boolean
+
+    /**
+     * Closes the panel without creating anything.
+     */
+    close: () => void
+
+    /**
+     * Creates the event through the mutation pipeline and closes the panel.
+     * `id` is generated when omitted; `onMutate` may replace it.
+     */
+    create: (input: NewEventInput<T>) => void
 }
 
 /**

@@ -64,6 +64,13 @@ export const demoGroups: DemoGroup[] = [
                 href: resolve('/demos/drag-and-drop')
             },
             {
+                title: 'Event editor',
+                description:
+                    'Open your own form when the user picks a slot, drags a range or presses a button.',
+                icon: 'lucide:square-pen',
+                href: resolve('/demos/editor')
+            },
+            {
                 title: 'Keyboard',
                 description: 'Every gesture from the keyboard, with screen reader announcements.',
                 icon: 'lucide:keyboard',
@@ -137,7 +144,8 @@ export const demoGroups: DemoGroup[] = [
         demos: [
             {
                 title: 'Sidebar',
-                description: 'The built-in sidebar, its slots, and a sidebar of your own.',
+                description:
+                    'The built-in sidebar, its slots, a sidebar of your own, and filters on your data.',
                 icon: 'lucide:panel-left',
                 href: resolve('/demos/sidebar')
             },

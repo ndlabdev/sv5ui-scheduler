@@ -19,6 +19,7 @@ export const vi: SchedulerLabels = {
     searchEvents: 'Tìm sự kiện',
     unscheduled: 'Chưa xếp lịch',
     newEvent: 'Sự kiện mới',
+    createEvent: 'Tạo sự kiện',
     more: (count) => `+${count} nữa`,
     dayCell: (date, count) =>
         count === 0 ? `${date}, không có sự kiện` : `${date}, ${count} sự kiện`,

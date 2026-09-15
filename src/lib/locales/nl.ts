@@ -21,6 +21,7 @@ export const nl: SchedulerLabels = {
     searchEvents: 'Afspraken zoeken',
     unscheduled: 'Niet ingepland',
     newEvent: 'Nieuwe afspraak',
+    createEvent: 'Afspraak maken',
     more: (count) => `+${count} meer`,
     dayCell: (date, count) =>
         count === 0 ? `${date}, geen afspraken` : `${date}, ${afspraken(count)}`,

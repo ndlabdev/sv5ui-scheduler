@@ -28,6 +28,7 @@ export interface GestureSession<T = unknown> {
 export interface GestureOptions {
     readonly defaultMinutes?: number
     readonly creatable?: boolean
+    readonly proposeCreate?: boolean
 }
 
 const MUTATION_KIND: Record<GestureMode, MutationKind> = {
@@ -60,7 +61,7 @@ export class GestureController<T = unknown> {
         const draft = createDraft(anchor, anchor, context.scale.slotMinutes)
         const event: SchedulerEvent<T> = {
             id: context.newEventId(),
-            title: context.scheduler.labels.newEvent,
+            title: this.#options().proposeCreate ? '' : context.scheduler.labels.newEvent,
             start: draft.start,
             end: draft.end,
             allDay: draft.allDay
@@ -124,6 +125,7 @@ export class GestureController<T = unknown> {
         if (!inserts && isUnchanged(session.event, session.draft)) return false
         const after = applyDraft(session.event, session.draft)
         const context = this.#context()
+        if (this.#propose(session, after)) return true
         const mutation = {
             kind: inserts ? 'create' : MUTATION_KIND[session.mode],
             eventId: session.event.id,
@@ -140,6 +142,16 @@ export class GestureController<T = unknown> {
             }
         )
         if (message) context.announce(message)
+        return true
+    }
+
+    #propose(session: GestureSession<T>, after: SchedulerEvent<T>): boolean {
+        if (session.mode !== 'create' || !this.#options().proposeCreate) return false
+        this.#context().selectRange({
+            start: after.start,
+            end: after.end,
+            allDay: after.allDay === true
+        })
         return true
     }
 

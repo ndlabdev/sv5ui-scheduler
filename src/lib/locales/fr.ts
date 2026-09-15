@@ -21,6 +21,7 @@ export const fr: SchedulerLabels = {
     searchEvents: 'Rechercher des événements',
     unscheduled: 'Non planifié',
     newEvent: 'Nouvel événement',
+    createEvent: 'Créer un événement',
     more: (count) => `+${count} de plus`,
     dayCell: (date, count) =>
         count === 0 ? `${date}, aucun événement` : `${date}, ${evenements(count)}`,

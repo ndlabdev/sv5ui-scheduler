@@ -62,7 +62,7 @@ export function headerColumns(count: number): string {
     return `4rem ${dayColumns(count)}`
 }
 
-export function hourHeight(scale: TimeScale): number {
+function hourHeight(scale: TimeScale): number {
     return scale.slotHeight * (MINUTES_PER_HOUR / scale.slotMinutes)
 }
 

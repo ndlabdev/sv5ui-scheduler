@@ -123,12 +123,33 @@ Pass `onMutate` to persist what the user does. The change is shown immediately; 
 ```
 
 - `mutation.kind` is `create`, `update`, `move`, `resize` or `delete`, with `before` and `after`.
-- Return nothing to confirm the change, or return the server's version of the event. When it differs from `after`, `onConflict` decides between `'keep-server'` and `'keep-local'`.
+- Return nothing to confirm the change, or return the server's version of the event. When it differs from `after`, `onConflict` decides between `'keep-server'` and `'keep-local'`. If the server assigns a new `id`, as most do on create, the event adopts it.
+- A save is confirmed even if you reassign `events` from a refetch while it is in flight: the confirmed state is written back once the server answers.
+- `start` and `end` accept ISO strings with `Z`, an offset, or no zone (read in `timeZone`), and date-only strings for all-day events.
 - Changes to different events never wait for each other. Changes to the same event run in order.
 
 ### Your own editor
 
-The built-in popover shows an event's details and lets the user delete it. To open your own form instead, turn the popover off and listen for clicks:
+Every app stores something different, so the form is yours and the scheduler provides the flow. Pass `createPanel` and a panel opens inside the calendar whenever the user picks where a new event should go: a click on an empty slot or day, a drag over empty slots, or Enter on a focused slot. The snippet receives the picked range and a `create` function that saves through the same pipeline as drag and drop, so `onMutate` runs, the server may assign the id, and a failure rolls back.
+
+```svelte
+<Scheduler bind:events bind:draft createPanel={form} />
+
+{#snippet form({ start, end, allDay, close, create })}
+    <Input bind:value={title} />
+    <Button label="Save" onclick={() => create({ title, start, end, allDay })} />
+    <Button label="Cancel" variant="ghost" onclick={close} />
+{/snippet}
+
+<Button
+    label="Create event"
+    onclick={() => (draft = { start: nextHour, end: nextHour.add({ hours: 1 }), allDay: false })}
+/>
+```
+
+- While `createPanel` is set the scheduler never creates an event on its own; dragging over empty slots only selects the range. Set `creatable={false}` to keep drags from opening the panel too.
+- `draft` is bindable: set it to open the panel from your own button, read it to know what is being planned.
+- To skip the panel and open your own dialog instead, leave `createPanel` out and listen to `onSelectSlot` and `onEventClick`:
 
 ```svelte
 <Scheduler
@@ -139,8 +160,6 @@ The built-in popover shows an event's details and lets the user delete it. To op
     onSelectSlot={({ start, end, allDay }) => openEditor({ start, end, allDay })}
 />
 ```
-
-`onEventClick` fires for every event, including occurrences of a series. `onSelectSlot` fires when an empty slot or day is clicked, and on Enter when `creatable` is off, with the slot already snapped to the grid.
 
 ### Details in a panel
 
@@ -306,7 +325,8 @@ Every visual part can be replaced with a snippet. Your `data` payload arrives ty
 | `cell`           | `{ date, view, isToday, isAnchor, isWeekend, isHoliday, isBusinessHours, isOutside }`                      |
 | `header`         | `{ date, view, label, isToday, isAnchor, holiday }`                                                        |
 | `eventDetail`    | `{ event, close }`, shown under the default details in the popover or slide-over                           |
-| `eventPanel`     | `{ event, close, remove, deletable }`, replaces the body of the slide-over                                 |
+| `eventPanel`     | `{ event, close, remove, deletable }`, replaces the body of the details slide-over                         |
+| `createPanel`    | `{ start, end, allDay, close, create }`, fills the panel that opens to create an event                     |
 | `empty`          | `{ view, range }`; replaces the message the week, day and agenda views show when the range holds no events |
 | `toolbar`        | `{ title, date, range, view, views, step, today, navigate, setView, toggleSidebar }`                       |
 | `toolbarActions` | Nothing; extra controls at the end of the built-in toolbar                                                 |

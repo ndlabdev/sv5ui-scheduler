@@ -19,6 +19,7 @@ import type {
     CellSnippetProps,
     EmptySnippetProps,
     EventDetailSnippetProps,
+    CreatePanelSnippetProps,
     EventPanelSnippetProps,
     EventSnippetProps,
     HeaderSnippetProps,
@@ -342,6 +343,24 @@ export type SchedulerProps<T = unknown> = Omit<HTMLAttributes<HTMLDivElement>, '
          * panel keeps its title and close button.
          */
         eventPanel?: Snippet<[EventPanelSnippetProps<T>]>
+
+        /**
+         * Fills a panel that opens inside the scheduler whenever the user
+         * picks where a new event should go: a click on an empty slot or day,
+         * a drag over empty slots, or Enter on a focused slot. The snippet
+         * receives the picked range and a `create` function; the scheduler
+         * never creates an event on its own while this is set. Open it from
+         * your own button by setting `draft`.
+         */
+        createPanel?: Snippet<[CreatePanelSnippetProps<T>]>
+
+        /**
+         * The range the create panel is showing, or `null` when it is closed.
+         * Bindable: set it to open the panel from your own control, for
+         * example a toolbar button with the next free hour.
+         * @default null
+         */
+        draft?: SlotSelection | null
 
         /**
          * Renders one event.
