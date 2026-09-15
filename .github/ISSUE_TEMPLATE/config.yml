@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+    - name: Documentation
+      url: https://github.com/ndlabdev/sv5ui-scheduler#readme
+      about: Props, snippets, saving changes and examples.
+    - name: A bug in an sv5ui component
+      url: https://github.com/ndlabdev/sv5ui/issues
+      about: Buttons, popovers, tabs and other building blocks come from sv5ui. Report their bugs there.

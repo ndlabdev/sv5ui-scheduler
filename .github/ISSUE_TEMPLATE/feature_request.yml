@@ -1,0 +1,59 @@
+name: Feature request
+description: Suggest a new prop, view, snippet or improvement
+title: '[Feature]: '
+labels: ['enhancement', 'status: needs-triage']
+body:
+    - type: markdown
+      attributes:
+          value: Thanks for the suggestion. Please search existing issues first to avoid duplicates.
+
+    - type: dropdown
+      id: area
+      attributes:
+          label: Area
+          options:
+              - Views and layout
+              - Drag, resize and create
+              - Keyboard and screen readers
+              - Saving changes (onMutate, source)
+              - Recurring events
+              - Time zones and languages
+              - Sidebar and standalone components
+              - Theming and custom rendering
+              - Types
+              - Something else
+      validations:
+          required: true
+
+    - type: textarea
+      id: problem
+      attributes:
+          label: Problem
+          description: What are you trying to build, and what stops you today?
+      validations:
+          required: true
+
+    - type: textarea
+      id: solution
+      attributes:
+          label: Proposed API
+          description: The props, snippets or behaviour you would like, ideally as a short Svelte example.
+          render: svelte
+      validations:
+          required: true
+
+    - type: textarea
+      id: alternatives
+      attributes:
+          label: Alternatives considered
+          description: Workarounds you tried, for example a custom view, a snippet or middleware.
+      validations:
+          required: false
+
+    - type: checkboxes
+      id: checks
+      attributes:
+          label: Checklist
+          options:
+              - label: I searched existing issues and this is not a duplicate.
+                required: true
