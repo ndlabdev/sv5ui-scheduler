@@ -22,6 +22,7 @@
         detail: ViewSnippets<T>['detail']
         detailPopover: boolean
         onDeleteEvent: ViewProps<T>['onDeleteEvent']
+        onOpenEvent: ViewProps<T>['onOpenEvent']
         onSelectEvent: ViewProps<T>['onSelectEvent']
         attachEvent: ViewProps<T>['interactions']['event']
     }
@@ -37,6 +38,7 @@
         detail,
         detailPopover,
         onDeleteEvent,
+        onOpenEvent,
         onSelectEvent,
         attachEvent
     }: Props = $props()
@@ -86,6 +88,7 @@
                         enabled={detailPopover}
                         {detail}
                         onDelete={onDeleteEvent}
+                        onOpen={onOpenEvent}
                         onSelect={onSelectEvent}
                         side="bottom"
                     >

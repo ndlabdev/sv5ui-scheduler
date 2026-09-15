@@ -20,6 +20,7 @@ export const ja: SchedulerLabels = {
     unscheduled: '未設定の予定',
     newEvent: '新しい予定',
     createEvent: '予定を作成',
+    openEvent: '詳細を開く',
     more: (count) => `他 ${count} 件`,
     dayCell: (date, count) => (count === 0 ? `${date}、予定なし` : `${date}、予定 ${count} 件`),
     holidayDate: (date, holiday) => `${date}、${holiday}`,

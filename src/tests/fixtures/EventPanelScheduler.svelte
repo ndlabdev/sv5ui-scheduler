@@ -13,6 +13,7 @@
         editable?: boolean
         onMutate?: MutationHandlers['onMutate']
         dir?: 'ltr' | 'rtl'
+        detail?: 'popover' | 'slideover'
     }
 
     let {
@@ -21,7 +22,8 @@
         custom = false,
         editable = true,
         onMutate,
-        dir = 'ltr'
+        dir = 'ltr',
+        detail = 'slideover'
     }: Props = $props()
 
     let events = $state(untrack(() => initial))
@@ -50,7 +52,7 @@
         {onMutate}
         {dir}
         timeZone="Asia/Ho_Chi_Minh"
-        detail="slideover"
+        {detail}
         eventPanel={custom ? panel : undefined}
         calendars={[{ id: 'work', title: 'Work', color: 'info' }]}
         class="h-full"

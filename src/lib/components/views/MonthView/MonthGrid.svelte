@@ -41,7 +41,8 @@
         selectedEventId,
         onSelectEvent,
         detailPopover,
-        onDeleteEvent
+        onDeleteEvent,
+        onOpenEvent
     }: ViewProps<T> = $props()
 
     const classes = monthGridVariants()
@@ -295,6 +296,7 @@
                                     enabled={detailPopover}
                                     detail={snippets.detail}
                                     onDelete={onDeleteEvent}
+                                    onOpen={onOpenEvent}
                                     onSelect={onSelectEvent}
                                 >
                                     {#snippet children(trigger)}

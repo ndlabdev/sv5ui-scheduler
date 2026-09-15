@@ -58,6 +58,11 @@ export interface SchedulerLabels {
     createEvent: string
 
     /**
+     * Accessible name of the popover button that opens the event's panel.
+     */
+    openEvent: string
+
+    /**
      * Label of the "+N more" link in a full month cell.
      */
     more: (count: number) => string

@@ -30,6 +30,7 @@ export const ar: SchedulerLabels = {
     unscheduled: 'غير مجدولة',
     newEvent: 'حدث جديد',
     createEvent: 'إنشاء حدث',
+    openEvent: 'فتح التفاصيل',
     more: (count) => `+${count} أخرى`,
     dayCell: (date, count) => `${date}، ${ahdath(count)}`,
     holidayDate: (date, holiday) => `${date}، ${holiday}`,

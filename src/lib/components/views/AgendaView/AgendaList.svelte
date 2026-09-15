@@ -25,6 +25,7 @@
         onSelectEvent,
         detailPopover,
         onDeleteEvent,
+        onOpenEvent,
         loading
     }: ViewProps<T> = $props()
 
@@ -118,6 +119,7 @@
                                         enabled={detailPopover}
                                         detail={snippets.detail}
                                         onDelete={onDeleteEvent}
+                                        onOpen={onOpenEvent}
                                         onSelect={onSelectEvent}
                                         side="bottom"
                                     >

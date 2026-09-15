@@ -20,6 +20,7 @@ export const zh: SchedulerLabels = {
     unscheduled: '未安排',
     newEvent: '新建日程',
     createEvent: '创建日程',
+    openEvent: '打开详情',
     more: (count) => `还有 ${count} 项`,
     dayCell: (date, count) => (count === 0 ? `${date}，没有日程` : `${date}，${count} 个日程`),
     holidayDate: (date, holiday) => `${date}，${holiday}`,

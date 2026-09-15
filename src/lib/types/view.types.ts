@@ -125,6 +125,12 @@ export interface ViewProps<T = unknown> {
     onDeleteEvent: (eventId: string) => void
 
     /**
+     * Open an event's panel, when the scheduler has one to show. The popover
+     * offers a button for it only while this is set.
+     */
+    onOpenEvent?: (eventId: string) => void
+
+    /**
      * Move the scheduler to `date`, switching to `view` when given.
      */
     navigate: (date: ZonedDateTime, view?: string) => void

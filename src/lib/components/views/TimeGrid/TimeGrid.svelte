@@ -47,6 +47,7 @@
         onSelectEvent,
         detailPopover,
         onDeleteEvent,
+        onOpenEvent,
         loading
     }: ViewProps<T> = $props()
 
@@ -125,6 +126,7 @@
             detail={snippets.detail}
             {detailPopover}
             {onDeleteEvent}
+            {onOpenEvent}
             {onSelectEvent}
             attachEvent={interactions.event}
         />
@@ -161,6 +163,7 @@
                             {selectedEventId}
                             {detailPopover}
                             {onDeleteEvent}
+                            {onOpenEvent}
                             {onSelectEvent}
                             attachEvent={interactions.event}
                         />

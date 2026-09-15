@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { render } from 'vitest-browser-svelte'
+import { userEvent } from 'vitest/browser'
 import type { Mutation } from '../../lib/types/mutation.types.js'
 import EventPanelScheduler from '../fixtures/EventPanelScheduler.svelte'
 import { anchor, input, press, tap, wait } from '../fixtures/dom.js'
@@ -177,5 +178,87 @@ describe('event details in a slide-over', () => {
             expect.objectContaining({ kind: 'delete', eventId: 'a' })
         )
         expect(dialog()).toBeNull()
+    })
+})
+
+describe('popover actions', () => {
+    const tooltip = () => document.querySelector('[data-tooltip-content]')
+
+    it('names every action with a tooltip', async () => {
+        const { container } = render(EventPanelScheduler, {
+            initial: events,
+            date: anchor,
+            detail: 'popover',
+            custom: true
+        })
+        await wait(60)
+        tap(chip(container, 'a'))
+        await settle()
+        const detail = document.querySelector<HTMLElement>('[data-sch-detail="a"]')!
+        const buttons = [...detail.querySelectorAll<HTMLElement>('button')]
+        expect(buttons.map((button) => button.getAttribute('aria-label'))).toEqual([
+            'Open details',
+            'Delete event',
+            'Close'
+        ])
+        for (const button of buttons) {
+            await userEvent.hover(button)
+            await expect
+                .poll(() => tooltip()?.textContent?.trim(), { timeout: 2000 })
+                .toBe(button.getAttribute('aria-label'))
+            await userEvent.unhover(button)
+            await expect.poll(() => tooltip(), { timeout: 2000 }).toBeNull()
+        }
+    })
+
+    it('shows no tooltip from the focus the popover places on its first action', async () => {
+        const { container } = render(EventPanelScheduler, {
+            initial: events,
+            date: anchor,
+            detail: 'popover',
+            custom: true
+        })
+        await wait(60)
+        await userEvent.click(chip(container, 'a'))
+        await wait(900)
+        expect(document.querySelector('[data-sch-detail="a"]')).not.toBeNull()
+        expect(document.activeElement?.closest('[data-sch-detail="a"]')).not.toBeNull()
+        expect(tooltip()).toBeNull()
+        await userEvent.keyboard('{Tab}')
+        await userEvent.keyboard('{Tab}')
+        await expect
+            .poll(() => tooltip()?.textContent?.trim(), { timeout: 2000 })
+            .toBe('Delete event')
+    })
+
+    it('offers the open button only when a panel exists, and swaps the popover for it', async () => {
+        const plain = render(EventPanelScheduler, {
+            initial: events,
+            date: anchor,
+            detail: 'popover'
+        })
+        await wait(60)
+        tap(chip(plain.container, 'a'))
+        await settle()
+        expect(document.querySelector('[data-sch-detail="a"] [data-sch-detail-open]')).toBeNull()
+        press(document.querySelector('[data-sch-detail="a"]')!, 'Escape')
+        plain.unmount()
+        await settle()
+
+        const withPanel = render(EventPanelScheduler, {
+            initial: events,
+            date: anchor,
+            detail: 'popover',
+            custom: true
+        })
+        await wait(60)
+        tap(chip(withPanel.container, 'a'))
+        await settle()
+        expect(panel()).toBeNull()
+        document.querySelector<HTMLElement>('[data-sch-detail="a"] [data-sch-detail-open]')!.click()
+        await settle()
+        expect(document.querySelector('[data-sch-detail="a"]')).toBeNull()
+        expect(panel()?.dataset.schEventPanel).toBe('a')
+        expect(panel()?.querySelector('[data-probe-panel]')?.textContent).toBe('a')
     })
 })

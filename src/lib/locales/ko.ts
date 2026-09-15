@@ -20,6 +20,7 @@ export const ko: SchedulerLabels = {
     unscheduled: '미예정',
     newEvent: '새 일정',
     createEvent: '일정 만들기',
+    openEvent: '상세 열기',
     more: (count) => `+${count}개 더보기`,
     dayCell: (date, count) => (count === 0 ? `${date}, 일정 없음` : `${date}, 일정 ${count}개`),
     holidayDate: (date, holiday) => `${date}, ${holiday}`,
