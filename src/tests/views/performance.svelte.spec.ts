@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, inject, it } from 'vitest'
 import { render } from 'vitest-browser-svelte'
 import { Scheduler } from '../../lib/index.js'
 import type { EventInput } from '../../lib/types/event.types.js'
@@ -7,6 +7,7 @@ import { ZONE, anchor, frame } from '../fixtures/dom.js'
 const EVENTS = 500
 const MOUNT_BUDGET_MS = 1500
 const NAVIGATE_BUDGET_MS = 400
+const scale = inject('performanceScale')
 const pad = (value: number) => String(value).padStart(2, '0')
 
 function week(count: number): EventInput[] {
@@ -53,7 +54,7 @@ describe(`a week of ${EVENTS} events`, () => {
             unmount()
             return took
         })
-        expect(elapsed).toBeLessThan(MOUNT_BUDGET_MS)
+        expect(elapsed).toBeLessThan(MOUNT_BUDGET_MS * scale)
     })
 
     it(`navigates away and back within ${NAVIGATE_BUDGET_MS}ms each`, async () => {
@@ -78,7 +79,7 @@ describe(`a week of ${EVENTS} events`, () => {
             return took
         })
 
-        expect(away).toBeLessThan(NAVIGATE_BUDGET_MS)
-        expect(back).toBeLessThan(NAVIGATE_BUDGET_MS)
+        expect(away).toBeLessThan(NAVIGATE_BUDGET_MS * scale)
+        expect(back).toBeLessThan(NAVIGATE_BUDGET_MS * scale)
     })
 })

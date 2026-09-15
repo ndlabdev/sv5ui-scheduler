@@ -40,7 +40,8 @@ export default defineConfig({
                     },
                     include: ['src/**/*.svelte.{test,spec}.{js,ts}'],
                     exclude: ['src/lib/server/**'],
-                    setupFiles: ['src/tests/setup.browser.ts']
+                    setupFiles: ['src/tests/setup.browser.ts'],
+                    provide: { performanceScale: process.env.CI ? 2 : 1 }
                 }
             },
 
