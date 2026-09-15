@@ -2,6 +2,7 @@ import type { EventInput, SchedulerEvent } from '../../types/event.types.js'
 import type { TimeZoneId } from '../../types/range.types.js'
 import type { RecurrenceRule, RecurrenceRuleInput } from '../../types/recurrence.types.js'
 import { isAfter, toZoned } from '../time/zone.js'
+import { warnOnce } from '../utils/dev.js'
 
 export function normalizeEvent<T>(input: EventInput<T>, timeZone: TimeZoneId): SchedulerEvent<T> {
     const zone = seriesZone(input, timeZone)
@@ -20,7 +21,18 @@ export function normalizeEvents<T>(
     inputs: readonly EventInput<T>[],
     timeZone: TimeZoneId
 ): SchedulerEvent<T>[] {
-    return inputs.map((input) => normalizeEvent(input, timeZone))
+    const events: SchedulerEvent<T>[] = []
+    for (const input of inputs) {
+        try {
+            events.push(normalizeEvent(input, timeZone))
+        } catch (error) {
+            warnOnce(
+                `event:${input.id}`,
+                `Event ${input.id} was skipped: ${error instanceof Error ? error.message : String(error)}`
+            )
+        }
+    }
+    return events
 }
 
 function seriesZone<T>(input: EventInput<T>, timeZone: TimeZoneId): TimeZoneId {

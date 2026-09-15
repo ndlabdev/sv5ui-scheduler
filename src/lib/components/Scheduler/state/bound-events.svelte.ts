@@ -13,14 +13,17 @@ export interface BoundEventsOptions<T> {
 }
 
 export function syncBoundEvents<T>(options: BoundEventsOptions<T>): void {
-    let mirrored = normalizeEvents(untrack(options.events) ?? [], untrack(options.timeZone))
+    let mirroredZone = untrack(options.timeZone)
+    let mirrored = normalizeEvents(untrack(options.events) ?? [], mirroredZone)
     options.store.apply({ type: 'reset', events: mirrored })
 
     $effect(() => {
         if (!options.enabled()) return
-        const normalized = normalizeEvents(options.events() ?? [], options.timeZone())
+        const zone = options.timeZone()
+        const normalized = normalizeEvents(options.events() ?? [], zone)
         untrack(() => {
-            if (sameEventList(normalized, mirrored)) return
+            if (zone === mirroredZone && sameEventList(normalized, mirrored)) return
+            mirroredZone = zone
             mirrored = normalized
             options.store.apply({ type: 'reset', events: normalized })
         })

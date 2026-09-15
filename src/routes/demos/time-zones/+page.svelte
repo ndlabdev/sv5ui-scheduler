@@ -1,9 +1,11 @@
 <script lang="ts">
     import { parseZonedDateTime, type ZonedDateTime } from '@internationalized/date'
     import { Badge, Button, FormField, Select } from 'sv5ui'
-    import { Scheduler, type EventInput } from '$lib/index.js'
+    import { Scheduler, type EventInput, type Mutation } from '$lib/index.js'
     import DemoCard from '../../../demo/DemoCard.svelte'
+    import LogPanel from '../../../demo/LogPanel.svelte'
     import PageHeader from '../../../demo/PageHeader.svelte'
+    import { EventLog } from '../../../demo/log.svelte.js'
 
     const zones = [
         { label: 'New York', value: 'America/New_York' },
@@ -67,6 +69,18 @@
     let left = $state('America/New_York')
     let right = $state('Europe/London')
     let date = $state<ZonedDateTime>(at('2026-03-08T12:00[America/New_York]'))
+    const log = new EventLog()
+
+    function onMutate(mutation: Mutation) {
+        const event = mutation.after ?? mutation.before
+        if (!event) return
+        log.add(
+            `${mutation.kind}: ${event.title}`,
+            `toAbsoluteString() ${event.start.toAbsoluteString()}`,
+            'info'
+        )
+        log.add('same instant with its zone', `toString() ${event.start.toString()}`, 'surface')
+    }
 
     function jump(transition: (typeof transitions)[number]) {
         date = at(`${transition.date}T12:00[${transition.zone}]`)
@@ -77,6 +91,11 @@
     bind:events
     bind:date
     timeZone="America/New_York"
+    onMutate={(mutation) => api.save({
+        ...mutation.after,
+        start: mutation.after.start.toAbsoluteString(),
+        end: mutation.after.end.toAbsoluteString()
+    })}
 />
 <Scheduler
     bind:events
@@ -95,7 +114,7 @@
 
     <DemoCard
         title="Two zones, one set of events"
-        description="Both schedulers share the events and the date. Jump to a daylight saving change: the night shift in New York lasts five hours on the morning clocks go forward, while the grid keeps its wall clock axis."
+        description="Both schedulers share the events and the date; each names its zone above the hour gutter. Pick another zone and every event moves to its new wall clock time. Move an event and the log shows what your API would receive: a UTC instant from toAbsoluteString, or the same instant with its zone from toString."
         {code}
         height="h-[700px]"
     >
@@ -119,6 +138,9 @@
                 {/each}
             </div>
         {/snippet}
+        {#snippet aside()}
+            <LogPanel {log} title="What your API receives" />
+        {/snippet}
         <div class="grid h-full gap-4 lg:grid-cols-2">
             {#each [left, right] as zone, index (index)}
                 <div class="flex min-h-0 flex-col gap-2">
@@ -138,6 +160,7 @@
                             bind:date
                             timeZone={zone}
                             view="week"
+                            {onMutate}
                             class="h-full"
                         />
                     </div>

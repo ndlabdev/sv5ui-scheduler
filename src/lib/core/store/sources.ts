@@ -19,7 +19,7 @@ const SUPERSEDED: LoadResult<never> = { status: 'superseded' }
 
 export function createSourceLoader<T>(
     source: EventSource<T>,
-    timeZone: TimeZoneId
+    timeZone: () => TimeZoneId
 ): SourceLoader<T> {
     return Array.isArray(source)
         ? createArrayLoader(source, timeZone)
@@ -28,25 +28,51 @@ export function createSourceLoader<T>(
 
 function createArrayLoader<T>(
     inputs: readonly EventInput<T>[],
-    timeZone: TimeZoneId
+    timeZone: () => TimeZoneId
 ): SourceLoader<T> {
-    let events: SchedulerEvent<T>[] | null = null
+    const zoned = createZonedCache<T>(timeZone)
     return {
         async load() {
-            events ??= normalizeEvents(inputs, timeZone)
-            return { status: 'loaded', events }
+            return { status: 'loaded', events: zoned.normalize(inputs) }
         },
         apply() {
             return
         },
         invalidate() {
+            zoned.clear()
+        }
+    }
+}
+
+interface ZonedCache<T> {
+    normalize(inputs: readonly EventInput<T>[]): SchedulerEvent<T>[]
+    clear(): void
+}
+
+function createZonedCache<T>(timeZone: () => TimeZoneId): ZonedCache<T> {
+    let zone: TimeZoneId | null = null
+    let events: SchedulerEvent<T>[] | null = null
+    return {
+        normalize(inputs) {
+            const current = timeZone()
+            if (!events || zone !== current) {
+                zone = current
+                events = normalizeEvents(inputs, current)
+            }
+            return events
+        },
+        clear() {
             events = null
         }
     }
 }
 
-function createFunctionLoader<T>(fetch: EventSourceFn<T>, timeZone: TimeZoneId): SourceLoader<T> {
-    const cache = new Map<string, SchedulerEvent<T>>()
+function createFunctionLoader<T>(
+    fetch: EventSourceFn<T>,
+    timeZone: () => TimeZoneId
+): SourceLoader<T> {
+    const inputs = new Map<string, EventInput<T>>()
+    const zoned = createZonedCache<T>(timeZone)
     let coverage: Coverage = EMPTY_COVERAGE
     let inflight: {
         key: string
@@ -55,13 +81,14 @@ function createFunctionLoader<T>(fetch: EventSourceFn<T>, timeZone: TimeZoneId):
     } | null = null
 
     function cached(range: DateRange): SchedulerEvent<T>[] {
-        return [...cache.values()].filter(
-            (event) => event.recurrence !== undefined || overlaps(event, range)
-        )
+        return zoned
+            .normalize([...inputs.values()])
+            .filter((event) => event.recurrence !== undefined || overlaps(event, range))
     }
 
-    function remember(events: SchedulerEvent<T>[]): void {
-        for (const event of events) cache.set(event.id, event)
+    function remember(batch: readonly EventInput<T>[]): void {
+        for (const input of batch) inputs.set(input.id, input)
+        zoned.clear()
     }
 
     return {
@@ -77,14 +104,16 @@ function createFunctionLoader<T>(fetch: EventSourceFn<T>, timeZone: TimeZoneId):
             const requests = gaps.map(
                 (gap) =>
                     new Promise<EventInput<T>[]>((resolve) =>
-                        resolve(fetch({ range: gap, timeZone, signal: controller.signal }))
+                        resolve(
+                            fetch({ range: gap, timeZone: timeZone(), signal: controller.signal })
+                        )
                     )
             )
             const promise = Promise.all(requests).then(
                 (batches) => {
                     if (controller.signal.aborted) return SUPERSEDED
-                    for (const [i, inputs] of batches.entries()) {
-                        remember(normalizeEvents(inputs, timeZone))
+                    for (const [i, batch] of batches.entries()) {
+                        remember(batch)
                         coverage = cover(coverage, gaps[i])
                     }
                     if (inflight?.controller === controller) inflight = null
@@ -100,11 +129,13 @@ function createFunctionLoader<T>(fetch: EventSourceFn<T>, timeZone: TimeZoneId):
             return promise
         },
         apply(patch) {
-            if (patch.type === 'upsert') cache.set(patch.event.id, patch.event)
-            if (patch.type === 'remove') cache.delete(patch.eventId)
+            if (patch.type === 'upsert') inputs.set(patch.event.id, patch.event)
+            if (patch.type === 'remove') inputs.delete(patch.eventId)
+            if (patch.type !== 'reset') zoned.clear()
         },
         invalidate() {
-            cache.clear()
+            inputs.clear()
+            zoned.clear()
             coverage = EMPTY_COVERAGE
             inflight?.controller.abort()
             inflight = null

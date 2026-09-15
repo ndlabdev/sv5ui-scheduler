@@ -62,10 +62,11 @@ function strings(root: Element): string[] {
     const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT)
     for (let node = walker.nextNode(); node; node = walker.nextNode()) {
         const parent = node.parentElement
-        if (parent?.closest('style, script')) continue
+        if (parent?.closest('style, script, [data-sch-zone]')) continue
         found.push(node.textContent ?? '')
     }
     for (const element of root.querySelectorAll('*')) {
+        if (element.matches('[data-sch-zone]')) continue
         for (const name of ATTRIBUTES) {
             const value = element.getAttribute(name)
             if (value) found.push(value)

@@ -277,7 +277,10 @@ Dropping it on a time slot creates a timed event; dropping it on a month cell or
 <Scheduler bind:events timeZone="Asia/Ho_Chi_Minh" locale="vi-VN" labels={vi} hour12={false} />
 ```
 
-- `timeZone` is the zone every date is shown in. ISO strings in `events` are read in it.
+- `timeZone` is the zone every date is shown in; the week and day views name it above the hour gutter, and the event details name it when it differs from the device zone. Change it at runtime and every event moves to its new wall clock time without another fetch.
+- Reading: `start` and `end` accept ISO strings with `Z` or an offset (absolute instants), naive strings such as `2026-09-14T09:00` (read in `timeZone`), date-only strings (all-day) and `ZonedDateTime` values. A recurring series given as a `ZonedDateTime` repeats in its own zone, so a 9:00 standup in Sydney stays at 9:00 Sydney time whatever `timeZone` shows.
+- An event whose dates cannot be read, or that ends before it starts, is skipped with a warning in development instead of breaking the calendar.
+- Writing: every event the scheduler hands back (`mutation.after`, `onEventClick`, snippets) carries `ZonedDateTime` values in `timeZone`. Send `event.start.toAbsoluteString()` to an API that stores UTC, or `event.start.toString()` to keep the zone.
 - `locale` drives every date and time format. `hour12` forces a 12 or 24 hour clock.
 - Label packs: `ar`, `de`, `en`, `es`, `fr`, `it`, `ja`, `ko`, `nl`, `pt`, `ru`, `vi`, `zh`. Missing keys in a pack of your own fall back to English.
 - Set `dir="rtl"` for right to left layouts. Dragging and keyboard navigation follow it.

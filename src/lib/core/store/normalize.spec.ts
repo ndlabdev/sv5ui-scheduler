@@ -1,6 +1,9 @@
 import { parseZonedDateTime } from '@internationalized/date'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { resetWarnings } from '../utils/dev.js'
 import { isSameEvent, normalizeEvent, normalizeEvents, sameEventList } from './normalize.js'
+
+afterEach(resetWarnings)
 
 const ZONE = 'Asia/Ho_Chi_Minh'
 
@@ -149,5 +152,27 @@ describe('zoned inputs', () => {
             ZONE
         )
         expect(event.start.timeZone).toBe(ZONE)
+    })
+})
+
+describe('invalid inputs', () => {
+    it('skips an event it cannot read, warns once and keeps the rest', () => {
+        const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+        const events = normalizeEvents(
+            [
+                { id: 'ok', title: 'ok', start: '2026-09-09T09:00', end: '2026-09-09T10:00' },
+                { id: 'bad', title: 'bad', start: 'not a date', end: '2026-09-09T10:00' },
+                { id: 'flip', title: 'flip', start: '2026-09-09T10:00', end: '2026-09-09T09:00' }
+            ],
+            'UTC'
+        )
+        expect(events.map((event) => event.id)).toEqual(['ok'])
+        normalizeEvents(
+            [{ id: 'bad', title: 'bad', start: 'not a date', end: '2026-09-09T10:00' }],
+            'UTC'
+        )
+        expect(warn).toHaveBeenCalledTimes(2)
+        expect(String(warn.mock.calls[0][0])).toContain('bad')
+        warn.mockRestore()
     })
 })

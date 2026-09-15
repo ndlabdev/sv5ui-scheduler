@@ -11,9 +11,12 @@ export const timeGridVariants = tv({
         dayTitleWeekday: 'text-on-surface-variant text-xs font-medium tracking-wide uppercase',
         dayTitleRow: 'flex items-center gap-2',
         dayTitleDate: 'text-on-surface truncate text-xl font-semibold',
+        dayTitleZone: 'text-on-surface-variant ms-auto text-xs tabular-nums',
         todayBadge: 'rounded-full',
         header: 'border-outline-variant/60 grid shrink-0 border-b',
-        gutterSpacer: 'flex items-end justify-center pb-2',
+        gutterSpacer: 'flex flex-col items-center justify-end gap-0.5 pb-2',
+        zoneName:
+            'text-on-surface-variant max-w-full truncate text-[10px] leading-none tabular-nums',
         dayHeader: [
             'border-outline-variant/60 flex min-w-0 flex-col items-center border-s px-2 py-2 text-center'
         ],

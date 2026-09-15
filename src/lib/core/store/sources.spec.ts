@@ -34,7 +34,7 @@ function deferred<T>(): Deferred<T> {
 
 describe('array source', () => {
     it('normalises once and returns the same events for any range', async () => {
-        const loader = createSourceLoader([input('a'), input('b')], ZONE)
+        const loader = createSourceLoader([input('a'), input('b')], () => ZONE)
         const first = await loader.load(week)
         const second = await loader.load(nextWeek)
         expect(first.status).toBe('loaded')
@@ -45,7 +45,7 @@ describe('array source', () => {
     })
 
     it('normalises again after invalidate', async () => {
-        const loader = createSourceLoader([input('a')], ZONE)
+        const loader = createSourceLoader([input('a')], () => ZONE)
         const first = await loader.load(week)
         loader.invalidate()
         const second = await loader.load(week)
@@ -56,7 +56,7 @@ describe('array source', () => {
 describe('function source', () => {
     it('calls the function with the range, zone and a signal', async () => {
         const fetch = vi.fn<EventSourceFn>(async () => [input('a')])
-        const loader = createSourceLoader(fetch, ZONE)
+        const loader = createSourceLoader(fetch, () => ZONE)
         const result = await loader.load(week)
         expect(result).toMatchObject({ status: 'loaded' })
         const context = fetch.mock.calls[0][0]
@@ -66,13 +66,16 @@ describe('function source', () => {
     })
 
     it('accepts a synchronous return value', async () => {
-        const loader = createSourceLoader(() => [input('a')], ZONE)
+        const loader = createSourceLoader(
+            () => [input('a')],
+            () => ZONE
+        )
         expect(await loader.load(week)).toMatchObject({ status: 'loaded' })
     })
 
     it('serves a repeated range from cache without calling again', async () => {
         const fetch = vi.fn<EventSourceFn>(async () => [input('a')])
-        const loader = createSourceLoader(fetch, ZONE)
+        const loader = createSourceLoader(fetch, () => ZONE)
         await loader.load(week)
         await loader.load(nextWeek)
         await loader.load(week)
@@ -82,7 +85,7 @@ describe('function source', () => {
     it('shares one in-flight request for concurrent loads of the same range', async () => {
         const gate = deferred<EventInput[]>()
         const fetch = vi.fn<EventSourceFn>(() => gate.promise)
-        const loader = createSourceLoader(fetch, ZONE)
+        const loader = createSourceLoader(fetch, () => ZONE)
         const a = loader.load(week)
         const b = loader.load(week)
         expect(fetch).toHaveBeenCalledTimes(1)
@@ -98,7 +101,7 @@ describe('function source', () => {
             contexts.push(context)
             return contexts.length === 1 ? first.promise : [input('b')]
         }
-        const loader = createSourceLoader(fetch, ZONE)
+        const loader = createSourceLoader(fetch, () => ZONE)
         const stale = loader.load(week)
         const fresh = loader.load(nextWeek)
 
@@ -112,7 +115,10 @@ describe('function source', () => {
     it('reports a superseded request even when it rejects after being aborted', async () => {
         const first = deferred<EventInput[]>()
         let calls = 0
-        const loader = createSourceLoader(() => (calls++ === 0 ? first.promise : []), ZONE)
+        const loader = createSourceLoader(
+            () => (calls++ === 0 ? first.promise : []),
+            () => ZONE
+        )
         const stale = loader.load(week)
         await loader.load(nextWeek)
         first.reject(new Error('aborted by fetch'))
@@ -120,23 +126,32 @@ describe('function source', () => {
     })
 
     it('turns a synchronous throw into a rejection', async () => {
-        const loader = createSourceLoader(() => {
-            throw new Error('bad config')
-        }, ZONE)
+        const loader = createSourceLoader(
+            () => {
+                throw new Error('bad config')
+            },
+            () => ZONE
+        )
         await expect(loader.load(week)).rejects.toThrow('bad config')
     })
 
     it('propagates a failure of the current request', async () => {
-        const loader = createSourceLoader(() => Promise.reject(new Error('502')), ZONE)
+        const loader = createSourceLoader(
+            () => Promise.reject(new Error('502')),
+            () => ZONE
+        )
         await expect(loader.load(week)).rejects.toThrow('502')
     })
 
     it('does not cache a failed request', async () => {
         let calls = 0
-        const loader = createSourceLoader(() => {
-            calls += 1
-            return calls === 1 ? Promise.reject(new Error('502')) : [input('a')]
-        }, ZONE)
+        const loader = createSourceLoader(
+            () => {
+                calls += 1
+                return calls === 1 ? Promise.reject(new Error('502')) : [input('a')]
+            },
+            () => ZONE
+        )
         await expect(loader.load(week)).rejects.toThrow()
         expect(await loader.load(week)).toMatchObject({ status: 'loaded' })
         expect(calls).toBe(2)
@@ -149,7 +164,7 @@ describe('function source', () => {
             contexts.push(context)
             return contexts.length === 1 ? gate.promise : [input('b')]
         }
-        const loader = createSourceLoader(fetch, ZONE)
+        const loader = createSourceLoader(fetch, () => ZONE)
         const stale = loader.load(week)
         loader.invalidate()
         expect(contexts[0].signal.aborted).toBe(true)
@@ -167,7 +182,7 @@ describe('coverage based cache', () => {
 
     it('fetches only the parts of a range it has not loaded yet', async () => {
         const fetch = vi.fn<EventSourceFn>(async () => [])
-        const loader = createSourceLoader(fetch, ZONE)
+        const loader = createSourceLoader(fetch, () => ZONE)
         await loader.load(day)
         await loader.load(week)
         expect(rangesOf(fetch)).toEqual([
@@ -179,7 +194,7 @@ describe('coverage based cache', () => {
 
     it('serves a range inside loaded coverage without fetching', async () => {
         const fetch = vi.fn<EventSourceFn>(async () => [input('a')])
-        const loader = createSourceLoader(fetch, ZONE)
+        const loader = createSourceLoader(fetch, () => ZONE)
         await loader.load(week)
         const result = await loader.load(day)
         expect(fetch).toHaveBeenCalledTimes(1)
@@ -192,7 +207,7 @@ describe('coverage based cache', () => {
                 ? [input('a')]
                 : [{ ...input('b'), start: '2026-09-16T09:00', end: '2026-09-16T10:00' }]
         )
-        const loader = createSourceLoader(fetch, ZONE)
+        const loader = createSourceLoader(fetch, () => ZONE)
         await loader.load(week)
         await loader.load(nextWeek)
         const result = await loader.load(week)
@@ -204,7 +219,7 @@ describe('coverage based cache', () => {
         const fetch = vi.fn<EventSourceFn>(async ({ range }) =>
             range.start.day === 7 ? [{ ...input('s'), recurrence: { freq: 'daily' } }] : []
         )
-        const loader = createSourceLoader(fetch, ZONE)
+        const loader = createSourceLoader(fetch, () => ZONE)
         await loader.load(week)
         const result = await loader.load(nextWeek)
         if (result.status !== 'loaded') throw new Error('unreachable')
@@ -213,7 +228,7 @@ describe('coverage based cache', () => {
 
     it('reflects applied mutations on the next read from cache', async () => {
         const fetch = vi.fn<EventSourceFn>(async () => [input('a')])
-        const loader = createSourceLoader(fetch, ZONE)
+        const loader = createSourceLoader(fetch, () => ZONE)
         const first = await loader.load(week)
         if (first.status !== 'loaded') throw new Error('unreachable')
         const moved = {
@@ -240,7 +255,10 @@ describe('coverage based cache', () => {
     })
 
     it('ignores reset patches, which come from its own loads', async () => {
-        const loader = createSourceLoader(async () => [input('a')], ZONE)
+        const loader = createSourceLoader(
+            async () => [input('a')],
+            () => ZONE
+        )
         await loader.load(week)
         loader.apply({ type: 'reset', events: [] })
         const result = await loader.load(week)
@@ -252,7 +270,7 @@ describe('coverage based cache', () => {
         const first = deferred<EventInput[]>()
         let calls = 0
         const fetch = vi.fn<EventSourceFn>(() => (calls++ === 0 ? first.promise : []))
-        const loader = createSourceLoader(fetch, ZONE)
+        const loader = createSourceLoader(fetch, () => ZONE)
         const stale = loader.load(week)
         await loader.load(nextWeek)
         first.resolve([input('a')])
@@ -267,10 +285,32 @@ describe('coverage based cache', () => {
 
     it('forgets coverage on invalidate', async () => {
         const fetch = vi.fn<EventSourceFn>(async () => [])
-        const loader = createSourceLoader(fetch, ZONE)
+        const loader = createSourceLoader(fetch, () => ZONE)
         await loader.load(week)
         loader.invalidate()
         await loader.load(week)
         expect(fetch).toHaveBeenCalledTimes(2)
+    })
+})
+
+describe('time zone changes', () => {
+    it('re-normalises cached inputs for the new zone without fetching again', async () => {
+        let zone = 'UTC'
+        const fetch = vi.fn(async () => [
+            { id: 'a', title: 'A', start: '2026-09-09T09:00:00Z', end: '2026-09-09T10:00:00Z' },
+            { id: 'b', title: 'B', start: '2026-09-09T09:00', end: '2026-09-09T10:00' }
+        ])
+        const loader = createSourceLoader(fetch, () => zone)
+        const range = { start: at('2026-09-07T00:00'), end: at('2026-09-14T00:00') }
+        const first = await loader.load(range)
+        expect(first.status).toBe('loaded')
+        zone = 'Asia/Ho_Chi_Minh'
+        const second = await loader.load(range)
+        expect(fetch).toHaveBeenCalledTimes(1)
+        if (second.status !== 'loaded') throw new Error('expected a loaded result')
+        const byId = new Map(second.events.map((event) => [event.id, event]))
+        expect(byId.get('a')?.start.timeZone).toBe('Asia/Ho_Chi_Minh')
+        expect(byId.get('a')?.start.hour).toBe(16)
+        expect(byId.get('b')?.start.hour).toBe(9)
     })
 })

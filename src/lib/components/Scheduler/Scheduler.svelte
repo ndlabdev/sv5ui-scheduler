@@ -249,7 +249,7 @@
     const viewItems = $derived(
         registry.views.map((v) => ({ value: v.name, label: v.label ?? viewLabel(labels, v.name) }))
     )
-    const loader = $derived(source ? createSourceLoader(source, timeZone) : null)
+    const loader = $derived(source ? createSourceLoader(source, () => timeZone) : null)
     const sourceLoading = new SourceLoading<T>({
         loader: () => loader,
         range: () => range,

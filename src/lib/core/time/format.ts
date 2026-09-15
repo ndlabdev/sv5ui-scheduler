@@ -34,6 +34,13 @@ export function formatTimeRange(
     ).formatRange(start.toDate(), end.toDate())
 }
 
+export function formatZoneName(date: ZonedDateTime, locale: string): string {
+    const parts = formatter(locale, { timeZoneName: 'short' }, date.timeZone).formatToParts(
+        date.toDate()
+    )
+    return parts.find((part) => part.type === 'timeZoneName')?.value ?? date.timeZone
+}
+
 export function formatWeekday(date: ZonedDateTime, locale: string): string {
     return format(date, locale, { weekday: 'short' })
 }

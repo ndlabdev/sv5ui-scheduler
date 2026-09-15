@@ -1,7 +1,7 @@
 <script lang="ts">
     import type { ZonedDateTime } from '@internationalized/date'
     import { Badge } from 'sv5ui'
-    import { formatDate, formatWeekdayLong } from '../../../core/time/format.js'
+    import { formatDate, formatWeekdayLong, formatZoneName } from '../../../core/time/format.js'
     import type { SchedulerContext } from '../../../types/context.types.js'
     import type { Holiday } from '../../../types/range.types.js'
     import WeekNumber from '../../shared/WeekNumber.svelte'
@@ -47,5 +47,8 @@
         {#if scheduler.weekNumbers}
             <WeekNumber {week} labels={scheduler.labels} class={classes.weekNumber()} />
         {/if}
+        <span class={classes.dayTitleZone()} title={scheduler.timeZone} data-sch-zone>
+            {formatZoneName(day, scheduler.locale)}
+        </span>
     </div>
 </div>

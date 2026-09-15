@@ -1,7 +1,7 @@
 <script lang="ts">
     import type { ZonedDateTime } from '@internationalized/date'
     import { isoDate } from '../../../core/time/day-flags.js'
-    import { formatDayNumber, formatWeekday } from '../../../core/time/format.js'
+    import { formatDayNumber, formatWeekday, formatZoneName } from '../../../core/time/format.js'
     import { isSameDay } from '../../../core/time/zone.js'
     import type { SchedulerContext } from '../../../types/context.types.js'
     import type { Holiday } from '../../../types/range.types.js'
@@ -33,6 +33,9 @@
         {#if scheduler.weekNumbers}
             <WeekNumber {week} labels={scheduler.labels} class={classes.weekNumber()} />
         {/if}
+        <span class={classes.zoneName()} title={scheduler.timeZone} data-sch-zone>
+            {formatZoneName(days[0], scheduler.locale)}
+        </span>
     </div>
     {#each days as day, dayIndex (isoDate(day))}
         {@const isToday = dayIndex === todayIndex}
