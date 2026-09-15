@@ -448,7 +448,7 @@ The grid is a single tab stop with a descriptive name. Every move, creation, del
 
 ## Contributing
 
-Issues and pull requests are welcome. To run the project locally:
+Issues and pull requests are welcome. Open an issue from one of the templates first, then branch from `dev` and open the pull request against `dev` with an entry in `CHANGELOG.md` under `[Unreleased]`. To run the project locally:
 
 ```sh
 pnpm install
