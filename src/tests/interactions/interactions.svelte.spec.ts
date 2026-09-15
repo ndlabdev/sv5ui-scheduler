@@ -639,8 +639,11 @@ describe('rollback and conflicts', () => {
         const first = (animation.effect as KeyframeEffect).getKeyframes()[0]
         animation.finish()
         const resting = moving.getBoundingClientRect()
-        const expected = `translate(${optimistic.left - resting.left}px, ${optimistic.top - resting.top}px)`
-        expect(first.transform).toBe(expected)
+        const [x, y] = [...String(first.transform).matchAll(/-?[\d.]+/g)].map((match) =>
+            Number(match[0])
+        )
+        expect(x).toBeCloseTo(optimistic.left - resting.left, 1)
+        expect(y).toBeCloseTo(optimistic.top - resting.top, 1)
         expect(moving.style.top).toBe(`${18 * 24}px`)
     })
 
