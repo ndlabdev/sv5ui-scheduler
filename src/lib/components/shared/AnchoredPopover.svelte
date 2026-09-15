@@ -7,7 +7,7 @@
 </script>
 
 <script lang="ts">
-    import { Popover } from 'sv5ui'
+    import { Popover, useMediaQuery } from 'sv5ui'
     import type { Snippet } from 'svelte'
 
     interface Props {
@@ -31,6 +31,11 @@
         trigger,
         panel
     }: Props = $props()
+
+    const narrow = useMediaQuery('(max-width: 767px)')
+    const placement = $derived(
+        narrow.matches && (side === 'left' || side === 'right') ? 'bottom' : side
+    )
 
     let anchor = $state<HTMLElement | null>(null)
     let contentNode = $state<HTMLElement | null>(null)
@@ -72,8 +77,9 @@
 <Popover
     bind:open
     bind:ref={contentNode}
-    {side}
+    side={placement}
     {align}
+    collisionPadding={8}
     ui={{ content: contentClass }}
     onInteractOutside={keepOpenOnAnchor}
     onCloseAutoFocus={restoreFocus}

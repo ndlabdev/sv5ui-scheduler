@@ -40,7 +40,7 @@ export const monthGridVariants = tv({
             'px-1.5 py-0.5 text-[10px] leading-none font-semibold',
             'focus-visible:ring-primary focus-visible:ring-2 focus-visible:outline-none'
         ],
-        popover: 'w-60 p-2',
+        popover: 'w-60 max-w-[calc(100vw-1rem)] p-2',
         popoverTitle: [
             'text-on-surface-variant px-1 pb-1.5 text-[11px] font-semibold tracking-wider uppercase'
         ],

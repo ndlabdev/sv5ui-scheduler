@@ -98,6 +98,8 @@
         sidebarOpen = $bindable(true),
         sidebarSide = 'start',
         sidebarBreakpoint = 1024,
+        compactBreakpoint = 640,
+        compactDays = 3,
         detail = 'popover',
         eventDetail,
         eventPanel,
@@ -175,6 +177,8 @@
 
     let inheritedDirection = $state<'ltr' | 'rtl'>('ltr')
     let rootWidth = $state(0)
+    const compact = $derived(rootWidth > 0 && rootWidth < compactBreakpoint)
+    const detailMode = $derived(detail === 'popover' && compact ? 'slideover' : detail)
 
     const anchor = $derived(date ? toZoned(date, timeZone) : clock.today)
     const labels = $derived(mergeLabels(labelOverrides))
@@ -200,7 +204,7 @@
             return weekStartsOn
         },
         get dayCount() {
-            return dayCount
+            return dayCount ?? (compact && compactDays ? compactDays : undefined)
         },
         get hour12() {
             return hour12
@@ -242,7 +246,9 @@
     )
     const shownRange = $derived(visibleRange(range, days))
     const title = $derived(
-        definition.title?.(anchor, shownRange, context) ?? formatDayRange(shownRange, locale)
+        (compact ? definition.shortTitle?.(anchor, shownRange, context) : undefined) ??
+            definition.title?.(anchor, shownRange, context) ??
+            formatDayRange(shownRange, locale)
     )
     const eventFilter = $derived(createEventFilter({ hiddenCalendars, search, locale, filter }))
     const visibleEvents = $derived(store.query(range).filter(eventFilter))
@@ -352,6 +358,9 @@
         get sidebarOpen() {
             return panel.expanded
         },
+        get compact() {
+            return compact
+        },
         step,
         today: goToday,
         navigate,
@@ -406,7 +415,7 @@
         const clicked = eventId === null ? null : findEvent(eventId)
         if (!clicked) return
         onEventClick?.(clicked)
-        if (detail !== 'slideover') return
+        if (detailMode !== 'slideover') return
         panelEvent = clicked
         panelOpen = true
     }
@@ -523,6 +532,7 @@
             {view}
             views={viewItems}
             {labels}
+            {compact}
             class={classes.toolbar}
             onToday={goToday}
             onStep={step}
@@ -564,9 +574,9 @@
                 focus={interactionState.focus}
                 selectedEventId={interactionState.selectedEventId}
                 onSelectEvent={selectEvent}
-                detailPopover={detail === 'popover'}
+                detailPopover={detailMode === 'popover'}
                 onDeleteEvent={deleteEvent}
-                onOpenEvent={eventPanel && detail === 'popover' ? openPanel : undefined}
+                onOpenEvent={eventPanel && detailMode === 'popover' ? openPanel : undefined}
                 {navigate}
                 interactions={viewInteractions}
                 loading={sourceLoading.pending}
@@ -610,7 +620,7 @@
             onCreate={createEvent}
         />
     {/if}
-    {#if panelEvent && (detail === 'slideover' || eventPanel)}
+    {#if panelEvent && (detailMode === 'slideover' || eventPanel)}
         <EventPanel
             event={currentPanelEvent ?? panelEvent}
             open={panelOpen && currentPanelEvent !== null}

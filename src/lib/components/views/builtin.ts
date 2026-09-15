@@ -1,5 +1,13 @@
 import type { ViewDefinition } from '../../types/view.types.js'
-import { formatDate, formatDayRange, formatMonthYear, formatYear } from '../../core/time/format.js'
+import {
+    formatDate,
+    formatDayRange,
+    formatMonthYear,
+    formatShortDate,
+    formatShortDayRange,
+    formatShortMonthYear,
+    formatYear
+} from '../../core/time/format.js'
 import {
     calendarMonthRange,
     dayRange,
@@ -27,6 +35,7 @@ export function createBuiltinViews<T>(): ViewDefinition<T>[] {
             range: (anchor) => dayRange(anchor),
             step: (anchor, direction) => stepDays(anchor, direction),
             title: (anchor, _range, context) => formatDate(anchor, context.locale),
+            shortTitle: (anchor, _range, context) => formatShortDate(anchor, context.locale),
             component: DayView
         },
         {
@@ -39,6 +48,7 @@ export function createBuiltinViews<T>(): ViewDefinition<T>[] {
             step: (anchor, direction, context) =>
                 stepDays(anchor, (context.dayCount ?? DAYS_PER_WEEK) * direction),
             title: (_anchor, range, context) => formatDayRange(range, context.locale),
+            shortTitle: (_anchor, range, context) => formatShortDayRange(range, context.locale),
             component: WeekView
         },
         {
@@ -48,6 +58,7 @@ export function createBuiltinViews<T>(): ViewDefinition<T>[] {
             range: (anchor, context) => monthRange(anchor, context.weekStartsOn),
             step: (anchor, direction) => stepMonths(anchor, direction),
             title: (anchor, _range, context) => formatMonthYear(anchor, context.locale),
+            shortTitle: (anchor, _range, context) => formatShortMonthYear(anchor, context.locale),
             component: MonthView
         },
         {
@@ -64,6 +75,7 @@ export function createBuiltinViews<T>(): ViewDefinition<T>[] {
             range: (anchor) => calendarMonthRange(anchor),
             step: (anchor, direction) => stepMonths(anchor, direction),
             title: (anchor, _range, context) => formatMonthYear(anchor, context.locale),
+            shortTitle: (anchor, _range, context) => formatShortMonthYear(anchor, context.locale),
             component: AgendaView
         }
     ]

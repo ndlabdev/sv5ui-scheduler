@@ -9,7 +9,13 @@ export const toolbarVariants = tv({
         tools: 'ms-auto flex shrink-0 flex-nowrap items-center gap-1 sm:gap-2',
         switcherGroup: 'shrink-0',
         switcher: 'w-auto',
-        actions: 'flex items-center gap-0.5'
+        actions: 'flex items-center gap-0.5',
+        compactRoot: 'gap-1 px-2 py-1.5',
+        navigationCompact: 'flex-[1_1_auto] gap-0.5',
+        titleCompact: 'text-sm sm:text-sm',
+        touchButton: 'size-9',
+        select: 'w-24',
+        selectTrigger: 'h-9'
     }
 })
 

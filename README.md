@@ -91,6 +91,18 @@ The scheduler fills whatever height its layout gives it and scrolls inside. Thre
 | Grows with content | Nothing to do; without a bounded height every view expands to its content         | A calendar in the middle of a long page    |
 | Fixed size         | `height={640}` or `height="70dvh"`, or size the parent                            | A card, a dashboard tile, a modal          |
 
+## On phones
+
+Below `compactBreakpoint` (640px of scheduler width by default) the calendar switches to a layout made for touch, with no configuration:
+
+- The toolbar fits on one row: a today button, arrows, a short title such as `Sep 15 – 17`, and a menu to pick the view. Every control is at least 36px.
+- The week view shows `compactDays` days from the current date (3 by default) and the arrows step by that many. Pass `compactDays={null}` to keep the whole week.
+- Clicking an event opens its details in a slide-over inside the calendar instead of a popover.
+- Month cells drop week numbers and holiday names so day numbers stay readable; the agenda view remains the best fit for long lists.
+- Popovers that do open are kept inside the screen, so the page never scrolls sideways.
+
+Set `compactBreakpoint={0}` to keep the desktop layout everywhere. A custom `toolbar` snippet receives `compact` to follow the same switch, and views may provide a `shortTitle`.
+
 ## Events
 
 | Field          | Type                                                                                                 | Notes                                                                              |

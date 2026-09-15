@@ -192,14 +192,14 @@
                                     >
                                         {formatDayNumber(day, scheduler.locale)}
                                     </span>
-                                    {#if scheduler.weekNumbers && week !== null}
+                                    {#if scheduler.weekNumbers && week !== null && !compact}
                                         <WeekNumber
                                             {week}
                                             labels={scheduler.labels}
                                             class={classes.weekNumber()}
                                         />
                                     {/if}
-                                    {#if holiday?.title}
+                                    {#if holiday?.title && !compact}
                                         <span class={classes.holidayTitle()} data-sch-holiday-title>
                                             {holiday.title}
                                         </span>

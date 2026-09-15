@@ -134,6 +134,12 @@ export interface ToolbarSnippetProps {
      * Whether the sidebar is currently shown.
      */
     sidebarOpen: boolean
+
+    /**
+     * `true` while the scheduler is narrower than `compactBreakpoint`, so a
+     * custom toolbar can switch to a phone layout too.
+     */
+    compact: boolean
 }
 
 /**

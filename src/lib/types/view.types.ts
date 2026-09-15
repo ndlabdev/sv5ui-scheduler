@@ -182,6 +182,12 @@ export interface ViewDefinition<T = unknown> {
      */
     title?: (anchor: ZonedDateTime, range: DateRange, context: SchedulerContext) => string
 
+    /**
+     * Shorter title for the compact toolbar, shown while the scheduler is
+     * narrower than `compactBreakpoint`. Falls back to `title`.
+     */
+    shortTitle?: (anchor: ZonedDateTime, range: DateRange, context: SchedulerContext) => string
+
     component: Component<ViewProps<T>>
 }
 

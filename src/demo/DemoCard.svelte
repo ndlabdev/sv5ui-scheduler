@@ -59,7 +59,7 @@
             />
         {/if}
     </div>
-    <Card variant="outline" header={controls ? controlBar : undefined} ui={{ body: 'sm:p-0' }}>
+    <Card variant="outline" header={controls ? controlBar : undefined} ui={{ body: 'sm:p-0 p-0' }}>
         {#if code && tab === 'code'}
             <CodeBlock {code} />
         {:else}

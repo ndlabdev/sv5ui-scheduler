@@ -253,7 +253,8 @@ export type SchedulerProps<T = unknown> = Omit<HTMLAttributes<HTMLDivElement>, '
          * How an event's details open when it is clicked. `'popover'` anchors a
          * small card to the event, `'slideover'` opens a panel inside the
          * scheduler whose body `eventPanel` can replace, and `false` shows
-         * nothing so `onEventClick` can open your own view.
+         * nothing so `onEventClick` can open your own view. Below
+         * `compactBreakpoint` a popover opens as a slide-over instead.
          * @default 'popover'
          */
         detail?: 'popover' | 'slideover' | false
@@ -303,6 +304,22 @@ export type SchedulerProps<T = unknown> = Omit<HTMLAttributes<HTMLDivElement>, '
          * @default 1024
          */
         sidebarBreakpoint?: number
+
+        /**
+         * Scheduler width in pixels below which it switches to its compact
+         * layout for phones: a one row toolbar with a view menu and shorter
+         * titles, `compactDays` in the week view, and event details in a
+         * slide-over instead of a popover. `0` turns it off.
+         * @default 640
+         */
+        compactBreakpoint?: number
+
+        /**
+         * Days the week view shows in the compact layout, starting on the
+         * current date. `null` keeps the whole week. Ignored when `days` is set.
+         * @default 3
+         */
+        compactDays?: number | null
 
         /**
          * Called when the toolbar's menu button is pressed, after the sidebar

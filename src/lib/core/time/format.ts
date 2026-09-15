@@ -64,6 +64,22 @@ export function formatDate(date: ZonedDateTime, locale: string): string {
     return format(date, locale, { month: 'long', day: 'numeric', year: 'numeric' })
 }
 
+export function formatShortDate(date: ZonedDateTime, locale: string): string {
+    return format(date, locale, { weekday: 'short', month: 'short', day: 'numeric' })
+}
+
+export function formatShortMonthYear(date: ZonedDateTime, locale: string): string {
+    return format(date, locale, { month: 'short', year: 'numeric' })
+}
+
+export function formatShortDayRange(range: DateRange, locale: string): string {
+    const last = range.end.subtract({ days: 1 })
+    return formatter(locale, { month: 'short', day: 'numeric' }, range.start.timeZone).formatRange(
+        range.start.toDate(),
+        last.toDate()
+    )
+}
+
 export function formatMonthYear(date: ZonedDateTime, locale: string): string {
     return format(date, locale, { month: 'long', year: 'numeric' })
 }
