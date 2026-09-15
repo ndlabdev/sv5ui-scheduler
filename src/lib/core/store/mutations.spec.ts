@@ -340,3 +340,64 @@ describe('handlers are read per mutation', () => {
         expect(seen.map((m) => m.eventId)).toEqual(['b'])
     })
 })
+
+describe('answers from the server', () => {
+    it('adopts the id the server assigns and drops the client id', async () => {
+        const { store, pipeline } = setup({
+            onMutate: async (mutation) => ({ ...mutation.after!, id: 'srv-1' })
+        })
+        const outcome = await pipeline.commit(create(event('tmp-1')))
+        expect(outcome).toBe('committed')
+        expect(store.has('tmp-1')).toBe(false)
+        expect(store.get('srv-1')?.title).toBe('tmp-1')
+        expect(store.size).toBe(1)
+    })
+
+    it('keeps the confirmed state when the store was reset while the save was in flight', async () => {
+        const gate = deferred<void>()
+        const before = event('a')
+        const after = event('a', '11:00', '12:00')
+        const { store, pipeline } = setup({ onMutate: () => gate.promise })
+        store.apply({ type: 'reset', events: [before] })
+        const outcome = pipeline.commit(move(before, after))
+        await tick()
+        store.apply({ type: 'reset', events: [before] })
+        expect(store.get('a')?.start.hour).toBe(9)
+        gate.resolve()
+        expect(await outcome).toBe('committed')
+        expect(store.get('a')?.start.hour).toBe(11)
+    })
+
+    it('removes a deleted event again when a refetch brought it back meanwhile', async () => {
+        const gate = deferred<void>()
+        const { store, pipeline } = setup({ onMutate: () => gate.promise })
+        store.apply({ type: 'reset', events: [event('a')] })
+        const outcome = pipeline.commit(remove(event('a')))
+        await tick()
+        store.apply({ type: 'reset', events: [event('a')] })
+        gate.resolve()
+        await outcome
+        expect(store.has('a')).toBe(false)
+    })
+
+    it('leaves the store to a later queued change of the same event', async () => {
+        const first = deferred<void>()
+        const second = deferred<void>()
+        const gates = [first, second]
+        const s0 = event('a')
+        const s1 = event('a', '11:00', '12:00')
+        const s2 = event('a', '13:00', '14:00')
+        const { store, pipeline } = setup({ onMutate: () => gates.shift()!.promise })
+        store.apply({ type: 'reset', events: [s0] })
+        const m1 = pipeline.commit(move(s0, s1))
+        const m2 = pipeline.commit(move(s1, s2))
+        await tick()
+        expect(store.get('a')?.start.hour).toBe(13)
+        first.resolve()
+        await m1
+        expect(store.get('a')?.start.hour).toBe(13)
+        second.resolve()
+        await m2
+        expect(store.get('a')?.start.hour).toBe(13)
+    })
+})

@@ -67,23 +67,42 @@ export class MutationPipeline<T = unknown> {
             handlers.onError?.(mutation, error)
             return 'reverted'
         }
-        if (!result || !mutation.after) return 'committed'
-        const server = normalizeEvent(result, this.#options.timeZone())
-        return this.#reconcile(mutation, mutation.after, server, handlers)
+        if (!result || !mutation.after) return this.#confirm(mutation, mutation.after)
+        return this.#reconcile(mutation, normalizeEvent(result, this.#options.timeZone()), handlers)
     }
 
     #reconcile(
         mutation: Mutation<T>,
-        local: SchedulerEvent<T>,
         server: SchedulerEvent<T>,
         handlers: MutationHandlers<T>
     ): MutationOutcome {
-        if (isSameEvent(server, local)) return 'committed'
+        const local = this.#adoptId(mutation, server.id)
+        if (isSameEvent(server, local)) return this.#confirm(mutation, local)
         const resolution = handlers.onConflict?.(mutation, server) ?? 'keep-server'
-        if (resolution === 'keep-local') return 'kept-local'
+        if (resolution === 'keep-local') return this.#confirm(mutation, local, 'kept-local')
         this.#options.willKeepServer?.(mutation, server)
         this.#store.apply({ type: 'upsert', event: server })
         return 'kept-server'
+    }
+
+    #adoptId(mutation: Mutation<T>, id: string): SchedulerEvent<T> {
+        const local = mutation.after as SchedulerEvent<T>
+        if (id === mutation.eventId) return local
+        this.#store.apply({ type: 'remove', eventId: mutation.eventId })
+        return { ...local, id }
+    }
+
+    #confirm(
+        mutation: Mutation<T>,
+        after: SchedulerEvent<T> | null,
+        outcome: MutationOutcome = 'committed'
+    ): MutationOutcome {
+        if (this.#queue.pending(mutation.eventId) > 1) return outcome
+        const current = this.#store.get(after?.id ?? mutation.eventId)
+        if (after ? current && isSameEvent(current, after) : !current) return outcome
+        if (after) this.#store.apply({ type: 'upsert', event: after })
+        else this.#store.apply({ type: 'remove', eventId: mutation.eventId })
+        return outcome
     }
 
     #applyOptimistic(mutation: Mutation<T>): void {

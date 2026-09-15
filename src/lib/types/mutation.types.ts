@@ -37,7 +37,11 @@ export type ConflictResolution = 'keep-server' | 'keep-local'
 
 /**
  * What `onMutate` may return. `void` confirms the optimistic state; an event
- * is the server's version and is compared against `after` to detect a conflict.
+ * is the server's version and is compared against `after` to detect a
+ * conflict. When it carries a different `id`, as servers assigning ids on
+ * create do, the event adopts that id. Either way the confirmed state is
+ * written back to the store, so a refetch that landed while the save was in
+ * flight cannot undo it.
  */
 export type MutationResult<T = unknown> = void | EventInput<T>
 
