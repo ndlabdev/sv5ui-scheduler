@@ -73,7 +73,7 @@
 
     <DemoCard
         title="Create and edit with your own form"
-        description="Click an empty slot, drag over a range, press Enter on a focused slot, or use the toolbar button. The form below is built from sv5ui inputs and is not part of the library. Click an event to edit it in the same panel."
+        description="Drag over a range, press Enter on a focused slot, or use the toolbar button. The form below is built from sv5ui inputs and is not part of the library. Click an event for its popover, then use Open details to edit it in the same panel."
         {code}
         height="h-[760px]"
     >
@@ -83,7 +83,6 @@
             {timeZone}
             {calendars}
             createPanel={form}
-            detail="slideover"
             eventPanel={details}
             toolbarActions={actions}
             {onMutate}

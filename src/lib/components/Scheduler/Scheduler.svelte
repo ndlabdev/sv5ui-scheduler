@@ -140,8 +140,8 @@
         slotMinutes: () => slotMinutes,
         creatable: () => creatable,
         proposeCreate: () => createPanel !== undefined,
-        selectSlot: (point) => proposeSlot(slotSelection(point, slotMinutes)),
-        selectRange: proposeSlot,
+        selectSlot: (point) => onSelectSlot?.(slotSelection(point, slotMinutes)),
+        selectRange: proposeRange,
         store,
         commit: (request) => void pipeline.commit(request),
         step,
@@ -415,7 +415,14 @@
         panelOpen = false
     }
 
-    function proposeSlot(selection: SlotSelection) {
+    function openPanel(eventId: string) {
+        const target = findEvent(eventId)
+        if (!target) return
+        panelEvent = target
+        panelOpen = true
+    }
+
+    function proposeRange(selection: SlotSelection) {
         onSelectSlot?.(selection)
         if (createPanel) draft = selection
     }
@@ -559,6 +566,7 @@
                 onSelectEvent={selectEvent}
                 detailPopover={detail === 'popover'}
                 onDeleteEvent={deleteEvent}
+                onOpenEvent={eventPanel && detail === 'popover' ? openPanel : undefined}
                 {navigate}
                 interactions={viewInteractions}
                 loading={sourceLoading.pending}
@@ -602,7 +610,7 @@
             onCreate={createEvent}
         />
     {/if}
-    {#if detail === 'slideover' && panelEvent}
+    {#if panelEvent && (detail === 'slideover' || eventPanel)}
         <EventPanel
             event={currentPanelEvent ?? panelEvent}
             open={panelOpen && currentPanelEvent !== null}

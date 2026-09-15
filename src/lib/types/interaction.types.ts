@@ -109,8 +109,9 @@ export interface InteractionContext<T = unknown> {
     selectSlot: (point: Pick<HitTarget, 'date' | 'allDay'>) => void
 
     /**
-     * Report a range the user selected by dragging over empty slots. Reaches
-     * `onSelectSlot` and opens `createPanel` when the scheduler has one.
+     * Report a range the user marked out by dragging over empty slots or
+     * pressing Enter. Reaches `onSelectSlot` and opens `createPanel` when the
+     * scheduler has one; `selectSlot` only reports.
      */
     selectRange: (selection: SlotSelection) => void
 

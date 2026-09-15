@@ -34,17 +34,23 @@ function tapAt(target: Element, at: Point) {
 }
 
 describe('createPanel', () => {
-    it('opens with one slot from a click and creates through the pipeline', async () => {
+    it('reports a click without opening, opens from a drag and creates through the pipeline', async () => {
         const onMutate = vi.fn()
         const onSelectSlot = vi.fn()
         const screen = render(CreatePanelScheduler, { date: anchor, onMutate, onSelectSlot })
         await settle()
         tapAt(grid(screen.container), pointAt(column(screen.container, '2026-09-10'), 550))
         await open()
+        expect(dialog()).toBeNull()
+        expect(onSelectSlot).toHaveBeenCalledTimes(1)
+
+        const thu = column(screen.container, '2026-09-10')
+        await drag(grid(screen.container), pointAt(thu, 540), pointAt(thu, 570))
+        await open()
         expect(dialog()).not.toBeNull()
         expect(range()).toBe('2026-09-10T09:00 2026-09-10T09:30')
         expect(panel()?.querySelector('[data-probe-all-day]')?.textContent).toBe('false')
-        expect(onSelectSlot).toHaveBeenCalledTimes(1)
+        expect(onSelectSlot).toHaveBeenCalledTimes(2)
         expect(onMutate).not.toHaveBeenCalled()
 
         panel()!.querySelector<HTMLElement>('[data-probe-save]')!.click()
@@ -83,16 +89,12 @@ describe('createPanel', () => {
         expect(range()).toBe('2026-09-10T09:00 2026-09-10T11:00')
     })
 
-    it('opens a whole day from a month cell and several days from a drag across cells', async () => {
+    it('leaves a month cell click alone and opens several days from a drag across cells', async () => {
         const screen = render(CreatePanelScheduler, { date: anchor })
         await settle()
         await screen.getByRole('tab', { name: 'Month' }).click()
         await wait(120)
         tap(screen.container.querySelector('[data-sch-day="2026-09-22"]')!)
-        await open()
-        expect(range()).toBe('2026-09-22T00:00 2026-09-23T00:00')
-        expect(panel()?.querySelector('[data-probe-all-day]')?.textContent).toBe('true')
-        panel()!.querySelector<HTMLElement>('[data-probe-cancel]')!.click()
         await open()
         expect(dialog()).toBeNull()
 
@@ -105,7 +107,11 @@ describe('createPanel', () => {
         await drag(grid(screen.container), centre(from), centre(to))
         await open()
         expect(range()).toBe('2026-09-15T00:00 2026-09-18T00:00')
+        expect(panel()?.querySelector('[data-probe-all-day]')?.textContent).toBe('true')
         expect(screen.component.getEvents()).toHaveLength(0)
+        panel()!.querySelector<HTMLElement>('[data-probe-cancel]')!.click()
+        await open()
+        expect(dialog()).toBeNull()
     })
 
     it('opens from Enter on the focused slot and from the application through draft', async () => {
@@ -135,7 +141,8 @@ describe('createPanel', () => {
         const screen = render(CreatePanelScheduler, { date: anchor })
         await settle()
         const initial = () => panel()?.querySelector('[data-probe-initial]')?.textContent
-        tapAt(grid(screen.container), pointAt(column(screen.container, '2026-09-10'), 550))
+        const thu = column(screen.container, '2026-09-10')
+        await drag(grid(screen.container), pointAt(thu, 540), pointAt(thu, 570))
         await open()
         expect(initial()).toBe('2026-09-10T09:00')
         panel()!.querySelector<HTMLElement>('[data-probe-cancel]')!.click()
@@ -147,7 +154,7 @@ describe('createPanel', () => {
         expect(initial()).toBe('2026-09-11T13:00')
     })
 
-    it('still opens from a click when creatable is off, but not from a drag', async () => {
+    it('never opens from the grid when creatable is off, only from draft', async () => {
         const onMutate = vi.fn()
         const screen = render(CreatePanelScheduler, {
             date: anchor,
@@ -162,7 +169,14 @@ describe('createPanel', () => {
         expect(dialog()).toBeNull()
         tapAt(grid(screen.container), pointAt(thu, 550))
         await open()
-        expect(range()).toBe('2026-09-10T09:00 2026-09-10T09:30')
+        expect(dialog()).toBeNull()
+        screen.component.openAt({
+            start: parseZonedDateTime(`2026-09-11T14:00[${ZONE}]`),
+            end: parseZonedDateTime(`2026-09-11T15:00[${ZONE}]`),
+            allDay: false
+        })
+        await open()
+        expect(range()).toBe('2026-09-11T14:00 2026-09-11T15:00')
         expect(onMutate).not.toHaveBeenCalled()
     })
 })

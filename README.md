@@ -130,7 +130,7 @@ Pass `onMutate` to persist what the user does. The change is shown immediately; 
 
 ### Your own editor
 
-Every app stores something different, so the form is yours and the scheduler provides the flow. Pass `createPanel` and a panel opens inside the calendar whenever the user picks where a new event should go: a click on an empty slot or day, a drag over empty slots, or Enter on a focused slot. The snippet receives the picked range and a `create` function that saves through the same pipeline as drag and drop, so `onMutate` runs, the server may assign the id, and a failure rolls back.
+Every app stores something different, so the form is yours and the scheduler provides the flow. Pass `createPanel` and a panel opens inside the calendar when the user marks out a new event: a drag over empty slots, or Enter on a focused slot. A plain click only reports through `onSelectSlot`. The snippet receives the picked range and a `create` function that saves through the same pipeline as drag and drop, so `onMutate` runs, the server may assign the id, and a failure rolls back.
 
 ```svelte
 <Scheduler bind:events bind:draft createPanel={form} />
@@ -147,7 +147,7 @@ Every app stores something different, so the form is yours and the scheduler pro
 />
 ```
 
-- While `createPanel` is set the scheduler never creates an event on its own; dragging over empty slots only selects the range. Set `creatable={false}` to keep drags from opening the panel too.
+- While `createPanel` is set the scheduler never creates an event on its own; dragging over empty slots only selects the range. Set `creatable={false}` to keep the grid from opening the panel at all, leaving `draft` as the only way in.
 - `draft` is bindable: set it to open the panel from your own button, read it to know what is being planned.
 - To skip the panel and open your own dialog instead, leave `createPanel` out and listen to `onSelectSlot` and `onEventClick`:
 
@@ -319,18 +319,18 @@ Time outside business hours is shaded, and holidays are named in every view.
 
 Every visual part can be replaced with a snippet. Your `data` payload arrives typed.
 
-| Snippet          | Receives                                                                                                   |
-| ---------------- | ---------------------------------------------------------------------------------------------------------- |
-| `event`          | `{ event, position, view, isDragging, isResizing, isSelected }`                                            |
-| `cell`           | `{ date, view, isToday, isAnchor, isWeekend, isHoliday, isBusinessHours, isOutside }`                      |
-| `header`         | `{ date, view, label, isToday, isAnchor, holiday }`                                                        |
-| `eventDetail`    | `{ event, close }`, shown under the default details in the popover or slide-over                           |
-| `eventPanel`     | `{ event, close, remove, deletable }`, replaces the body of the details slide-over                         |
-| `createPanel`    | `{ start, end, allDay, close, create }`, fills the panel that opens to create an event                     |
-| `empty`          | `{ view, range }`; replaces the message the week, day and agenda views show when the range holds no events |
-| `toolbar`        | `{ title, date, range, view, views, step, today, navigate, setView, toggleSidebar }`                       |
-| `toolbarActions` | Nothing; extra controls at the end of the built-in toolbar                                                 |
-| `sidebar`        | `{ date, view, range, events, navigate, close, docked }`                                                   |
+| Snippet          | Receives                                                                                                                                             |
+| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `event`          | `{ event, position, view, isDragging, isResizing, isSelected }`                                                                                      |
+| `cell`           | `{ date, view, isToday, isAnchor, isWeekend, isHoliday, isBusinessHours, isOutside }`                                                                |
+| `header`         | `{ date, view, label, isToday, isAnchor, holiday }`                                                                                                  |
+| `eventDetail`    | `{ event, close }`, shown under the default details in the popover or slide-over                                                                     |
+| `eventPanel`     | `{ event, close, remove, deletable }`, replaces the body of the details slide-over; with `detail="popover"` the popover gains an Open details button |
+| `createPanel`    | `{ start, end, allDay, close, create }`, fills the panel that opens to create an event                                                               |
+| `empty`          | `{ view, range }`; replaces the message the week, day and agenda views show when the range holds no events                                           |
+| `toolbar`        | `{ title, date, range, view, views, step, today, navigate, setView, toggleSidebar }`                                                                 |
+| `toolbarActions` | Nothing; extra controls at the end of the built-in toolbar                                                                                           |
+| `sidebar`        | `{ date, view, range, events, navigate, close, docked }`                                                                                             |
 
 ```svelte
 <Scheduler bind:events event={card} />

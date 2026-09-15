@@ -338,16 +338,17 @@ export type SchedulerProps<T = unknown> = Omit<HTMLAttributes<HTMLDivElement>, '
         eventDetail?: Snippet<[EventDetailSnippetProps<T>]>
 
         /**
-         * Replaces the body of the slide-over opened when `detail` is
-         * `'slideover'`, so its content can follow the kind of event. The
-         * panel keeps its title and close button.
+         * Replaces the body of the event slide-over so its content can follow
+         * the kind of event. With `detail` set to `'slideover'` the panel opens
+         * on click; with `'popover'` the popover gains a button that closes it
+         * and opens the panel. The panel keeps its title and close button.
          */
         eventPanel?: Snippet<[EventPanelSnippetProps<T>]>
 
         /**
-         * Fills a panel that opens inside the scheduler whenever the user
-         * picks where a new event should go: a click on an empty slot or day,
-         * a drag over empty slots, or Enter on a focused slot. The snippet
+         * Fills a panel that opens inside the scheduler when the user marks
+         * out a new event: a drag over empty slots or Enter on a focused
+         * slot. A plain click only reports through `onSelectSlot`. The snippet
          * receives the picked range and a `create` function; the scheduler
          * never creates an event on its own while this is set. Open it from
          * your own button by setting `draft`.
