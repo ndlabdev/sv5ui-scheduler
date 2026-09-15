@@ -18,7 +18,7 @@ export const schedulerVariants = tv({
         slideoverBody: 'p-0 sm:p-0',
         detailPanel: 'absolute w-96 max-w-full',
         view: 'relative min-h-0 flex-1',
-        loading: 'bg-surface/60 absolute inset-0 z-20 p-4'
+        loading: 'pointer-events-none absolute inset-x-0 top-0 z-20'
     }
 })
 

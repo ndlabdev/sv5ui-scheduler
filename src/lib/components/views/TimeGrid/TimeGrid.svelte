@@ -46,7 +46,8 @@
         selectedEventId,
         onSelectEvent,
         detailPopover,
-        onDeleteEvent
+        onDeleteEvent,
+        loading
     }: ViewProps<T> = $props()
 
     const classes = timeGridVariants()
@@ -196,7 +197,7 @@
                 </div>
             </div>
         </ScrollArea>
-        {#if positioned.length === 0}
+        {#if positioned.length === 0 && !loading}
             <div class={classes.emptyLayer()}>
                 <div
                     class={snippets.empty ? classes.emptyCustom() : classes.empty()}

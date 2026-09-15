@@ -7,7 +7,7 @@
 <script lang="ts" generics="T">
     import { getLocalTimeZone, type ZonedDateTime } from '@internationalized/date'
     import type { Attachment } from 'svelte/attachments'
-    import { ScrollArea, Skeleton, Slideover, useMediaQuery } from 'sv5ui'
+    import { Progress, ScrollArea, Slideover, useMediaQuery } from 'sv5ui'
     import { tick, untrack } from 'svelte'
     import { slide } from 'svelte/transition'
     import { getComponentConfig } from '../../config/config.js'
@@ -561,10 +561,11 @@
                 onDeleteEvent={deleteEvent}
                 {navigate}
                 interactions={viewInteractions}
+                loading={sourceLoading.pending}
             />
             {#if sourceLoading.loading}
                 <div class={classes.loading} aria-busy="true">
-                    <Skeleton class="h-full w-full" />
+                    <Progress size="xs" />
                 </div>
             {/if}
         </div>

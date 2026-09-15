@@ -24,7 +24,8 @@
         selectedEventId,
         onSelectEvent,
         detailPopover,
-        onDeleteEvent
+        onDeleteEvent,
+        loading
     }: ViewProps<T> = $props()
 
     const classes = agendaListVariants()
@@ -75,7 +76,7 @@
 </script>
 
 <div class={classes.root()} data-sch-agenda>
-    {#if groups.length === 0}
+    {#if groups.length === 0 && !loading}
         <div class={classes.empty()}>
             {#if snippets.empty}
                 {@render snippets.empty({ view, range })}

@@ -106,6 +106,12 @@ export interface ViewProps<T = unknown> {
 
     selectedEventId: string | null
 
+    /**
+     * `true` while `source` is fetching the visible range. Views keep showing
+     * what they have and hold back their empty state until it settles.
+     */
+    loading: boolean
+
     onSelectEvent: (eventId: string | null) => void
 
     /**

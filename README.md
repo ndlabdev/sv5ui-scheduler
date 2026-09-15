@@ -179,7 +179,7 @@ Set `detail="slideover"` and a click opens the event in a panel inside the calen
 
 ## Loading events on demand
 
-Pass `source` instead of `events` and the scheduler asks only for the range on screen. Ranges it already holds are not requested again, and requests that are no longer needed are aborted.
+Pass `source` instead of `events` and the scheduler asks only for the range on screen. Ranges it already holds are not requested again, requests that are no longer needed are aborted, and a request that takes longer than a moment shows a thin progress bar while the calendar stays usable.
 
 ```svelte
 <Scheduler

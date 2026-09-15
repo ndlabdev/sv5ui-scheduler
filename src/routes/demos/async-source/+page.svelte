@@ -113,7 +113,7 @@
 
     <DemoCard
         title="Lazy loading"
-        description="Navigate forward and back. The first visit to a range shows a loading state; returning to it is instant. Navigate quickly to see stale requests aborted."
+        description="Navigate forward and back. The first visit to a range shows a thin progress bar while the grid stays usable; returning to it is instant. Navigate quickly to see stale requests aborted."
         {code}
         height="h-[720px]"
     >
