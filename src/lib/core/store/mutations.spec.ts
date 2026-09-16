@@ -212,6 +212,53 @@ describe('rollback', () => {
         expect(store.get('bad')?.start.hour).toBe(9)
         expect(store.get('good')?.start.hour).toBe(13)
     })
+
+    it('reverts and reports when the handler answers with an event that cannot be read', async () => {
+        const onError = vi.fn()
+        const { store, pipeline, willRevert } = setup({
+            onMutate: async () => ({
+                id: 'srv-1',
+                title: 'a',
+                start: '2026-09-12T10:00',
+                end: '2026-09-12T09:00'
+            }),
+            onError
+        })
+
+        const outcome = await pipeline.commit(create(event('a')))
+
+        expect(outcome).toBe('reverted')
+        expect(store.has('a')).toBe(false)
+        expect(store.has('srv-1')).toBe(false)
+        expect(onError).toHaveBeenCalledWith(
+            expect.objectContaining({ kind: 'create' }),
+            expect.any(RangeError)
+        )
+        expect(willRevert).toHaveBeenCalledTimes(1)
+        expect(pipeline.pending.size).toBe(0)
+    })
+
+    it('reverts and reports when the conflict handler throws', async () => {
+        const onError = vi.fn()
+        const before = event('a', '09:00', '10:00')
+        const { store, pipeline } = setup({
+            onMutate: async () => event('a', '13:00', '14:00'),
+            onConflict: () => {
+                throw new Error('undecided')
+            },
+            onError
+        })
+        store.apply({ type: 'upsert', event: before })
+
+        const outcome = await pipeline.commit(move(before, event('a', '11:00', '12:00')))
+
+        expect(outcome).toBe('reverted')
+        expect(store.get('a')?.start.hour).toBe(9)
+        expect(onError).toHaveBeenCalledWith(
+            expect.objectContaining({ kind: 'move' }),
+            expect.any(Error)
+        )
+    })
 })
 
 describe('queueing', () => {

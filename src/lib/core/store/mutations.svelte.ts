@@ -59,16 +59,16 @@ export class MutationPipeline<T = unknown> {
     }
 
     async #persist(mutation: Mutation<T>, handlers: MutationHandlers<T>): Promise<MutationOutcome> {
-        let result
         try {
-            result = await handlers.onMutate?.(mutation)
+            const result = await handlers.onMutate?.(mutation)
+            if (!result || !mutation.after) return this.#confirm(mutation, mutation.after)
+            const server = normalizeEvent(result, this.#options.timeZone())
+            return this.#reconcile(mutation, server, handlers)
         } catch (error) {
             this.#revert(mutation)
             handlers.onError?.(mutation, error)
             return 'reverted'
         }
-        if (!result || !mutation.after) return this.#confirm(mutation, mutation.after)
-        return this.#reconcile(mutation, normalizeEvent(result, this.#options.timeZone()), handlers)
     }
 
     #reconcile(

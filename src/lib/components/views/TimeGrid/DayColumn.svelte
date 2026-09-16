@@ -10,6 +10,7 @@
     import type { ViewProps, ViewSnippets } from '../../../types/view.types.js'
     import EventChip from '../../event/EventChip/EventChip.svelte'
     import EventPopover from '../../event/EventPopover/EventPopover.svelte'
+    import EventTrigger from '../../shared/EventTrigger.svelte'
     import {
         COMPACT_HEIGHT,
         TINY_CHIP,
@@ -138,20 +139,25 @@
                 data-sch-event={position.event.id}
                 {@attach attachEvent(position)}
             >
-                {#if snippets.event}
-                    {@render snippets.event(eventProps(position))}
-                {:else}
-                    <EventPopover
-                        event={position.event}
-                        {scheduler}
-                        enabled={detailPopover}
-                        detail={snippets.detail}
-                        onDelete={onDeleteEvent}
-                        onOpen={onOpenEvent}
-                        onSelect={onSelectEvent}
-                        side={single ? 'bottom' : 'right'}
-                    >
-                        {#snippet children(trigger)}
+                <EventPopover
+                    event={position.event}
+                    {scheduler}
+                    enabled={detailPopover}
+                    detail={snippets.detail}
+                    onDelete={onDeleteEvent}
+                    onOpen={onOpenEvent}
+                    onSelect={onSelectEvent}
+                    side={single ? 'bottom' : 'right'}
+                >
+                    {#snippet children(trigger)}
+                        {#if snippets.event}
+                            <EventTrigger
+                                snippet={snippets.event}
+                                props={eventProps(position)}
+                                {trigger}
+                                class="block h-full"
+                            />
+                        {:else}
                             <EventChip
                                 {...trigger}
                                 event={position.event}
@@ -165,9 +171,9 @@
                                 dragging={draggingId === position.event.id}
                                 class={['h-full', position.height < TINY_HEIGHT ? TINY_CHIP : '']}
                             />
-                        {/snippet}
-                    </EventPopover>
-                {/if}
+                        {/if}
+                    {/snippet}
+                </EventPopover>
             </div>
         {/each}
     </div>
