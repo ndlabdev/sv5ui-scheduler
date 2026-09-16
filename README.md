@@ -422,15 +422,24 @@ The scheduler is drawn with sv5ui theme tokens, so it follows your theme and dar
 <Scheduler bind:events ui={{ root: 'rounded-2xl border', toolbar: 'bg-surface-container-low' }} />
 ```
 
-Or set defaults once for every instance:
+Or set defaults once for every instance. Put the call in a file of its own, next to the one sv5ui uses, and import that file once from your root layout so it runs before any scheduler renders:
 
 ```ts
+// src/scheduler.config.ts
 import { defineSchedulerConfig } from '@sv5ui/scheduler'
 
 defineSchedulerConfig({
     scheduler: { slots: { root: 'rounded-2xl border' } },
     eventChip: { slots: { root: 'font-medium' } }
 })
+```
+
+```svelte
+<!-- src/routes/+layout.svelte -->
+<script>
+    import '../sv5ui.config'
+    import '../scheduler.config'
+</script>
 ```
 
 Configurable components: `scheduler`, `eventChip`, `dateNavigator`, `calendarList`, `searchBox`, `dragSourceList`. `slots` reach every instance. `defaultVariants` apply to a component you render yourself; inside the calendar each view picks the `size` and `variant` that fit its cells.
