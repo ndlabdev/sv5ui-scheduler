@@ -133,6 +133,7 @@ describe('the header snippet in the day view', () => {
         expect(probe.textContent).toContain('9')
         expect(probe.dataset.today).toBe('false')
         expect(title.querySelector('h3')).toBeNull()
+        expect(title.querySelector('[data-sch-zone]')).not.toBeNull()
     })
 })
 
