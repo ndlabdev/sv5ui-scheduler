@@ -45,6 +45,9 @@
     <button type="button" data-probe-rename onclick={() => update({ title: 'Renamed' })}>
         Rename
     </button>
+    <button type="button" data-probe-locate onclick={() => update({ data: { room: 'B2' } })}>
+        Locate
+    </button>
 {/snippet}
 
 <div style="height: 800px; width: 1100px">

@@ -38,6 +38,14 @@
             isAnchor: isSameDay(day, anchor),
             holiday
         })}
+        <div class={classes.dayTitleRow()}>
+            {#if scheduler.weekNumbers}
+                <WeekNumber {week} labels={scheduler.labels} class={classes.weekNumber()} />
+            {/if}
+            <span class={classes.dayTitleZone()} title={scheduler.timeZone} data-sch-zone>
+                {formatZoneName(day, scheduler.locale)}
+            </span>
+        </div>
     {:else}
         <span class={classes.dayTitleWeekday()}>
             {weekday}

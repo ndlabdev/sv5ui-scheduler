@@ -1,6 +1,8 @@
+import { createRawSnippet } from 'svelte'
 import { describe, expect, it, vi } from 'vitest'
 import { render } from 'vitest-browser-svelte'
 import { Scheduler } from '../../lib/index.js'
+import type { EventSnippetProps } from '../../lib/types/snippet.types.js'
 import { ZONE, anchor, grid, input, press, wait } from '../fixtures/dom.js'
 
 const events = [
@@ -48,6 +50,30 @@ describe('selecting an event from the keyboard', () => {
         await wait(300)
         expect(screen.container.querySelector('[data-sch-event-id="first"]')).toBeNull()
         expect(onEventClick).not.toHaveBeenCalled()
+    })
+
+    it('marks a custom event snippet as selected', async () => {
+        const card = createRawSnippet<[EventSnippetProps]>((props) => ({
+            render: () => `<div data-probe-card data-selected="false">${props().event.title}</div>`,
+            setup: (node) => {
+                $effect(() => {
+                    node.setAttribute('data-selected', String(props().isSelected))
+                })
+            }
+        }))
+        const screen = mount({ event: card })
+        await wait(200)
+        const target = grid(screen.container)
+        target.focus()
+        await wait(50)
+        press(target, ' ')
+        await wait(100)
+        const selected = [
+            ...screen.container.querySelectorAll<HTMLElement>(
+                '[data-probe-card][data-selected="true"]'
+            )
+        ]
+        expect(selected.map((card) => card.textContent)).toEqual(['first'])
     })
 
     it('does nothing at a slot without events', async () => {
