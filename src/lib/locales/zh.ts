@@ -40,6 +40,8 @@ export const zh: SchedulerLabels = {
         moved: (event, start) => `已将 ${event.title} 移至 ${start}`,
         resized: (event, end) => `${event.title} 现在于 ${end} 结束`,
         deleted: (event) => `已删除 ${event.title}`,
+        updated: (event) => `已更新 ${event.title}`,
+        selected: (event) => `已选择 ${event.title}`,
         cancelled: '已取消',
         reverted: (event) => `无法保存 ${event.title}，已撤销更改`,
         conflict: (event) => `${event.title} 已在其他地方更新`

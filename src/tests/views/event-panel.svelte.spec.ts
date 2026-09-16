@@ -262,3 +262,62 @@ describe('popover actions', () => {
         expect(panel()?.querySelector('[data-probe-panel]')?.textContent).toBe('a')
     })
 })
+
+describe('editing from the panel', () => {
+    const rename = () => (document.querySelector('[data-probe-rename]') as HTMLElement).click()
+
+    it('sends an update through the pipeline and writes it back', async () => {
+        const seen: Mutation[] = []
+        const screen = render(EventPanelScheduler, {
+            initial: events,
+            date: anchor,
+            custom: true,
+            onMutate: async (mutation: Mutation) => void seen.push(mutation)
+        })
+        await wait(60)
+        await open(screen.container, 'a')
+        rename()
+        await settle()
+        expect(seen.map((mutation) => mutation.kind)).toEqual(['update'])
+        expect(seen[0].after?.title).toBe('Renamed')
+        expect(seen[0].before?.title).toBe('a')
+        expect(screen.component.getEvents().find((event) => event.id === 'a')?.title).toBe(
+            'Renamed'
+        )
+        expect(panel()?.textContent).toContain('Renamed')
+    })
+
+    it('rolls the update back when the save fails', async () => {
+        const screen = render(EventPanelScheduler, {
+            initial: events,
+            date: anchor,
+            custom: true,
+            onMutate: async () => {
+                throw new Error('offline')
+            }
+        })
+        await wait(60)
+        await open(screen.container, 'a')
+        rename()
+        await wait(600)
+        expect(screen.component.getEvents().find((event) => event.id === 'a')?.title).toBe('a')
+    })
+
+    it('ignores an update to an event that may not be edited', async () => {
+        const onMutate = vi.fn()
+        const screen = render(EventPanelScheduler, {
+            initial: events,
+            date: anchor,
+            custom: true,
+            onMutate
+        })
+        await wait(60)
+        await open(screen.container, 'locked')
+        rename()
+        await settle()
+        expect(onMutate).not.toHaveBeenCalled()
+        expect(screen.component.getEvents().find((event) => event.id === 'locked')?.title).toBe(
+            'locked'
+        )
+    })
+})

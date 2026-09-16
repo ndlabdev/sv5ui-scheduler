@@ -13,7 +13,7 @@ export function normalizeEvent<T>(input: EventInput<T>, timeZone: TimeZoneId): S
     }
     const { recurrence, ...rest } = input
     const event: SchedulerEvent<T> = { ...rest, start, end }
-    if (recurrence) event.recurrence = normalizeRecurrence(recurrence, timeZone)
+    if (recurrence) event.recurrence = normalizeRecurrence(recurrence, zone)
     return event
 }
 

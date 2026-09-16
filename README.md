@@ -105,7 +105,7 @@ Below `compactBreakpoint` (640px of scheduler width by default) the calendar swi
 - The toolbar fits on one row: a today button, arrows, a short title such as `Sep 15 – 17`, and a menu to pick the view. Every control is at least 36px.
 - The week view shows `compactDays` days from the current date (3 by default) and the arrows step by that many. Pass `compactDays={null}` to keep the whole week.
 - Clicking an event opens its details in a slide-over inside the calendar instead of a popover.
-- Month cells drop week numbers and holiday names so day numbers stay readable; the agenda view remains the best fit for long lists.
+- Month cells drop week numbers and holiday names so day numbers stay readable; the agenda view remains the best fit for long lists. A month grid narrower than 768px also shortens weekday names and moves the `+N` count to the bottom of the cell, whatever the breakpoint.
 - Popovers that do open are kept inside the screen, so the page never scrolls sideways.
 
 Set `compactBreakpoint={0}` to keep the desktop layout everywhere. A custom `toolbar` snippet receives `compact` to follow the same switch, and views may provide a `shortTitle`.
@@ -187,14 +187,17 @@ Set `detail="slideover"` and a click opens the event in a panel inside the calen
 ```svelte
 <Scheduler bind:events detail="slideover" eventPanel={panel} />
 
-{#snippet panel({ event, close, remove, deletable })}
-    <p>{event.data.location}</p>
+{#snippet panel({ event, close, remove, update, deletable })}
+    <Input bind:value={title} />
+    <Button label="Save" onclick={() => update({ title })} />
     <Button label="Done" onclick={close} />
     {#if deletable}
         <Button label="Cancel meeting" color="error" onclick={remove} />
     {/if}
 {/snippet}
 ```
+
+`update` sends an `update` mutation through the same pipeline as drag and drop, so `onMutate` runs and a failure rolls back. Fields you leave out keep their value.
 
 ## Loading events on demand
 
@@ -282,7 +285,7 @@ Dropping it on a time slot creates a timed event; dropping it on a month cell or
 ```
 
 - `freq` is `daily`, `weekly`, `monthly` or `yearly`, with `interval`, `byDay`, `count`, `until` and `exDates`.
-- Series are expanded only for the visible range, and a series given as a `ZonedDateTime` repeats in its own time zone.
+- Series are expanded only for the visible range, and a series given as a `ZonedDateTime` repeats in its own time zone; `until` and `exDates` written as plain strings are read in that same zone.
 - Occurrences are read only. Edit the series to change them all.
 - Other RFC 5545 fields are accepted, reported once in development and ignored, so your data never has to change shape.
 
@@ -341,18 +344,18 @@ Time outside business hours is shaded, and holidays are named in every view.
 
 Every visual part can be replaced with a snippet. Your `data` payload arrives typed.
 
-| Snippet          | Receives                                                                                                                                             |
-| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `event`          | `{ event, position, view, isDragging, isResizing, isSelected }`                                                                                      |
-| `cell`           | `{ date, view, isToday, isAnchor, isWeekend, isHoliday, isBusinessHours, isOutside }`                                                                |
-| `header`         | `{ date, view, label, isToday, isAnchor, holiday }`                                                                                                  |
-| `eventDetail`    | `{ event, close }`, shown under the default details in the popover or slide-over                                                                     |
-| `eventPanel`     | `{ event, close, remove, deletable }`, replaces the body of the details slide-over; with `detail="popover"` the popover gains an Open details button |
-| `createPanel`    | `{ start, end, allDay, close, create }`, fills the panel that opens to create an event                                                               |
-| `empty`          | `{ view, range }`; replaces the message the week, day and agenda views show when the range holds no events                                           |
-| `toolbar`        | `{ title, date, range, view, views, step, today, navigate, setView, toggleSidebar }`                                                                 |
-| `toolbarActions` | Nothing; extra controls at the end of the built-in toolbar                                                                                           |
-| `sidebar`        | `{ date, view, range, events, navigate, close, docked }`                                                                                             |
+| Snippet          | Receives                                                                                                                                                     |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `event`          | `{ event, position, view, isDragging, isResizing, isSelected }`                                                                                              |
+| `cell`           | `{ date, view, isToday, isAnchor, isWeekend, isHoliday, isBusinessHours, isOutside }`                                                                        |
+| `header`         | `{ date, view, label, isToday, isAnchor, holiday }`                                                                                                          |
+| `eventDetail`    | `{ event, close }`, shown under the default details in the popover or slide-over                                                                             |
+| `eventPanel`     | `{ event, close, remove, update, deletable }`, replaces the body of the details slide-over; with `detail="popover"` the popover gains an Open details button |
+| `createPanel`    | `{ start, end, allDay, close, create }`, fills the panel that opens to create an event                                                                       |
+| `empty`          | `{ view, range }`; replaces the message the week, day and agenda views show when the range holds no events                                                   |
+| `toolbar`        | `{ title, date, range, view, views, step, today, navigate, setView, toggleSidebar }`                                                                         |
+| `toolbarActions` | Nothing; extra controls at the end of the built-in toolbar                                                                                                   |
+| `sidebar`        | `{ date, view, range, events, navigate, close, docked }`                                                                                                     |
 
 ```svelte
 <Scheduler bind:events event={card} />
@@ -365,7 +368,7 @@ Every visual part can be replaced with a snippet. Your `data` payload arrives ty
 {/snippet}
 ```
 
-A custom event keeps the behaviour of the default chip: a click reports `onEventClick`, opens the configured `detail`, and selects the event so Delete removes it. Render a `button` inside the snippet when keyboard users should reach it.
+The `event` snippet is used everywhere an event is drawn: the time grid, the all-day row, the month cells and the list behind `+N`. The `header` snippet covers the column headers of the week view and the title of the day view. A custom event keeps the behaviour of the default chip: a click reports `onEventClick`, opens the configured `detail`, and selects the event so Delete removes it. Render a `button` inside the snippet when keyboard users should reach it.
 
 ## Extending
 
@@ -426,11 +429,11 @@ import { defineSchedulerConfig } from '@sv5ui/scheduler'
 
 defineSchedulerConfig({
     scheduler: { slots: { root: 'rounded-2xl border' } },
-    eventChip: { defaultVariants: { size: 'sm' } }
+    eventChip: { slots: { root: 'font-medium' } }
 })
 ```
 
-Configurable components: `scheduler`, `eventChip`, `dateNavigator`, `calendarList`, `searchBox`, `dragSourceList`.
+Configurable components: `scheduler`, `eventChip`, `dateNavigator`, `calendarList`, `searchBox`, `dragSourceList`. `slots` reach every instance. `defaultVariants` apply to a component you render yourself; inside the calendar each view picks the `size` and `variant` that fit its cells.
 
 ## Keyboard and screen readers
 
@@ -442,6 +445,7 @@ The grid is a single tab stop with a descriptive name. Every move, creation, del
 | Home, End          | First or last slot of the day, or start or end of the week          |
 | Page Up, Page Down | Previous or next period                                             |
 | Enter              | Create an event at the focused slot, or report it to `onSelectSlot` |
+| Space              | Select the event at the focused slot; press again for the next one  |
 | Escape             | Cancel a drag, or clear the selection                               |
 | Delete             | Delete the selected event                                           |
 

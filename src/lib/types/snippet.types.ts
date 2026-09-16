@@ -1,5 +1,5 @@
 import type { ZonedDateTime } from '@internationalized/date'
-import type { NewEventInput, SchedulerEvent } from './event.types.js'
+import type { EventChanges, NewEventInput, SchedulerEvent } from './event.types.js'
 import type { PositionedEvent } from './layout.types.js'
 import type { SchedulerContext } from './context.types.js'
 import type { DateRange, Holiday } from './range.types.js'
@@ -261,8 +261,16 @@ export interface EventPanelSnippetProps<T = unknown> {
     remove: () => void
 
     /**
-     * Whether the event may be deleted, following `editable` on the event
-     * and on the scheduler.
+     * Applies `changes` to the event through the mutation pipeline, as an
+     * `update` mutation: `onMutate` runs, a failure rolls back, and the
+     * change is announced. Fields left out keep their value. Does nothing
+     * when `deletable` is `false`.
+     */
+    update: (changes: EventChanges<T>) => void
+
+    /**
+     * Whether the event may be deleted or updated, following `editable` on
+     * the event and on the scheduler.
      */
     deletable: boolean
 }

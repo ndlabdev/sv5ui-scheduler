@@ -61,6 +61,7 @@ function setup(attached = true) {
         creatable: () => true,
         proposeCreate: () => false,
         store,
+        events: () => [],
         ...spies
     })
     return { state, first, second, spies }

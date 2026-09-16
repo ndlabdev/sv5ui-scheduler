@@ -176,3 +176,42 @@ describe('invalid inputs', () => {
         warn.mockRestore()
     })
 })
+
+describe('recurrence dates of a series that keeps its own zone', () => {
+    const start = parseZonedDateTime('2026-03-02T09:00[Australia/Sydney]')
+
+    it('reads naive until and exDates in the zone of the series', () => {
+        const event = normalizeEvent(
+            {
+                id: 'standup',
+                title: 'Standup',
+                start,
+                end: start.add({ hours: 1 }),
+                recurrence: {
+                    freq: 'weekly',
+                    until: '2026-03-30T09:00',
+                    exDates: ['2026-03-09T09:00']
+                }
+            },
+            'America/New_York'
+        )
+        expect(event.recurrence?.exDates?.[0].timeZone).toBe('Australia/Sydney')
+        expect(event.recurrence?.exDates?.[0].hour).toBe(9)
+        expect(event.recurrence?.until?.timeZone).toBe('Australia/Sydney')
+        expect(event.recurrence?.until?.hour).toBe(9)
+    })
+
+    it('reads them in the calendar zone when the series start is a string', () => {
+        const event = normalizeEvent(
+            {
+                id: 'standup',
+                title: 'Standup',
+                start: '2026-03-02T09:00',
+                end: '2026-03-02T10:00',
+                recurrence: { freq: 'weekly', exDates: ['2026-03-09T09:00'] }
+            },
+            'America/New_York'
+        )
+        expect(event.recurrence?.exDates?.[0].timeZone).toBe('America/New_York')
+    })
+})

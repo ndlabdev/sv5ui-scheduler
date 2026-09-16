@@ -16,6 +16,7 @@ import type {
     SlotSelection
 } from '../../../types/interaction.types.js'
 import type { SchedulerContext } from '../../../types/context.types.js'
+import type { SchedulerEvent } from '../../../types/event.types.js'
 import type { TimeScale } from '../../../types/layout.types.js'
 import type { DateRange } from '../../../types/range.types.js'
 
@@ -34,6 +35,7 @@ export interface InteractionStateOptions<T> {
     readonly selectSlot: (point: Pick<HitTarget, 'date' | 'allDay'>) => void
     readonly selectRange: (selection: SlotSelection) => void
     readonly store: EventStore<T>
+    readonly events: () => readonly SchedulerEvent<T>[]
     readonly commit: (request: MutationRequest<T>) => void
     readonly step: (direction: 1 | -1) => void
     readonly navigate: (date: ZonedDateTime, view?: string) => void
@@ -133,6 +135,9 @@ function createInteractionContext<T>(
         hitTest: (clientX, clientY) => state.hitTest(clientX, clientY),
         snap: (value) => snapToSlot(value, options.slotMinutes()),
         getEvent: (eventId) => options.store.get(eventId),
+        get events() {
+            return options.events()
+        },
         commit: (request) => options.commit(request),
         setPreview: (next) => state.setPreview(next),
         announce: (message) => options.announce(message)

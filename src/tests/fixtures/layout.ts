@@ -36,6 +36,7 @@ export const scheduler: SchedulerContext = {
     hiddenDays: [],
     editable: true,
     direction: 'ltr',
+    compact: false,
     labels: {} as SchedulerContext['labels'],
     now: at('2026-09-09T12:00')
 }

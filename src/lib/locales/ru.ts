@@ -45,6 +45,8 @@ export const ru: SchedulerLabels = {
         moved: (event, start) => `${event.title} перенесено на ${start}`,
         resized: (event, end) => `${event.title} теперь заканчивается в ${end}`,
         deleted: (event) => `Удалено: ${event.title}`,
+        updated: (event) => `Обновлено: ${event.title}`,
+        selected: (event) => `Выбрано: ${event.title}`,
         cancelled: 'Отменено',
         reverted: (event) => `Не удалось сохранить ${event.title}, изменение отменено`,
         conflict: (event) => `${event.title} изменено в другом месте`

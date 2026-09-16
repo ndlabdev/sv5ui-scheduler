@@ -13,7 +13,9 @@ import {
 } from '../../core/a11y/grid-navigation.js'
 import { isInteractiveTarget, isTextField } from '../../dom/targets.js'
 import { formatLongDate, formatTime } from '../../core/time/format.js'
-import { isSameDay } from '../../core/time/zone.js'
+import { isAfter, isBefore, isSameDay } from '../../core/time/zone.js'
+import { isWholeDay } from '../../core/layout/segments.js'
+import type { SchedulerEvent } from '../../types/event.types.js'
 import { isEditable } from '../../core/store/normalize.js'
 import type { GestureController } from '../engine/controller.svelte.js'
 import type { GesturePoint } from '../engine/gesture.js'
@@ -59,6 +61,7 @@ function handleKey<T>(
     if (event.key === 'Escape') return escape(context, controller)
     if (event.key === 'Enter') return enter(context, controller)
     if (event.key === 'Delete' || event.key === 'Backspace') return remove(context)
+    if (event.key === ' ') return selectAtFocus(context, node)
     if (isNavigationKey(event.key)) {
         const shape = shapeOf(context, node)
         const result = navigate(currentFocus(context, node), event.key, shape)
@@ -97,6 +100,32 @@ function remove<T>(context: InteractionContext<T>): boolean {
     context.select(null)
     context.announce(context.scheduler.labels.announce.deleted(before))
     return true
+}
+
+function selectAtFocus<T>(context: InteractionContext<T>, node: HTMLElement): boolean {
+    const candidates = eventsAt(currentFocus(context, node), context)
+    if (candidates.length === 0) return false
+    const current = candidates.findIndex((event) => event.id === context.selectedEventId)
+    const next = candidates[(current + 1) % candidates.length]
+    context.select(next.id)
+    context.announce(context.scheduler.labels.announce.selected(next))
+    return true
+}
+
+function eventsAt<T>(focus: GridFocus, context: InteractionContext<T>): SchedulerEvent<T>[] {
+    const day = context.days[focus.dayIndex]
+    if (!day) return []
+    const dayEnd = day.add({ days: 1 })
+    const onDay = context.events.filter(
+        (event) => isBefore(event.start, dayEnd) && isAfter(event.end, day)
+    )
+    if (focus.minutes === null) return onDay
+    const slotStart = day.add({ minutes: focus.minutes })
+    const slotEnd = slotStart.add({ minutes: context.scale.slotMinutes })
+    return onDay.filter(
+        (event) =>
+            !isWholeDay(event) && isBefore(event.start, slotEnd) && isAfter(event.end, slotStart)
+    )
 }
 
 function shapeOf<T>(context: InteractionContext<T>, node: HTMLElement): GridShape {

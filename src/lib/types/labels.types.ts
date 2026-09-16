@@ -125,6 +125,8 @@ export interface SchedulerLabels {
         moved: (event: SchedulerEvent, start: string) => string
         resized: (event: SchedulerEvent, end: string) => string
         deleted: (event: SchedulerEvent) => string
+        updated: (event: SchedulerEvent) => string
+        selected: (event: SchedulerEvent) => string
         cancelled: string
         reverted: (event: SchedulerEvent) => string
         conflict: (event: SchedulerEvent) => string

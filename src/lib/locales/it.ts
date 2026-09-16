@@ -43,6 +43,8 @@ export const it: SchedulerLabels = {
         moved: (event, start) => `${event.title} spostato alle ${start}`,
         resized: (event, end) => `${event.title} ora termina alle ${end}`,
         deleted: (event) => `${event.title} eliminato`,
+        updated: (event) => `${event.title} aggiornato`,
+        selected: (event) => `${event.title} selezionato`,
         cancelled: 'Annullato',
         reverted: (event) => `Impossibile salvare ${event.title}, modifica annullata`,
         conflict: (event) => `${event.title} è stato modificato altrove`
