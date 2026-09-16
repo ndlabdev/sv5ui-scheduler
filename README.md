@@ -62,7 +62,7 @@ pnpm add @sv5ui/scheduler sv5ui
 @import '@sv5ui/scheduler/theme.css';
 ```
 
-The second import is what lets Tailwind see the classes inside the package, so it has to come after a stylesheet that imports Tailwind, as `sv5ui/theme.css` does. Add `<ModeWatcher />` from `mode-watcher` to your root layout for dark mode, as sv5ui describes.
+The second import is what lets Tailwind see the classes inside the package. It needs Tailwind itself to be imported by the same stylesheet, which `sv5ui/theme.css` already does. Add `<ModeWatcher />` from `mode-watcher` to your root layout for dark mode, as sv5ui describes.
 
 **3. Render it**
 
