@@ -125,6 +125,7 @@
             {tints}
             {focus}
             {draggingId}
+            gesture={preview?.kind ?? null}
             {selectedEventId}
             {scheduler}
             {snippets}
@@ -164,6 +165,7 @@
                             focusTop={focus?.dayIndex === dayIndex ? focusTop : null}
                             {single}
                             {draggingId}
+                            gesture={preview?.kind ?? null}
                             {selectedEventId}
                             {detailPopover}
                             {onDeleteEvent}

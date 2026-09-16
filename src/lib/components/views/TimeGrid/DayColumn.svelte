@@ -36,6 +36,7 @@
         focusTop: number | null
         single: boolean
         draggingId: string | null
+        gesture: 'create' | 'move' | 'resize' | null
         selectedEventId: string | null
         detailPopover: boolean
         onDeleteEvent: ViewProps<T>['onDeleteEvent']
@@ -60,6 +61,7 @@
         focusTop,
         single,
         draggingId,
+        gesture,
         selectedEventId,
         detailPopover,
         onDeleteEvent,
@@ -87,8 +89,8 @@
             event: position.event,
             position,
             view,
-            isDragging: draggingId === position.event.id,
-            isResizing: false,
+            isDragging: gesture === 'move' && draggingId === position.event.id,
+            isResizing: gesture === 'resize' && draggingId === position.event.id,
             isSelected: selectedEventId === position.event.id
         }
     }

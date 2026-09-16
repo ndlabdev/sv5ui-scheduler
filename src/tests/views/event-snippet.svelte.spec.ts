@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { render } from 'vitest-browser-svelte'
 import { Scheduler } from '../../lib/index.js'
 import type { EventSnippetProps } from '../../lib/types/snippet.types.js'
-import { ZONE, anchor, grid, input, press, tap, wait } from '../fixtures/dom.js'
+import { ZONE, anchor, grid, input, pointer, press, tap, wait } from '../fixtures/dom.js'
 
 const card = createRawSnippet<[EventSnippetProps]>((props) => ({
     render: () => `<div data-probe-card>${props().event.title}</div>`
@@ -133,5 +133,69 @@ describe('the header snippet in the day view', () => {
         expect(probe.textContent).toContain('9')
         expect(probe.dataset.today).toBe('false')
         expect(title.querySelector('h3')).toBeNull()
+    })
+})
+
+describe('gesture flags of the snippet', () => {
+    const flags = createRawSnippet<[EventSnippetProps]>((props) => ({
+        render: () =>
+            `<div data-probe-flags data-dragging="${props().isDragging}" data-resizing="${props().isResizing}">${props().event.title}</div>`,
+        setup: (node) => {
+            $effect(() => {
+                node.setAttribute('data-dragging', String(props().isDragging))
+                node.setAttribute('data-resizing', String(props().isResizing))
+            })
+        }
+    }))
+
+    const read = (container: Element, id: string) => {
+        const node = container.querySelector<HTMLElement>(
+            `[data-sch-event="${id}"] [data-probe-flags]`
+        )!
+        return { dragging: node.dataset.dragging, resizing: node.dataset.resizing }
+    }
+
+    it('reports isResizing during a resize and isDragging during a move, not both', async () => {
+        const screen = mount({
+            event: flags,
+            events: [input('a', '2026-09-09T09:00', '2026-09-09T10:00')],
+            creatable: false
+        })
+        await wait(200)
+        const wrapper = screen.container.querySelector<HTMLElement>('[data-sch-event="a"]')!
+        const rect = wrapper.getBoundingClientRect()
+        const middle = { clientX: rect.left + rect.width / 2, clientY: rect.top + rect.height / 2 }
+        const bottom = { clientX: middle.clientX, clientY: rect.bottom - 2 }
+        expect(read(screen.container, 'a')).toEqual({ dragging: 'false', resizing: 'false' })
+
+        wrapper.dispatchEvent(pointer('pointerdown', bottom))
+        wrapper.dispatchEvent(
+            pointer('pointermove', { clientX: bottom.clientX, clientY: bottom.clientY + 40 })
+        )
+        wrapper.dispatchEvent(
+            pointer('pointermove', { clientX: bottom.clientX, clientY: bottom.clientY + 60 })
+        )
+        await wait(100)
+        expect(read(screen.container, 'a')).toEqual({ dragging: 'false', resizing: 'true' })
+        wrapper.dispatchEvent(
+            pointer('pointerup', { clientX: bottom.clientX, clientY: bottom.clientY + 60 })
+        )
+        await wait(200)
+        expect(read(screen.container, 'a')).toEqual({ dragging: 'false', resizing: 'false' })
+
+        wrapper.dispatchEvent(pointer('pointerdown', middle))
+        wrapper.dispatchEvent(
+            pointer('pointermove', { clientX: middle.clientX, clientY: middle.clientY + 40 })
+        )
+        wrapper.dispatchEvent(
+            pointer('pointermove', { clientX: middle.clientX, clientY: middle.clientY + 60 })
+        )
+        await wait(100)
+        expect(read(screen.container, 'a')).toEqual({ dragging: 'true', resizing: 'false' })
+        wrapper.dispatchEvent(
+            pointer('pointerup', { clientX: middle.clientX, clientY: middle.clientY + 60 })
+        )
+        await wait(200)
+        expect(read(screen.container, 'a')).toEqual({ dragging: 'false', resizing: 'false' })
     })
 })

@@ -121,8 +121,8 @@
             event: span.event,
             position: span,
             view,
-            isDragging: draggingId === span.event.id,
-            isResizing: false,
+            isDragging: preview?.kind === 'move' && draggingId === span.event.id,
+            isResizing: preview?.kind === 'resize' && draggingId === span.event.id,
             isSelected: selectedEventId === span.event.id
         }
     }
