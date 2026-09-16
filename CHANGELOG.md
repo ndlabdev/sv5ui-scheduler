@@ -30,4 +30,5 @@ First release.
 - **Interactions**: `dragSource` turns any element into something that can be dropped on the grid to create an event.
 - **Keyboard and screen readers**: the grid is a single named tab stop with arrow, Home, End, Page Up, Page Down, Enter, Escape and Delete keys. Moves, creations, deletions, rollbacks and conflicts are announced.
 - **DateNavigator**, **CalendarList**, **SearchBox**, **DragSourceList**, **EventChip**: exported for layouts of your own, together with the five views.
+- **Theming**: `@sv5ui/scheduler/theme.css` tells Tailwind where the classes of the package live, so an app imports it next to `sv5ui/theme.css` instead of writing a path into its own stylesheet.
 - **Theming**: drawn with sv5ui theme tokens, including dark mode. `ui` slots per instance and `defineSchedulerConfig` for defaults across instances. Rendering on the server never touches `window`.

@@ -97,6 +97,7 @@ const PUBLIC_VALUES = [
     'mergeLabels'
 ]
 
+const THEME_ENTRY = 'src/lib/theme.css'
 const LOCALES_ENTRY = 'src/lib/locales/index.ts'
 const PUBLIC_LOCALES = [
     'ar',
@@ -158,6 +159,20 @@ describe('locales entry', () => {
         const source = read(LOCALES_ENTRY)
         expect(starTargets(source)).toEqual([])
         expect(namedExports(source).values.sort()).toEqual(PUBLIC_LOCALES)
+    })
+})
+
+describe('theme entry', () => {
+    const manifest = JSON.parse(readFileSync('package.json', 'utf8'))
+    const source = readFileSync(THEME_ENTRY, 'utf8')
+
+    it('is exported under the name apps import', () => {
+        expect(manifest.exports['./theme.css']).toBe('./dist/theme.css')
+    })
+
+    it('declares the package as a source without importing tailwind a second time', () => {
+        expect(source).toContain("@source '.'")
+        expect(source).not.toContain('@import')
     })
 })
 
