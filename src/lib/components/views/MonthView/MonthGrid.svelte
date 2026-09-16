@@ -19,6 +19,7 @@
     import EventChip from '../../event/EventChip/EventChip.svelte'
     import AnchoredPopover from '../../shared/AnchoredPopover.svelte'
     import EventPopover from '../../event/EventPopover/EventPopover.svelte'
+    import EventTrigger from '../../shared/EventTrigger.svelte'
     import WeekNumber from '../../shared/WeekNumber.svelte'
     import { monthGridVariants } from './month-grid.variants.js'
 
@@ -112,6 +113,17 @@
         const title = holidays.get(isoDate(day))?.title
         const named = title ? scheduler.labels.holidayDate(date, title) : date
         return scheduler.labels.dayCell(named, counts.get(dayIndex) ?? 0)
+    }
+
+    function eventProps(span: SpanPosition<T>) {
+        return {
+            event: span.event,
+            position: span,
+            view,
+            isDragging: draggingId === span.event.id,
+            isResizing: false,
+            isSelected: selectedEventId === span.event.id
+        }
     }
 
     function cellProps(day: ZonedDateTime) {
@@ -280,26 +292,23 @@
                             data-sch-event={span.event.id}
                             {@attach interactions.event(span)}
                         >
-                            {#if snippets.event}
-                                {@render snippets.event({
-                                    event: span.event,
-                                    position: span,
-                                    view,
-                                    isDragging: draggingId === span.event.id,
-                                    isResizing: false,
-                                    isSelected: selectedEventId === span.event.id
-                                })}
-                            {:else}
-                                <EventPopover
-                                    event={span.event}
-                                    {scheduler}
-                                    enabled={detailPopover}
-                                    detail={snippets.detail}
-                                    onDelete={onDeleteEvent}
-                                    onOpen={onOpenEvent}
-                                    onSelect={onSelectEvent}
-                                >
-                                    {#snippet children(trigger)}
+                            <EventPopover
+                                event={span.event}
+                                {scheduler}
+                                enabled={detailPopover}
+                                detail={snippets.detail}
+                                onDelete={onDeleteEvent}
+                                onOpen={onOpenEvent}
+                                onSelect={onSelectEvent}
+                            >
+                                {#snippet children(trigger)}
+                                    {#if snippets.event}
+                                        <EventTrigger
+                                            snippet={snippets.event}
+                                            props={eventProps(span)}
+                                            {trigger}
+                                        />
+                                    {:else}
                                         <EventChip
                                             {...trigger}
                                             event={span.event}
@@ -313,9 +322,9 @@
                                             dragging={draggingId === span.event.id}
                                             showTime={!compact}
                                         />
-                                    {/snippet}
-                                </EventPopover>
-                            {/if}
+                                    {/if}
+                                {/snippet}
+                            </EventPopover>
                         </div>
                     {/each}
                 </div>

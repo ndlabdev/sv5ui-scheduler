@@ -142,7 +142,7 @@ Pass `onMutate` to persist what the user does. The change is shown immediately; 
 ```
 
 - `mutation.kind` is `create`, `update`, `move`, `resize` or `delete`, with `before` and `after`.
-- Return nothing to confirm the change, or return the server's version of the event. When it differs from `after`, `onConflict` decides between `'keep-server'` and `'keep-local'`. If the server assigns a new `id`, as most do on create, the event adopts it.
+- Return nothing to confirm the change, or return the server's version of the event. When it differs from `after`, `onConflict` decides between `'keep-server'` and `'keep-local'`. If the server assigns a new `id`, as most do on create, the event adopts it. A returned event that cannot be read, for example one that ends before it starts, is treated like a rejection: the change rolls back and `onError` is called.
 - A save is confirmed even if you reassign `events` from a refetch while it is in flight: the confirmed state is written back once the server answers.
 - `start` and `end` accept ISO strings with `Z`, an offset, or no zone (read in `timeZone`), and date-only strings for all-day events.
 - Changes to different events never wait for each other. Changes to the same event run in order.
@@ -364,6 +364,8 @@ Every visual part can be replaced with a snippet. Your `data` payload arrives ty
     </div>
 {/snippet}
 ```
+
+A custom event keeps the behaviour of the default chip: a click reports `onEventClick`, opens the configured `detail`, and selects the event so Delete removes it. Render a `button` inside the snippet when keyboard users should reach it.
 
 ## Extending
 
