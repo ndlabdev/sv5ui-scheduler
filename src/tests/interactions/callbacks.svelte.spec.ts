@@ -91,6 +91,18 @@ describe('onEventClick', () => {
         expect(iso(clicked.start)).toBe('2026-09-09T08:00')
     })
 
+    it('does not fire again for the click that closes the popover', async () => {
+        const { container, onEventClick } = mount({})
+        await wait(60)
+        tap(chip(container, 'a'))
+        await settle()
+        expect(document.querySelector('[data-sch-detail="a"]')).not.toBeNull()
+        tap(chip(container, 'a'))
+        await settle()
+        expect(document.querySelector('[data-sch-detail="a"]')).toBeNull()
+        expect(onEventClick).toHaveBeenCalledTimes(1)
+    })
+
     it('fires from the keyboard on a focused chip', async () => {
         const { container, onEventClick } = mount({ detail: false })
         await wait(60)
