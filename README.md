@@ -145,7 +145,7 @@ Pass `onMutate` to persist what the user does. The change is shown immediately; 
 - Return nothing to confirm the change, or return the server's version of the event. When it differs from `after`, `onConflict` decides between `'keep-server'` and `'keep-local'`. If the server assigns a new `id`, as most do on create, the event adopts it. A returned event that cannot be read, for example one that ends before it starts, is treated like a rejection: the change rolls back and `onError` is called.
 - A save is confirmed even if you reassign `events` from a refetch while it is in flight: the confirmed state is written back once the server answers.
 - `start` and `end` accept ISO strings with `Z`, an offset, or no zone (read in `timeZone`), and date-only strings for all-day events.
-- Changes to different events never wait for each other. Changes to the same event run in order.
+- Changes to different events never wait for each other. Changes to the same event run in order. One limit: when the server assigns a new `id` on create and the user moves that event again before the answer arrives, the second change is sent with the id the client had.
 
 ### Your own editor
 
@@ -201,7 +201,7 @@ Set `detail="slideover"` and a click opens the event in a panel inside the calen
 
 ## Loading events on demand
 
-Pass `source` instead of `events` and the scheduler asks only for the range on screen. Ranges it already holds are not requested again, requests that are no longer needed are aborted, and a request that takes longer than a moment shows a thin progress bar while the calendar stays usable.
+Pass `source` instead of `events` and the scheduler asks only for the range on screen. Ranges it already holds are not requested again, requests that are no longer needed are aborted, and a request that takes longer than a moment shows a thin progress bar while the calendar stays usable. To fetch again, for example after a change made elsewhere, pass a new function as `source`: the ranges held for the old one are dropped.
 
 ```svelte
 <Scheduler
@@ -299,7 +299,7 @@ Dropping it on a time slot creates a timed event; dropping it on a month cell or
 <Scheduler bind:events timeZone="Asia/Ho_Chi_Minh" locale="vi-VN" labels={vi} hour12={false} />
 ```
 
-- `timeZone` is the zone every date is shown in; the week and day views name it above the hour gutter, and the event details name it when it differs from the device zone. Change it at runtime and every event moves to its new wall clock time without another fetch.
+- `timeZone` is the zone every date is shown in; the week and day views name it above the hour gutter, and the event details name it when it differs from the device zone. Change it at runtime and every event moves to its new wall clock time without another fetch. Without it the zone of the machine that renders is used, so set it when rendering on the server, where that machine is not the user's.
 - Reading: `start` and `end` accept ISO strings with `Z` or an offset (absolute instants), naive strings such as `2026-09-14T09:00` (read in `timeZone`), date-only strings (all-day) and `ZonedDateTime` values. A recurring series given as a `ZonedDateTime` repeats in its own zone, so a 9:00 standup in Sydney stays at 9:00 Sydney time whatever `timeZone` shows.
 - An event whose dates cannot be read, or that ends before it starts, is skipped with a warning in development instead of breaking the calendar.
 - Writing: every event the scheduler hands back (`mutation.after`, `onEventClick`, snippets) carries `ZonedDateTime` values in `timeZone`. Send `event.start.toAbsoluteString()` to an API that stores UTC, or `event.start.toString()` to keep the zone.
@@ -344,18 +344,18 @@ Time outside business hours is shaded, and holidays are named in every view.
 
 Every visual part can be replaced with a snippet. Your `data` payload arrives typed.
 
-| Snippet          | Receives                                                                                                                                                     |
-| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `event`          | `{ event, position, view, isDragging, isResizing, isSelected }`                                                                                              |
-| `cell`           | `{ date, view, isToday, isAnchor, isWeekend, isHoliday, isBusinessHours, isOutside }`                                                                        |
-| `header`         | `{ date, view, label, isToday, isAnchor, holiday }`                                                                                                          |
-| `eventDetail`    | `{ event, close }`, shown under the default details in the popover or slide-over                                                                             |
-| `eventPanel`     | `{ event, close, remove, update, deletable }`, replaces the body of the details slide-over; with `detail="popover"` the popover gains an Open details button |
-| `createPanel`    | `{ start, end, allDay, close, create }`, fills the panel that opens to create an event                                                                       |
-| `empty`          | `{ view, range }`; replaces the message the week, day and agenda views show when the range holds no events                                                   |
-| `toolbar`        | `{ title, date, range, view, views, step, today, navigate, setView, toggleSidebar }`                                                                         |
-| `toolbarActions` | Nothing; extra controls at the end of the built-in toolbar                                                                                                   |
-| `sidebar`        | `{ date, view, range, events, navigate, close, docked }`                                                                                                     |
+| Snippet          | Receives                                                                                                                                                               |
+| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `event`          | `{ event, position, view, isDragging, isResizing, isSelected }`                                                                                                        |
+| `cell`           | `{ date, view, isToday, isAnchor, isWeekend, isHoliday, isBusinessHours, isOutside }`; drawn behind the timed columns of the week and day views and inside month cells |
+| `header`         | `{ date, view, label, isToday, isAnchor, holiday }`                                                                                                                    |
+| `eventDetail`    | `{ event, close }`, shown under the default details in the popover or slide-over                                                                                       |
+| `eventPanel`     | `{ event, close, remove, update, deletable }`, replaces the body of the details slide-over; with `detail="popover"` the popover gains an Open details button           |
+| `createPanel`    | `{ start, end, allDay, close, create }`, fills the panel that opens to create an event                                                                                 |
+| `empty`          | `{ view, range }`; replaces the message the week, day and agenda views show when the range holds no events                                                             |
+| `toolbar`        | `{ title, date, range, view, views, step, today, navigate, setView, toggleSidebar }`                                                                                   |
+| `toolbarActions` | Nothing; extra controls at the end of the built-in toolbar                                                                                                             |
+| `sidebar`        | `{ date, view, range, events, navigate, close, docked }`                                                                                                               |
 
 ```svelte
 <Scheduler bind:events event={card} />
