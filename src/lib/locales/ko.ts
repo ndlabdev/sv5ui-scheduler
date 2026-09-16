@@ -40,6 +40,8 @@ export const ko: SchedulerLabels = {
         moved: (event, start) => `${event.title} 일정을 ${start}(으)로 옮겼습니다`,
         resized: (event, end) => `${event.title} 일정이 이제 ${end}에 끝납니다`,
         deleted: (event) => `${event.title} 일정을 삭제했습니다`,
+        updated: (event) => `${event.title} 일정을 수정했습니다`,
+        selected: (event) => `${event.title} 일정을 선택했습니다`,
         cancelled: '취소됨',
         reverted: (event) => `${event.title} 일정을 저장하지 못해 변경을 되돌렸습니다`,
         conflict: (event) => `${event.title} 일정이 다른 곳에서 변경되었습니다`

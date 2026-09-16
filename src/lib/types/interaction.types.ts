@@ -133,6 +133,12 @@ export interface InteractionContext<T = unknown> {
     getEvent: (eventId: string) => SchedulerEvent<T> | undefined
 
     /**
+     * Events shown in the current range after filters, with series expanded
+     * into occurrences, in start order.
+     */
+    events: readonly SchedulerEvent<T>[]
+
+    /**
      * Send a change through the mutation pipeline. Optimistic application,
      * queueing and rollback happen behind this call.
      */

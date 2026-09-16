@@ -50,6 +50,8 @@ export const ar: SchedulerLabels = {
         moved: (event, start) => `تم نقل ${event.title} إلى ${start}`,
         resized: (event, end) => `${event.title} ينتهي الآن في ${end}`,
         deleted: (event) => `تم حذف ${event.title}`,
+        updated: (event) => `تم تحديث ${event.title}`,
+        selected: (event) => `تم تحديد ${event.title}`,
         cancelled: 'تم الإلغاء',
         reverted: (event) => `تعذر حفظ ${event.title}، تم التراجع عن التغيير`,
         conflict: (event) => `تم تحديث ${event.title} في مكان آخر`
