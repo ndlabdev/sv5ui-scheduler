@@ -110,6 +110,12 @@ export type EventInput<T = unknown> = Omit<SchedulerEvent<T>, 'start' | 'end' | 
 export type NewEventInput<T = unknown> = Omit<EventInput<T>, 'id'> & { id?: string }
 
 /**
+ * Fields of an existing event to replace. Everything is optional; `id` is
+ * fixed by the event being changed.
+ */
+export type EventChanges<T = unknown> = Partial<Omit<EventInput<T>, 'id'>>
+
+/**
  * A named group of events, such as Work or Personal. Events join one through
  * `calendarId`.
  */

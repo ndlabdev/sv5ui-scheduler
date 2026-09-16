@@ -37,11 +37,14 @@
     }
 </script>
 
-{#snippet panel({ event, close, remove, deletable }: EventPanelSnippetProps)}
+{#snippet panel({ event, close, remove, update, deletable }: EventPanelSnippetProps)}
     <p data-probe-panel>{event.title}</p>
     <p data-probe-deletable>{String(deletable)}</p>
     <button type="button" data-probe-close onclick={close}>Done</button>
     <button type="button" data-probe-remove onclick={remove}>Remove</button>
+    <button type="button" data-probe-rename onclick={() => update({ title: 'Renamed' })}>
+        Rename
+    </button>
 {/snippet}
 
 <div style="height: 800px; width: 1100px">

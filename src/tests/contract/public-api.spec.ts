@@ -19,6 +19,7 @@ const PUBLIC_TYPES = [
     'CreatePanelSnippetProps',
     'EmptySnippetProps',
     'EventChipProps',
+    'EventChanges',
     'NewEventInput',
     'PartialLabels',
     'SchedulerConfig',

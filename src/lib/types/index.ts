@@ -10,6 +10,7 @@ export type {
 export type {
     EventColor,
     EventInput,
+    EventChanges,
     NewEventInput,
     SchedulerCalendar,
     SchedulerEvent,

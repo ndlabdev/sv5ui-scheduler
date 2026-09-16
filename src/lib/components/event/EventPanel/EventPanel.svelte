@@ -1,7 +1,7 @@
 <script lang="ts" generics="T">
     import { Button, Slideover } from 'sv5ui'
     import type { Snippet } from 'svelte'
-    import type { SchedulerEvent } from '../../../types/event.types.js'
+    import type { EventChanges, SchedulerEvent } from '../../../types/event.types.js'
     import type { SchedulerContext } from '../../../types/context.types.js'
     import type {
         EventDetailSnippetProps,
@@ -24,6 +24,7 @@
         panel?: Snippet<[EventPanelSnippetProps<T>]>
         onClose: () => void
         onDelete: (eventId: string) => void
+        onUpdate: (eventId: string, changes: EventChanges<T>) => void
     }
 
     let {
@@ -36,7 +37,8 @@
         detail,
         panel,
         onClose,
-        onDelete
+        onDelete,
+        onUpdate
     }: Props = $props()
 
     const classes = eventPanelVariants()
@@ -51,6 +53,11 @@
         if (!deletable) return
         onDelete(event.id)
         onClose()
+    }
+
+    function update(changes: EventChanges<T>) {
+        if (!deletable) return
+        onUpdate(event.id, changes)
     }
 </script>
 
@@ -82,7 +89,7 @@
     {#snippet body()}
         <div class={classes.body()} data-sch-event-panel={event.id}>
             {#if panel}
-                {@render panel({ event, close: onClose, remove, deletable })}
+                {@render panel({ event, close: onClose, remove, update, deletable })}
             {:else}
                 <EventDetails {event} {scheduler} />
                 {@render detail?.({ event, close: onClose })}
