@@ -31,5 +31,6 @@ First release.
 - **Keyboard and screen readers**: the grid is a single named tab stop with arrow, Home, End, Page Up, Page Down, Enter, Space, Escape and Delete keys; Space selects the event at the focused slot and cycles through overlapping ones. Moves, creations, deletions, rollbacks and conflicts are announced.
 - **DateNavigator**, **CalendarList**, **SearchBox**, **DragSourceList**, **EventChip**: exported for layouts of your own, together with the five views. Each forwards HTML attributes to its root element.
 - **Package**: the manifest now carries the description, license, author, homepage, repository and issue tracker, so the npm page describes the package and links back to the repository.
+- **Package**: `@internationalized/date` is accepted in the same range as sv5ui asks for, so one copy serves both packages.
 - **Theming**: `@sv5ui/scheduler/theme.css` tells Tailwind where the classes of the package live, so an app imports it next to `sv5ui/theme.css` instead of writing a path into its own stylesheet.
 - **Theming**: drawn with sv5ui theme tokens, including dark mode. `ui` slots per instance and `defineSchedulerConfig` for defaults across instances. Rendering on the server never touches `window`.
