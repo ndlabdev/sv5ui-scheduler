@@ -11,7 +11,7 @@ export type MutationKind = 'create' | 'update' | 'delete' | 'move' | 'resize'
  */
 export interface Mutation<T = unknown> {
     /**
-     * Unique per mutation. Retries of the same change carry the same id.
+     * Unique per mutation, assigned by the scheduler.
      */
     id: string
 

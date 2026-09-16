@@ -32,20 +32,17 @@ export interface DateRange {
  */
 export interface BusinessHours {
     /**
-     * Opening time in 24 hour `HH:mm` form.
-     * @default '09:00'
+     * Opening time in 24 hour `HH:mm` form, such as `'09:00'`.
      */
     start: string
 
     /**
-     * Closing time in 24 hour `HH:mm` form, exclusive.
-     * @default '17:00'
+     * Closing time in 24 hour `HH:mm` form, exclusive, such as `'17:00'`.
      */
     end: string
 
     /**
-     * Days the hours apply to.
-     * @default [1, 2, 3, 4, 5]
+     * Days the hours apply to, such as `[1, 2, 3, 4, 5]` for Monday to Friday.
      */
     days: WeekDay[]
 }

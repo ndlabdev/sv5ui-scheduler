@@ -211,8 +211,9 @@ export interface EventDetailSnippetProps<T = unknown> {
 
 /**
  * Argument of the `createPanel` snippet, which fills the panel that opens
- * when the user picks an empty slot, drags over empty slots or presses Enter,
- * and when the application sets `draft`.
+ * when the user drags over empty slots or presses Enter on a focused slot,
+ * and when the application sets `draft`. A plain click only reports through
+ * `onSelectSlot`.
  */
 export interface CreatePanelSnippetProps<T = unknown> {
     /**
