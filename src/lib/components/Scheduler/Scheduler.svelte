@@ -271,7 +271,6 @@
         scale,
         days,
         columnsPerRow: visibleColumns(definition.columnsPerRow, days.length, allDays.length),
-        maxLanes: 3,
         scheduler: context
     })
     const positioned = $derived(

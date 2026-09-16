@@ -41,13 +41,12 @@ export const scheduler: SchedulerContext = {
     now: at('2026-09-09T12:00')
 }
 
-export function contextFor(range: DateRange, columnsPerRow?: number, maxLanes = 3): LayoutContext {
+export function contextFor(range: DateRange, columnsPerRow?: number): LayoutContext {
     const days = eachDay(range)
     return {
         scale: createTimeScale({ slotMinutes: 30, slotHeight: 20 }),
         days,
         columnsPerRow: columnsPerRow ?? days.length,
-        maxLanes,
         scheduler
     }
 }

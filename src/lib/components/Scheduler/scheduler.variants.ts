@@ -22,7 +22,10 @@ export const schedulerVariants = tv({
     }
 })
 
-export type SchedulerSlots = keyof ReturnType<typeof schedulerVariants>
+export type SchedulerSlots = Exclude<
+    keyof ReturnType<typeof schedulerVariants>,
+    'bodyReversed' | 'sidebarEnd'
+>
 
 export const schedulerDefaults = {
     defaultVariants: {},

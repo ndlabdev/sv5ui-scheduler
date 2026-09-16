@@ -19,6 +19,7 @@
         tints: string[][]
         focus: GridFocus | null
         draggingId: string | null
+        gesture: 'create' | 'move' | 'resize' | null
         selectedEventId: string | null
         scheduler: SchedulerContext
         snippets: ViewSnippets<T>
@@ -36,6 +37,7 @@
         tints,
         focus,
         draggingId,
+        gesture,
         selectedEventId,
         scheduler,
         snippets,
@@ -54,8 +56,8 @@
             event: position.event,
             position,
             view,
-            isDragging: draggingId === position.event.id,
-            isResizing: false,
+            isDragging: gesture === 'move' && draggingId === position.event.id,
+            isResizing: gesture === 'resize' && draggingId === position.event.id,
             isSelected: selectedEventId === position.event.id
         }
     }

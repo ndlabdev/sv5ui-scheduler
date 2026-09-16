@@ -48,7 +48,7 @@
     const anchorProps = $derived({ customAnchor: anchor })
 
     function toggle() {
-        onActivate?.()
+        if (!open) onActivate?.()
         open = !open
     }
 

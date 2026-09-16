@@ -137,8 +137,8 @@ export interface ViewProps<T = unknown> {
 }
 
 /**
- * Registers a named view. The built-in `month`, `week`, `day` and `agenda`
- * are defined the same way.
+ * Registers a named view. The built-in `month`, `week`, `day`, `year` and
+ * `agenda` are defined the same way.
  */
 export interface ViewDefinition<T = unknown> {
     /**

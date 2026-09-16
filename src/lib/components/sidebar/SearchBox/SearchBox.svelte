@@ -20,7 +20,8 @@
         shortcut = '/',
         labels = defaultLabels,
         ui,
-        class: className
+        class: className,
+        ...restProps
     }: Props = $props()
 
     const classes = $derived({
@@ -48,8 +49,9 @@
     aria-label={labels.searchEvents}
     leadingIcon="lucide:search"
     size="sm"
-    class={classes.root}
     data-sch-search-box
+    {...restProps}
+    class={classes.root}
 >
     {#snippet trailingSlot()}
         {#if shortcut !== null}
