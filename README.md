@@ -451,7 +451,15 @@ The grid is a single tab stop with a descriptive name. Every move, creation, del
 | `tailwindcss` | `^4.0.0` |
 | `sv5ui`       | `^2.7.0` |
 
-`@internationalized/date`, `tailwind-variants` and `tailwind-merge` are installed with the package and shared with sv5ui.
+`@internationalized/date`, `tailwind-variants` and `tailwind-merge` are installed with the package and shared with sv5ui. Nothing else is needed to pass ISO strings and to read back the values the scheduler hands you, which already are `ZonedDateTime`.
+
+Install `@internationalized/date` yourself if your own code builds or types those values:
+
+```sh
+pnpm add @internationalized/date
+```
+
+A package that only arrives as a dependency of a dependency cannot be imported under pnpm, so without this the import fails both at type check and at runtime.
 
 ## Contributing
 
