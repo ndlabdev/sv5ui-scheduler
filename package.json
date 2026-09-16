@@ -1,6 +1,17 @@
 {
     "name": "@sv5ui/scheduler",
     "version": "0.0.1",
+    "description": "Scheduler and calendar component for Svelte 5: month, week, day, year and agenda views, drag and drop, recurring events, time zones and an optimistic save pipeline.",
+    "license": "MIT",
+    "author": "ndlabdev",
+    "homepage": "https://github.com/ndlabdev/sv5ui-scheduler#readme",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/ndlabdev/sv5ui-scheduler.git"
+    },
+    "bugs": {
+        "url": "https://github.com/ndlabdev/sv5ui-scheduler/issues"
+    },
     "scripts": {
         "dev": "vite dev",
         "build": "vite build && npm run prepack",
@@ -80,6 +91,18 @@
         "vitest-browser-svelte": "^2.1.1"
     },
     "keywords": [
-        "svelte"
+        "svelte",
+        "svelte5",
+        "sveltekit",
+        "scheduler",
+        "calendar",
+        "event-calendar",
+        "agenda",
+        "timeline",
+        "drag-and-drop",
+        "recurring-events",
+        "timezone",
+        "tailwindcss",
+        "sv5ui"
     ]
 }

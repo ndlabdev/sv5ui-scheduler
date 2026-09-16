@@ -9,6 +9,13 @@
   <img src="https://img.shields.io/badge/Svelte-5-ff3e00?style=flat-square&logo=svelte&logoColor=white" alt="Svelte 5" />
   <img src="https://img.shields.io/badge/Tailwind_CSS-4-06b6d4?style=flat-square&logo=tailwindcss&logoColor=white" alt="Tailwind CSS 4" />
   <img src="https://img.shields.io/badge/TypeScript-strict-3178c6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript" />
+  <a href="https://ko-fi.com/ndlabdev"><img src="https://img.shields.io/badge/Ko--fi-donate-ff3e00?style=flat-square&colorA=18181b&logo=kofi&logoColor=white" alt="donate on Ko-fi" /></a>
+</p>
+
+<p align="center">
+  <a href="CONTRIBUTING.md"><strong>Contributing</strong></a> &middot;
+  <a href="CHANGELOG.md"><strong>Changelog</strong></a> &middot;
+  <a href="SECURITY.md"><strong>Security</strong></a>
 </p>
 
 > Under active development. Not yet published to npm.
@@ -448,7 +455,7 @@ The grid is a single tab stop with a descriptive name. Every move, creation, del
 
 ## Contributing
 
-Issues and pull requests are welcome. Open an issue from one of the templates first, then branch from `dev` and open the pull request against `dev` with an entry in `CHANGELOG.md` under `[Unreleased]`. To run the project locally:
+Issues and pull requests are welcome. To run the project locally:
 
 ```sh
 pnpm install
@@ -458,3 +465,23 @@ pnpm check    # svelte-check
 pnpm lint     # prettier and eslint
 pnpm build    # package build and publint
 ```
+
+Open an issue from one of the templates first, then branch from `dev` and open the pull request against `dev`. [CONTRIBUTING.md](CONTRIBUTING.md) covers the workflow, the branch and commit naming, and the conventions a change has to follow.
+
+## Security
+
+Please report a vulnerability privately through the [Report a vulnerability](https://github.com/ndlabdev/sv5ui-scheduler/security/advisories/new) form rather than a public issue. [SECURITY.md](SECURITY.md) describes what to include and what is in scope.
+
+## Support
+
+The scheduler is free and developed in the open. If it saves you time, a coffee helps keep it maintained.
+
+<p>
+  <a href="https://ko-fi.com/ndlabdev"><img src="https://img.shields.io/badge/Ko--fi-Support%20this%20project-ff3e00?style=for-the-badge&logo=kofi&logoColor=white&colorA=18181b" alt="Support this project on Ko-fi" /></a>
+</p>
+
+Starring the repository, reporting a bug or sending a pull request helps just as much.
+
+## License
+
+[MIT](LICENSE) &copy; [ndlabdev](https://github.com/ndlabdev)
