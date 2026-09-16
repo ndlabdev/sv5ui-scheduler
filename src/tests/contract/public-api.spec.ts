@@ -177,6 +177,17 @@ describe('theme entry', () => {
     })
 })
 
+describe('runtime dependencies', () => {
+    const manifest = JSON.parse(readFileSync('package.json', 'utf8'))
+    const peer = JSON.parse(readFileSync('node_modules/sv5ui/package.json', 'utf8'))
+
+    it('accepts the same @internationalized/date range as sv5ui, so one copy serves both', () => {
+        expect(manifest.dependencies['@internationalized/date']).toBe(
+            peer.dependencies['@internationalized/date']
+        )
+    })
+})
+
 describe('area barrels', () => {
     const barrels = AREAS.map((area) => join(dirname(ROOT), area))
 
