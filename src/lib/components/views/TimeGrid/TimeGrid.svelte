@@ -95,10 +95,13 @@
     {#if single}
         <DayTitle
             day={days[0]}
+            {view}
+            {anchor}
             {scheduler}
             isToday={todayIndex === 0}
             holiday={holidays.get(isoDate(days[0]))}
             {week}
+            header={snippets.header}
         />
     {:else}
         <DayHeaders
@@ -117,13 +120,14 @@
     {#if allDay.spans.length > 0 || allDay.ghosts.length > 0}
         <AllDayRow
             {days}
+            {view}
             layout={allDay}
             {tints}
             {focus}
             {draggingId}
             {selectedEventId}
             {scheduler}
-            detail={snippets.detail}
+            {snippets}
             {detailPopover}
             {onDeleteEvent}
             {onOpenEvent}
