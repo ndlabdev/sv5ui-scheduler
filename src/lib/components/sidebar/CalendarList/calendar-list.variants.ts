@@ -13,7 +13,7 @@ export const calendarListVariants = tv({
     }
 })
 
-export type CalendarListSlots = keyof ReturnType<typeof calendarListVariants>
+export type CalendarListSlots = Exclude<keyof ReturnType<typeof calendarListVariants>, 'nameHidden'>
 
 export const calendarListDefaults = {
     defaultVariants: {},

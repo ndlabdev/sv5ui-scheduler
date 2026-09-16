@@ -152,12 +152,6 @@ export interface LayoutContext {
      */
     columnsPerRow: number
 
-    /**
-     * Maximum lanes a whole-day row shows before collapsing into "+N more".
-     * `Infinity` disables collapsing.
-     */
-    maxLanes: number
-
     scheduler: SchedulerContext
 }
 
