@@ -16,7 +16,7 @@
     import { createRegistry } from '../../core/registry/registry.js'
     import { EventStore } from '../../core/store/event-store.svelte.js'
     import { createEventFilter } from '../../core/store/filters.js'
-    import { normalizeEvent } from '../../core/store/normalize.js'
+    import { isEditable, isSameEvent, normalizeEvent } from '../../core/store/normalize.js'
     import { MutationPipeline } from '../../core/store/mutations.svelte.js'
     import { createSourceLoader } from '../../core/store/sources.js'
     import { formatDayRange } from '../../core/time/format.js'
@@ -36,7 +36,7 @@
     import type { SidebarSnippetProps, ToolbarSnippetProps } from '../../types/snippet.types.js'
     import type { PositionedEvent } from '../../types/layout.types.js'
     import type { SchedulerContext } from '../../types/context.types.js'
-    import type { NewEventInput, SchedulerEvent } from '../../types/event.types.js'
+    import type { EventChanges, NewEventInput, SchedulerEvent } from '../../types/event.types.js'
     import type { SlotSelection } from '../../types/interaction.types.js'
     import type { StoreMiddleware } from '../../types/mutation.types.js'
     import type { ViewProps } from '../../types/view.types.js'
@@ -145,6 +145,7 @@
         selectSlot: (point) => onSelectSlot?.(slotSelection(point, slotMinutes)),
         selectRange: proposeRange,
         store,
+        events: () => visibleEvents,
         commit: (request) => void pipeline.commit(request),
         step,
         navigate,
@@ -229,6 +230,9 @@
         },
         get direction() {
             return dir === 'rtl' || dir === 'ltr' ? dir : inheritedDirection
+        },
+        get compact() {
+            return compact
         },
         get labels() {
             return labels
@@ -449,6 +453,15 @@
         announcer.announce(labels.announce.created(after))
     }
 
+    function updateEvent(eventId: string, changes: EventChanges<T>) {
+        const before = store.get(eventId)
+        if (!before || !isEditable(before, editable)) return
+        const after = normalizeEvent({ ...before, ...changes, id: eventId }, timeZone)
+        if (isSameEvent(before, after)) return
+        void pipeline.commit({ kind: 'update', eventId, before, after })
+        announcer.announce(labels.announce.updated(after))
+    }
+
     function deleteEvent(eventId: string) {
         const before = store.get(eventId)
         if (!before || before.editable === false) return
@@ -632,6 +645,7 @@
             panel={eventPanel}
             onClose={closePanel}
             onDelete={deleteEvent}
+            onUpdate={updateEvent}
         />
     {/if}
     <div class="sr-only" aria-live="polite" aria-atomic="true">{announcer.message}</div>

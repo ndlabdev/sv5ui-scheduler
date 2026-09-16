@@ -49,6 +49,7 @@ function harness(options: GestureOptions = {}) {
             hiddenDays: [],
             editable: true,
             direction: 'ltr',
+            compact: false,
             labels: defaultLabels,
             now: at('2026-09-09T12:00')
         },
@@ -64,6 +65,7 @@ function harness(options: GestureOptions = {}) {
         hitTest: () => null,
         snap: (date) => date,
         getEvent: () => undefined,
+        events: [],
         commit: (request) => void commits.push(request),
         setPreview: (preview) => void previews.push(preview),
         announce: (message) => void announcements.push(message)

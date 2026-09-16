@@ -56,6 +56,12 @@ export interface SchedulerContext {
      */
     direction: 'ltr' | 'rtl'
 
+    /**
+     * Whether the scheduler is narrower than `compactBreakpoint` and shows
+     * its layout for phones. Views drop secondary detail while it is `true`.
+     */
+    compact: boolean
+
     labels: SchedulerLabels
 
     /**

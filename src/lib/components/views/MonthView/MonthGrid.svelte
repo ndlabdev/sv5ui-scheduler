@@ -55,6 +55,7 @@
     let bodyHeight = $state(0)
     let bodyWidth = $state(0)
     const compact = $derived(bodyWidth > 0 && bodyWidth < COMPACT_WIDTH)
+    const sparse = $derived(scheduler.compact)
     const minRowHeight = $derived(HEADER_HEIGHT + LANE_HEIGHT + 8 + (compact ? MORE_HEIGHT : 0))
     const cellHeight = $derived(
         bodyHeight > 0 ? Math.max(bodyHeight / rows.length, minRowHeight) : 120
@@ -204,14 +205,14 @@
                                     >
                                         {formatDayNumber(day, scheduler.locale)}
                                     </span>
-                                    {#if scheduler.weekNumbers && week !== null && !compact}
+                                    {#if scheduler.weekNumbers && week !== null && !sparse}
                                         <WeekNumber
                                             {week}
                                             labels={scheduler.labels}
                                             class={classes.weekNumber()}
                                         />
                                     {/if}
-                                    {#if holiday?.title && !compact}
+                                    {#if holiday?.title && !sparse}
                                         <span class={classes.holidayTitle()} data-sch-holiday-title>
                                             {holiday.title}
                                         </span>
@@ -246,20 +247,33 @@
                                                 data-sch-more-list={isoDate(day)}
                                             >
                                                 {#each spansOn(dayIndex) as span (span.event.id)}
-                                                    <EventChip
-                                                        event={span.event}
-                                                        color={eventColor(
-                                                            span.event,
-                                                            scheduler.calendars
-                                                        )}
-                                                        position={span}
-                                                        variant="solid"
-                                                        size="sm"
-                                                        locale={scheduler.locale}
-                                                        hour12={scheduler.hour12}
-                                                        selected={selectedEventId === span.event.id}
-                                                        onclick={() => onSelectEvent(span.event.id)}
-                                                    />
+                                                    {#if snippets.event}
+                                                        <EventTrigger
+                                                            snippet={snippets.event}
+                                                            props={eventProps(span)}
+                                                            trigger={{
+                                                                onclick: () =>
+                                                                    onSelectEvent(span.event.id)
+                                                            }}
+                                                        />
+                                                    {:else}
+                                                        <EventChip
+                                                            event={span.event}
+                                                            color={eventColor(
+                                                                span.event,
+                                                                scheduler.calendars
+                                                            )}
+                                                            position={span}
+                                                            variant="solid"
+                                                            size="sm"
+                                                            locale={scheduler.locale}
+                                                            hour12={scheduler.hour12}
+                                                            selected={selectedEventId ===
+                                                                span.event.id}
+                                                            onclick={() =>
+                                                                onSelectEvent(span.event.id)}
+                                                        />
+                                                    {/if}
                                                 {/each}
                                             </div>
                                         {/snippet}
