@@ -287,6 +287,26 @@ describe('editing from the panel', () => {
         expect(panel()?.textContent).toContain('Renamed')
     })
 
+    it('sends a change that touches only the payload', async () => {
+        const seen: Mutation[] = []
+        const screen = render(EventPanelScheduler, {
+            initial: events,
+            date: anchor,
+            custom: true,
+            onMutate: async (mutation: Mutation) => void seen.push(mutation)
+        })
+        await wait(60)
+        await open(screen.container, 'a')
+        ;(document.querySelector('[data-probe-locate]') as HTMLElement).click()
+        await settle()
+        expect(seen.map((mutation) => mutation.kind)).toEqual(['update'])
+        expect(seen[0].after?.data).toEqual({ room: 'B2' })
+        expect(
+            (screen.component.getEvents().find((event) => event.id === 'a') as { data?: unknown })
+                ?.data
+        ).toEqual({ room: 'B2' })
+    })
+
     it('rolls the update back when the save fails', async () => {
         const screen = render(EventPanelScheduler, {
             initial: events,

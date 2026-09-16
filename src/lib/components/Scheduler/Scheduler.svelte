@@ -16,7 +16,7 @@
     import { createRegistry } from '../../core/registry/registry.js'
     import { EventStore } from '../../core/store/event-store.svelte.js'
     import { createEventFilter } from '../../core/store/filters.js'
-    import { isEditable, isSameEvent, normalizeEvent } from '../../core/store/normalize.js'
+    import { isEditable, normalizeEvent } from '../../core/store/normalize.js'
     import { MutationPipeline } from '../../core/store/mutations.svelte.js'
     import { createSourceLoader } from '../../core/store/sources.js'
     import { formatDayRange } from '../../core/time/format.js'
@@ -456,7 +456,6 @@
         const before = store.get(eventId)
         if (!before || !isEditable(before, editable)) return
         const after = normalizeEvent({ ...before, ...changes, id: eventId }, timeZone)
-        if (isSameEvent(before, after)) return
         void pipeline.commit({ kind: 'update', eventId, before, after })
         announcer.announce(labels.announce.updated(after))
     }
