@@ -12,6 +12,16 @@ describe('SearchBox', () => {
         expect(container.textContent).toContain('/')
     })
 
+    it('forwards HTML attributes to the field', () => {
+        const { container } = render(SearchBox, {
+            props: { name: 'q', autocomplete: 'off', 'data-testid': 'search' }
+        })
+        const field = container.querySelector('input')!
+        expect(field.name).toBe('q')
+        expect(field.getAttribute('autocomplete')).toBe('off')
+        expect(field.dataset.testid).toBe('search')
+    })
+
     it('hides the shortcut hint when the shortcut is turned off', () => {
         const { container } = render(SearchBox, { props: { shortcut: null } })
         expect(container.textContent?.trim()).toBe('')

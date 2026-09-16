@@ -1,11 +1,16 @@
 import type { ClassNameValue } from 'tailwind-merge'
+import type { HTMLInputAttributes } from 'svelte/elements'
 import type { SchedulerLabels } from '../../../types/labels.types.js'
 import type { SearchBoxSlots } from './search-box.variants.js'
 
 /**
- * Props of `SearchBox`, a text field for the scheduler's `search`.
+ * Props of `SearchBox`, a text field for the scheduler's `search`. Other
+ * attributes reach the input element.
  */
-export interface SearchBoxProps {
+export type SearchBoxProps = Omit<
+    HTMLInputAttributes,
+    'class' | 'value' | 'size' | 'color' | 'width' | 'height' | 'placeholder' | 'aria-label'
+> & {
     /**
      * Bindable reference to the input element.
      */
