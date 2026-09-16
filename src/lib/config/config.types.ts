@@ -16,7 +16,9 @@ export type DeepPartial<T> = {
 
 /**
  * Per-component overrides for the scheduler, keyed by component name in
- * camelCase (`scheduler`, `eventChip`, `weekView`). Each entry may replace
- * default variant values and add classes to named slots.
+ * camelCase: `scheduler`, `eventChip`, `dateNavigator`, `calendarList`,
+ * `searchBox` and `dragSourceList`. Each entry may replace default variant
+ * values and add classes to named slots. Call `defineSchedulerConfig` once,
+ * from a file the root layout imports, before any scheduler renders.
  */
 export type SchedulerConfig = Record<string, DeepPartial<ComponentDefaults> | undefined>

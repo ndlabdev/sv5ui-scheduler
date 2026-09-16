@@ -14,6 +14,7 @@
         type SidebarApi
     } from 'sv5ui'
     import { allDemos, demoGroups, findDemo } from '../demo/nav.js'
+    import '../scheduler.config.js'
     import './layout.css'
 
     let { children } = $props()
