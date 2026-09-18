@@ -215,3 +215,42 @@ describe('recurrence dates of a series that keeps its own zone', () => {
         expect(event.recurrence?.exDates?.[0].timeZone).toBe('America/New_York')
     })
 })
+
+describe('sameEventList and the recurrence rule', () => {
+    const series = (recurrence: Parameters<typeof normalizeEvent>[0]['recurrence']) =>
+        normalizeEvent(
+            {
+                id: 'standup',
+                title: 'Standup',
+                start: '2026-09-07T08:00',
+                end: '2026-09-07T08:30',
+                recurrence
+            },
+            'Asia/Ho_Chi_Minh'
+        )
+
+    it('tells a changed rule apart', () => {
+        const before = [series({ freq: 'daily', count: 5 })]
+        expect(sameEventList(before, [series({ freq: 'daily', count: 5 })])).toBe(true)
+        expect(sameEventList(before, [series({ freq: 'daily', count: 4 })])).toBe(false)
+        expect(sameEventList(before, [series({ freq: 'weekly', count: 5 })])).toBe(false)
+        expect(
+            sameEventList(before, [
+                series({ freq: 'daily', count: 5, exDates: ['2026-09-09T08:00'] })
+            ])
+        ).toBe(false)
+        expect(
+            sameEventList(before, [series({ freq: 'daily', count: 5, until: '2026-09-10T08:00' })])
+        ).toBe(false)
+        expect(sameEventList(before, [series({ freq: 'daily', count: 5, byDay: [1, 3] })])).toBe(
+            false
+        )
+        expect(sameEventList(before, [series(undefined)])).toBe(false)
+    })
+
+    it('treats equal rules written in a different order as the same', () => {
+        const a = [series({ freq: 'weekly', byDay: [1, 3], exDates: ['2026-09-09T08:00'] })]
+        const b = [series({ exDates: ['2026-09-09T08:00'], byDay: [1, 3], freq: 'weekly' })]
+        expect(sameEventList(a, b)).toBe(true)
+    })
+})

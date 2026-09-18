@@ -11,7 +11,7 @@ First release.
 
 ### Added
 
-- **Scheduler**: one component with month, week, day, year and agenda views. `bind:events` keeps a plain array as the single source of truth; every change made through the UI is written back into it. `view` and `date` are bindable.
+- **Scheduler**: one component with month, week, day, year and agenda views. `bind:events` keeps a plain array as the single source of truth; every change made through the UI is written back into it, and a change to any field of an event in the array, its `recurrence` included, reaches the calendar. `view` and `date` are bindable.
 - **Scheduler**: saving through `onMutate`. Changes show immediately, run in order per event and in parallel across events, and animate back with `onError` when a save fails. `onConflict` picks `keep-server` or `keep-local` when the server answers with a different version, an id assigned by the server is adopted, a confirmed save survives a refetch of `events` that lands while it is in flight, and an answer that cannot be read rolls back like a rejection.
 - **Scheduler**: `source` loads events for the visible range only. Covered ranges are not requested again, stale requests are aborted, a slow request shows a thin progress bar, and `onLoadError` reports failures.
 - **Scheduler**: `createPanel` and bindable `draft` open your own form inside the calendar after a drag over empty slots or Enter on a focused slot; `create` saves through the same pipeline as drag and drop. `onSelectSlot` and `onEventClick` let an app open its own dialog instead.

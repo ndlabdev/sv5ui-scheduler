@@ -37,6 +37,10 @@
         events.push(event)
     }
 
+    export function patch(id: string, changes: Partial<EventInput>) {
+        events = events.map((event) => (event.id === id ? { ...event, ...changes } : event))
+    }
+
     export function getView() {
         return view
     }

@@ -3,7 +3,19 @@ import { render } from 'vitest-browser-svelte'
 import type { EventInput } from '../../lib/types/event.types.js'
 import type { Mutation } from '../../lib/types/mutation.types.js'
 import ApiScheduler from '../fixtures/ApiScheduler.svelte'
-import { anchor, centre, column, drag, grid, iso, pointAt, settle, wait } from '../fixtures/dom.js'
+import BoundScheduler from '../fixtures/BoundScheduler.svelte'
+import {
+    anchor,
+    centre,
+    column,
+    drag,
+    grid,
+    input,
+    iso,
+    pointAt,
+    settle,
+    wait
+} from '../fixtures/dom.js'
 
 const chips = (root: Element) =>
     [...root.querySelectorAll<HTMLElement>('[data-sch-event]')].map((chip) => chip.dataset.schEvent)
@@ -114,5 +126,34 @@ describe('events that arrive from an API', () => {
         ])
         await settle()
         expect(chips(screen.container)).toEqual(['srv-2', 'srv-3'])
+    })
+})
+
+describe('a series whose rule changes in the bound array', () => {
+    it('re-expands when only the recurrence changes', async () => {
+        const screen = render(BoundScheduler, {
+            initial: [
+                input('standup', '2026-09-07T08:00', '2026-09-07T08:30', {
+                    recurrence: { freq: 'daily', count: 5 }
+                })
+            ],
+            date: anchor
+        })
+        await wait(100)
+        const occurrences = () =>
+            screen.container.querySelectorAll('[data-sch-event^="standup@"]').length
+        expect(occurrences()).toBe(5)
+
+        screen.component.patch('standup', {
+            recurrence: { freq: 'daily', count: 5, exDates: ['2026-09-09T08:00'] }
+        })
+        await wait(100)
+        expect(occurrences()).toBe(4)
+
+        screen.component.patch('standup', {
+            recurrence: { freq: 'daily', until: '2026-09-08T08:00' }
+        })
+        await wait(100)
+        expect(occurrences()).toBe(2)
     })
 })
