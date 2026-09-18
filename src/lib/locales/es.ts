@@ -44,6 +44,7 @@ export const es: SchedulerLabels = {
         deleted: (event) => `${event.title} eliminado`,
         updated: (event) => `${event.title} actualizado`,
         selected: (event) => `${event.title} seleccionado`,
+        notEditable: (event) => `${event.title} no se puede editar`,
         cancelled: 'Cancelado',
         reverted: (event) => `No se pudo guardar ${event.title}, cambio revertido`,
         conflict: (event) => `${event.title} se actualizó en otro lugar`

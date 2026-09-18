@@ -127,6 +127,7 @@ export interface SchedulerLabels {
         deleted: (event: SchedulerEvent) => string
         updated: (event: SchedulerEvent) => string
         selected: (event: SchedulerEvent) => string
+        notEditable: (event: SchedulerEvent) => string
         cancelled: string
         reverted: (event: SchedulerEvent) => string
         conflict: (event: SchedulerEvent) => string

@@ -450,15 +450,15 @@ Configurable components: `scheduler`, `eventChip`, `dateNavigator`, `calendarLis
 
 The grid is a single tab stop with a descriptive name. Every move, creation, deletion and rollback is announced.
 
-| Keys               | Action                                                              |
-| ------------------ | ------------------------------------------------------------------- |
-| Arrow keys         | Move between slots and days; past the edge the view steps a period  |
-| Home, End          | First or last slot of the day, or start or end of the week          |
-| Page Up, Page Down | Previous or next period                                             |
-| Enter              | Create an event at the focused slot, or report it to `onSelectSlot` |
-| Space              | Select the event at the focused slot; press again for the next one  |
-| Escape             | Cancel a drag, or clear the selection                               |
-| Delete             | Delete the selected event                                           |
+| Keys               | Action                                                                            |
+| ------------------ | --------------------------------------------------------------------------------- |
+| Arrow keys         | Move between slots and days; past the edge the view steps a period                |
+| Home, End          | First or last slot of the day, or start or end of the week                        |
+| Page Up, Page Down | Previous or next period                                                           |
+| Enter              | Create an event at the focused slot, or report it to `onSelectSlot`               |
+| Space              | Select the event at the focused slot; press again for the next one                |
+| Escape             | Cancel a drag, or clear the selection                                             |
+| Delete             | Delete the selected event; a locked event or an occurrence announces why it stays |
 
 ## Requirements
 

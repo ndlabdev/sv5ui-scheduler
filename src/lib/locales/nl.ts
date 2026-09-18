@@ -45,6 +45,7 @@ export const nl: SchedulerLabels = {
         deleted: (event) => `${event.title} verwijderd`,
         updated: (event) => `${event.title} bijgewerkt`,
         selected: (event) => `${event.title} geselecteerd`,
+        notEditable: (event) => `${event.title} kan niet worden bewerkt`,
         cancelled: 'Geannuleerd',
         reverted: (event) => `${event.title} kon niet worden opgeslagen, wijziging teruggedraaid`,
         conflict: (event) => `${event.title} is elders bijgewerkt`

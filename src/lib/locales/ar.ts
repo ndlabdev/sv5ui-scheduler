@@ -52,6 +52,7 @@ export const ar: SchedulerLabels = {
         deleted: (event) => `تم حذف ${event.title}`,
         updated: (event) => `تم تحديث ${event.title}`,
         selected: (event) => `تم تحديد ${event.title}`,
+        notEditable: (event) => `لا يمكن تعديل ${event.title}`,
         cancelled: 'تم الإلغاء',
         reverted: (event) => `تعذر حفظ ${event.title}، تم التراجع عن التغيير`,
         conflict: (event) => `تم تحديث ${event.title} في مكان آخر`
