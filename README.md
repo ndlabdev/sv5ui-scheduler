@@ -125,6 +125,8 @@ Set `compactBreakpoint={0}` to keep the desktop layout everywhere. A custom `too
 | `recurrence`   | `RecurrenceRuleInput`                                                                                | See [Recurring events](#recurring-events)                                          |
 | `data`         | `T`                                                                                                  | Your own payload, typed through `EventInput<T>`, handed to every snippet unchanged |
 
+The scheduler notices a change to an event when a field of it differs, `recurrence` included. `data` is compared by reference, so assign a new object rather than editing the old one in place.
+
 ## Saving changes
 
 Pass `onMutate` to persist what the user does. The change is shown immediately; if `onMutate` throws or rejects, the event animates back to where it was and `onError` is called.
