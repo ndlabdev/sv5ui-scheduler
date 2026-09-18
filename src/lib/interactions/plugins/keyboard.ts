@@ -94,8 +94,13 @@ function enter<T>(context: InteractionContext<T>, controller: GestureController<
 
 function remove<T>(context: InteractionContext<T>): boolean {
     const id = context.selectedEventId
-    const before = id === null ? undefined : context.getEvent(id)
-    if (!before || !isEditable(before, context.scheduler.editable)) return false
+    if (id === null) return false
+    const before = context.getEvent(id) ?? context.events.find((event) => event.id === id)
+    if (!before) return false
+    if (!isEditable(before, context.scheduler.editable)) {
+        context.announce(context.scheduler.labels.announce.notEditable(before))
+        return true
+    }
     context.commit({ kind: 'delete', eventId: before.id, before, after: null })
     context.select(null)
     context.announce(context.scheduler.labels.announce.deleted(before))

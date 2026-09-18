@@ -47,6 +47,7 @@ export const ru: SchedulerLabels = {
         deleted: (event) => `Удалено: ${event.title}`,
         updated: (event) => `Обновлено: ${event.title}`,
         selected: (event) => `Выбрано: ${event.title}`,
+        notEditable: (event) => `Нельзя изменить: ${event.title}`,
         cancelled: 'Отменено',
         reverted: (event) => `Не удалось сохранить ${event.title}, изменение отменено`,
         conflict: (event) => `${event.title} изменено в другом месте`

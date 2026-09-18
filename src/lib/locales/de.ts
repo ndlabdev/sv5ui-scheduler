@@ -45,6 +45,7 @@ export const de: SchedulerLabels = {
         deleted: (event) => `${event.title} gelöscht`,
         updated: (event) => `${event.title} aktualisiert`,
         selected: (event) => `${event.title} ausgewählt`,
+        notEditable: (event) => `${event.title} kann nicht bearbeitet werden`,
         cancelled: 'Abgebrochen',
         reverted: (event) =>
             `${event.title} konnte nicht gespeichert werden, Änderung rückgängig gemacht`,

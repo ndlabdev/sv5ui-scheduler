@@ -43,6 +43,7 @@ export const vi: SchedulerLabels = {
         deleted: (event) => `Đã xoá ${event.title}`,
         updated: (event) => `Đã cập nhật ${event.title}`,
         selected: (event) => `Đã chọn ${event.title}`,
+        notEditable: (event) => `Không thể sửa ${event.title}`,
         cancelled: 'Đã huỷ',
         reverted: (event) => `Không lưu được ${event.title}, đã hoàn tác`,
         conflict: (event) => `${event.title} đã bị thay đổi ở nơi khác`

@@ -76,6 +76,35 @@ describe('selecting an event from the keyboard', () => {
         expect(selected.map((card) => card.textContent)).toEqual(['first'])
     })
 
+    it.each([
+        [
+            'a locked event',
+            input('locked', '2026-09-13T09:00', '2026-09-13T10:00', { editable: false }),
+            'locked'
+        ],
+        [
+            'an occurrence of a series',
+            input('standup', '2026-09-13T09:00', '2026-09-13T09:30', {
+                recurrence: { freq: 'daily', count: 3 }
+            }),
+            'standup'
+        ]
+    ])('says why Delete does nothing on %s', async (_, event, title) => {
+        const screen = mount({ events: [event] })
+        await wait(200)
+        const target = grid(screen.container)
+        target.focus()
+        await wait(50)
+        press(target, ' ')
+        await wait(100)
+        expect(live(screen.container)).toContain(`Selected ${title}`)
+        const before = screen.container.querySelectorAll('[data-sch-event]').length
+        press(target, 'Delete')
+        await wait(300)
+        expect(screen.container.querySelectorAll('[data-sch-event]').length).toBe(before)
+        expect(live(screen.container).trim()).toBe(`${title} cannot be edited`)
+    })
+
     it('does nothing at a slot without events', async () => {
         const screen = mount()
         await wait(200)

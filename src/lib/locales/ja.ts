@@ -42,6 +42,7 @@ export const ja: SchedulerLabels = {
         deleted: (event) => `${event.title} を削除しました`,
         updated: (event) => `${event.title} を更新しました`,
         selected: (event) => `${event.title} を選択しました`,
+        notEditable: (event) => `${event.title} は編集できません`,
         cancelled: 'キャンセルしました',
         reverted: (event) => `${event.title} を保存できなかったため、変更を元に戻しました`,
         conflict: (event) => `${event.title} は別の場所で更新されました`
