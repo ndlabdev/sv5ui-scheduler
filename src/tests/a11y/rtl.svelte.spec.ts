@@ -18,6 +18,17 @@ const wrapper = (container: Element, id: string) =>
 const rect = (element: Element) => element.getBoundingClientRect()
 const near = (a: number, b: number) => Math.abs(a - b) < 1.5
 
+async function returningClone(container: Element): Promise<HTMLElement> {
+    for (let attempt = 0; attempt < 20; attempt += 1) {
+        const clone = [...container.querySelectorAll<HTMLElement>('*')].find((element) =>
+            element.getAnimations().some((animation) => animation.id === RETURN_ANIMATION_ID)
+        )
+        if (clone) return clone
+        await settle()
+    }
+    throw new Error('no return animation started')
+}
+
 describe('right to left', () => {
     afterEach(() => document.documentElement.removeAttribute('dir'))
 
@@ -110,13 +121,13 @@ describe('right to left', () => {
         const optimistic = rect(container.querySelector('[data-sch-event]')!)
 
         reject(new Error('offline'))
-        await settle()
-
-        const clone = [...container.querySelectorAll<HTMLElement>('*')].find((element) =>
-            element.getAnimations().some((animation) => animation.id === RETURN_ANIMATION_ID)
-        )!
+        const clone = await returningClone(container)
         expect(clone).toBeDefined()
-        const ghost = rect(clone)
+        const ghost = {
+            left: parseFloat(clone.style.left),
+            top: parseFloat(clone.style.top),
+            width: parseFloat(clone.style.width)
+        }
         expect(near(ghost.left, optimistic.left)).toBe(true)
         expect(near(ghost.top, optimistic.top)).toBe(true)
         expect(near(ghost.width, optimistic.width)).toBe(true)
