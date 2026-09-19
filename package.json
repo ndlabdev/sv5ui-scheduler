@@ -1,6 +1,6 @@
 {
     "name": "@sv5ui/scheduler",
-    "version": "0.0.1",
+    "version": "0.1.0",
     "description": "Scheduler and calendar component for Svelte 5: month, week, day, year and agenda views, drag and drop, recurring events, time zones and an optimistic save pipeline.",
     "license": "MIT",
     "author": "ndlabdev",
