@@ -9,6 +9,7 @@
   <img src="https://img.shields.io/badge/Svelte-5-ff3e00?style=flat-square&logo=svelte&logoColor=white" alt="Svelte 5" />
   <img src="https://img.shields.io/badge/Tailwind_CSS-4-06b6d4?style=flat-square&logo=tailwindcss&logoColor=white" alt="Tailwind CSS 4" />
   <img src="https://img.shields.io/badge/TypeScript-strict-3178c6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript" />
+  <a href="https://www.npmjs.com/package/@sv5ui/scheduler"><img src="https://img.shields.io/npm/v/@sv5ui/scheduler?style=flat-square&colorA=18181b&colorB=ff3e00" alt="npm version" /></a>
   <a href="https://ko-fi.com/ndlabdev"><img src="https://img.shields.io/badge/Ko--fi-donate-ff3e00?style=flat-square&colorA=18181b&logo=kofi&logoColor=white" alt="donate on Ko-fi" /></a>
 </p>
 
@@ -17,8 +18,6 @@
   <a href="CHANGELOG.md"><strong>Changelog</strong></a> &middot;
   <a href="SECURITY.md"><strong>Security</strong></a>
 </p>
-
-> Under active development. Not yet published to npm.
 
 ---
 
