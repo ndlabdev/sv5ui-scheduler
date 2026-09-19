@@ -4,10 +4,18 @@ on:
     push:
         tags:
             - 'v*.*.*'
+    workflow_dispatch:
+        inputs:
+            tag:
+                description: Tag to rehearse; defaults to the version in package.json
+                required: false
 
 concurrency:
     group: publish
     cancel-in-progress: false
+
+env:
+    REHEARSAL: ${{ github.event_name == 'workflow_dispatch' }}
 
 jobs:
     publish:
@@ -23,17 +31,28 @@ jobs:
                   fetch-depth: 0
 
             - name: Check the tag
+              env:
+                  INPUT_TAG: ${{ inputs.tag }}
               run: |
                   version=$(node -p "require('./package.json').version")
-                  if [ "v$version" != "$GITHUB_REF_NAME" ]; then
-                      echo "::error::Tag $GITHUB_REF_NAME does not match package.json version $version"
+                  tag="$GITHUB_REF_NAME"
+                  if [ "$REHEARSAL" = true ]; then tag="${INPUT_TAG:-v$version}"; fi
+                  echo "Refs available after checkout:"
+                  git for-each-ref --format='  %(refname)' refs/remotes refs/tags | head -20
+                  if [ "v$version" != "$tag" ]; then
+                      echo "::error::Tag $tag does not match package.json version $version"
                       exit 1
                   fi
-                  if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/main; then
-                      echo "::error::Tag $GITHUB_REF_NAME is not on main"
+                  if git merge-base --is-ancestor "$GITHUB_SHA" origin/main; then
+                      echo "Commit $GITHUB_SHA is on main"
+                  elif [ "$REHEARSAL" = true ]; then
+                      echo "::warning::Rehearsing from a commit that is not on main; a real tag here would stop"
+                  else
+                      echo "::error::Tag $tag is not on main"
                       exit 1
                   fi
                   echo "VERSION=$version" >> "$GITHUB_ENV"
+                  echo "TAG=$tag" >> "$GITHUB_ENV"
 
             - name: Read release notes from CHANGELOG.md
               run: |
@@ -43,9 +62,15 @@ jobs:
                       found { print }
                   ' CHANGELOG.md > release-notes.md
                   if ! grep -q '[^[:space:]]' release-notes.md; then
-                      echo "::error::CHANGELOG.md has no entry for [$VERSION]"
-                      exit 1
+                      if [ "$REHEARSAL" = true ]; then
+                          echo "::warning::CHANGELOG.md has no entry for [$VERSION] yet"
+                      else
+                          echo "::error::CHANGELOG.md has no entry for [$VERSION]"
+                          exit 1
+                      fi
                   fi
+                  echo "Release notes:"
+                  sed 's/^/  /' release-notes.md
 
             - uses: pnpm/action-setup@v6
               with:
@@ -64,18 +89,21 @@ jobs:
 
             - name: Publish to npm
               run: |
-                  if [[ "$VERSION" == *-* ]]; then
-                      npm publish --access public --provenance --tag next
+                  flags=(--access public)
+                  if [[ "$VERSION" == *-* ]]; then flags+=(--tag next); fi
+                  if [ "$REHEARSAL" = true ]; then
+                      npm publish --dry-run "${flags[@]}"
                   else
-                      npm publish --access public --provenance
+                      npm publish --provenance "${flags[@]}"
                   fi
               env:
                   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
             - name: Create GitHub release
+              if: env.REHEARSAL != 'true'
               run: |
                   flags=()
                   if [[ "$VERSION" == *-* ]]; then flags+=(--prerelease); fi
-                  gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --notes-file release-notes.md --verify-tag "${flags[@]}"
+                  gh release create "$TAG" --title "$TAG" --notes-file release-notes.md --verify-tag "${flags[@]}"
               env:
                   GH_TOKEN: ${{ github.token }}
