@@ -1,0 +1,97 @@
+name: Bug report
+description: Something in the scheduler does not work as documented
+title: '[Bug]: '
+labels: ['bug', 'status: needs-triage']
+body:
+    - type: markdown
+      attributes:
+          value: Thanks for reporting a bug. Please search existing issues first, then fill out the form below.
+
+    - type: dropdown
+      id: area
+      attributes:
+          label: Area
+          description: Which part of the scheduler is affected?
+          options:
+              - Views and layout
+              - Drag, resize and create
+              - Keyboard and screen readers
+              - Saving changes (onMutate, source)
+              - Recurring events
+              - Time zones and languages
+              - Sidebar and standalone components
+              - Theming and custom rendering
+              - Types
+              - Not sure
+      validations:
+          required: true
+
+    - type: dropdown
+      id: view
+      attributes:
+          label: View
+          multiple: true
+          options:
+              - Month
+              - Week
+              - Day
+              - Year
+              - Agenda
+              - A custom view
+              - Not specific to a view
+      validations:
+          required: true
+
+    - type: textarea
+      id: description
+      attributes:
+          label: Describe the bug
+          description: What happened, and what you expected instead.
+      validations:
+          required: true
+
+    - type: textarea
+      id: reproduction
+      attributes:
+          label: Reproduction
+          description: A minimal reproduction, either a link (Svelte playground, StackBlitz or a repository) or a code snippet with the props and events you pass. Bugs without a reproduction may be closed.
+          render: svelte
+      validations:
+          required: true
+
+    - type: input
+      id: version
+      attributes:
+          label: '@sv5ui/scheduler version'
+          placeholder: 0.1.0
+      validations:
+          required: true
+
+    - type: input
+      id: sv5ui-version
+      attributes:
+          label: sv5ui version
+          placeholder: 2.7.0
+      validations:
+          required: false
+
+    - type: textarea
+      id: environment
+      attributes:
+          label: Environment
+          description: Browser, operating system, mouse or touch, and the `locale`, `timeZone` and `dir` you use.
+          placeholder: |
+              Chrome 140 on macOS, mouse
+              locale="vi-VN", timeZone="Asia/Ho_Chi_Minh", dir="ltr"
+      validations:
+          required: false
+
+    - type: checkboxes
+      id: checks
+      attributes:
+          label: Checklist
+          options:
+              - label: I searched existing issues and this is not a duplicate.
+                required: true
+              - label: I reproduced this on the latest version of @sv5ui/scheduler.
+                required: false

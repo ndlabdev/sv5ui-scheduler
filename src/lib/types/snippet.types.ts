@@ -1,0 +1,277 @@
+import type { ZonedDateTime } from '@internationalized/date'
+import type { EventChanges, NewEventInput, SchedulerEvent } from './event.types.js'
+import type { PositionedEvent } from './layout.types.js'
+import type { SchedulerContext } from './context.types.js'
+import type { DateRange, Holiday } from './range.types.js'
+
+/**
+ * Argument of the `event` snippet, rendered once per visible event segment.
+ */
+export interface EventSnippetProps<T = unknown> {
+    event: SchedulerEvent<T>
+
+    /**
+     * Where and how large the segment is. `undefined` in the agenda view,
+     * which is a list rather than a grid.
+     */
+    position?: PositionedEvent<T>
+
+    view: string
+
+    isDragging: boolean
+
+    isResizing: boolean
+
+    isSelected: boolean
+}
+
+/**
+ * Argument of the `cell` snippet, rendered once per day cell in the month
+ * view and once per day column background in the time grid.
+ */
+export interface CellSnippetProps {
+    date: ZonedDateTime
+
+    view: string
+
+    isToday: boolean
+
+    /**
+     * The day the scheduler's `date` points at.
+     */
+    isAnchor: boolean
+
+    isWeekend: boolean
+
+    isHoliday: boolean
+
+    /**
+     * Inside business hours, or on a business day for whole-day cells.
+     */
+    isBusinessHours: boolean
+
+    /**
+     * Belongs to the previous or next month in the month view.
+     */
+    isOutside: boolean
+}
+
+/**
+ * Argument of the `header` snippet, rendered once per day column header.
+ */
+export interface HeaderSnippetProps {
+    date: ZonedDateTime
+
+    view: string
+
+    /**
+     * Formatted label the default header would show.
+     */
+    label: string
+
+    isToday: boolean
+
+    /**
+     * The day the scheduler's `date` points at.
+     */
+    isAnchor: boolean
+
+    /**
+     * The holiday on this day, if any.
+     */
+    holiday?: Holiday
+}
+
+/**
+ * Argument of the `toolbar` snippet, which replaces the built-in toolbar so
+ * navigation can live anywhere in the page.
+ */
+export interface ToolbarSnippetProps {
+    /**
+     * The built-in title for the visible range, such as `Sep 7 – 13, 2026`.
+     */
+    title: string
+
+    /**
+     * Date the visible range is computed from.
+     */
+    date: ZonedDateTime
+
+    range: DateRange
+
+    view: string
+
+    /**
+     * Every registered view with its display name, in switcher order.
+     */
+    views: { name: string; label: string }[]
+
+    scheduler: SchedulerContext
+
+    /**
+     * Move one period back or forward, as the built-in arrows do.
+     */
+    step: (direction: 1 | -1) => void
+
+    /**
+     * Move the range to the current day.
+     */
+    today: () => void
+
+    /**
+     * Move the scheduler to `date`, switching to `view` when given.
+     */
+    navigate: (date: ZonedDateTime, view?: string) => void
+
+    setView: (view: string) => void
+
+    /**
+     * Show or hide the sidebar, or call `onMenu` when there is none.
+     */
+    toggleSidebar: () => void
+
+    /**
+     * Whether the sidebar is currently shown.
+     */
+    sidebarOpen: boolean
+
+    /**
+     * `true` while the scheduler is narrower than `compactBreakpoint`, so a
+     * custom toolbar can switch to a phone layout too.
+     */
+    compact: boolean
+}
+
+/**
+ * Argument of the `sidebar` snippet, rendered beside the view or, below the
+ * sidebar breakpoint, inside a slide-over panel.
+ */
+export interface SidebarSnippetProps<T = unknown> {
+    /**
+     * Date the visible range is computed from.
+     */
+    date: ZonedDateTime
+
+    view: string
+
+    range: DateRange
+
+    /**
+     * Every event the scheduler holds, recurring series unexpanded. Feed it
+     * to `DateNavigator` for its dots.
+     */
+    events: SchedulerEvent<T>[]
+
+    scheduler: SchedulerContext
+
+    /**
+     * Move the scheduler to `date`, switching to `view` when given.
+     */
+    navigate: (date: ZonedDateTime, view?: string) => void
+
+    /**
+     * Hide the sidebar: closes the slide-over, or collapses the docked panel.
+     */
+    close: () => void
+
+    /**
+     * `true` while the sidebar sits beside the view, `false` in the slide-over.
+     */
+    docked: boolean
+}
+
+/**
+ * Argument of the `empty` snippet, shown by the week, day and agenda views
+ * when the visible range holds no events.
+ */
+export interface EmptySnippetProps {
+    /**
+     * Name of the view showing the message, as registered.
+     */
+    view: string
+
+    /**
+     * The visible range that holds no events.
+     */
+    range: DateRange
+}
+
+/**
+ * Argument of the `eventDetail` snippet, rendered under the default details
+ * in the popover or slide-over an event opens.
+ */
+export interface EventDetailSnippetProps<T = unknown> {
+    event: SchedulerEvent<T>
+
+    /**
+     * Closes the popover or slide-over.
+     */
+    close: () => void
+}
+
+/**
+ * Argument of the `createPanel` snippet, which fills the panel that opens
+ * when the user drags over empty slots or presses Enter on a focused slot,
+ * and when the application sets `draft`. A plain click only reports through
+ * `onSelectSlot`.
+ */
+export interface CreatePanelSnippetProps<T = unknown> {
+    /**
+     * Start of the picked range, snapped to the grid.
+     */
+    start: ZonedDateTime
+
+    /**
+     * Exclusive end of the picked range.
+     */
+    end: ZonedDateTime
+
+    /**
+     * A whole day or several days were picked rather than a time range.
+     */
+    allDay: boolean
+
+    /**
+     * Closes the panel without creating anything.
+     */
+    close: () => void
+
+    /**
+     * Creates the event through the mutation pipeline and closes the panel.
+     * `id` is generated when omitted; `onMutate` may replace it.
+     */
+    create: (input: NewEventInput<T>) => void
+}
+
+/**
+ * Argument of the `eventPanel` snippet, which fills the slide-over an event
+ * opens when `detail` is `'slideover'`.
+ */
+export interface EventPanelSnippetProps<T = unknown> {
+    event: SchedulerEvent<T>
+
+    /**
+     * Closes the slide-over.
+     */
+    close: () => void
+
+    /**
+     * Deletes the event through the mutation pipeline and closes the panel.
+     * Does nothing when `deletable` is `false`.
+     */
+    remove: () => void
+
+    /**
+     * Applies `changes` to the event through the mutation pipeline, as an
+     * `update` mutation: `onMutate` runs, a failure rolls back, and the
+     * change is announced. Fields left out keep their value. Does nothing
+     * when `deletable` is `false`.
+     */
+    update: (changes: EventChanges<T>) => void
+
+    /**
+     * Whether the event may be deleted or updated, following `editable` on
+     * the event and on the scheduler.
+     */
+    deletable: boolean
+}
