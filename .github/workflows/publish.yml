@@ -87,6 +87,18 @@ jobs:
             - name: Build package
               run: pnpm build
 
+            - name: Check what the token may do
+              if: env.REHEARSAL == 'true'
+              run: |
+                  echo "Token identity:"
+                  npm whoami || echo "::warning::npm does not recognise this token"
+                  echo "Packages it may write:"
+                  npm access list packages || echo "::warning::the token cannot list packages"
+                  echo "Permission on this package:"
+                  npm access get status @sv5ui/scheduler 2>&1 || true
+              env:
+                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
             - name: Publish to npm
               run: |
                   flags=(--access public)
