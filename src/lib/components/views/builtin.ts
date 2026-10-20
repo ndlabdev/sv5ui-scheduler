@@ -27,6 +27,8 @@ import YearView from './YearView/YearView.svelte'
 
 const DAYS_PER_WEEK = 7
 
+export const DEFAULT_VIEW = 'week'
+
 export function createBuiltinViews<T>(): ViewDefinition<T>[] {
     return [
         {
