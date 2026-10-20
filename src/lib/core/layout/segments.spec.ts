@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { eachDay } from '../time/range.js'
+import { parseZonedDateTime, toTimeZone } from '@internationalized/date'
+import type { SchedulerEvent } from '../../types/event.types.js'
+import type { DateRange } from '../../types/range.types.js'
+import { isoDate } from '../time/day-flags.js'
+import { eachDay, intersect, splitByDay } from '../time/range.js'
 import { event, week } from '../../../tests/fixtures/layout.js'
 import { daysWithEvents, isWholeDay, segmentsInRange } from './segments.js'
 
@@ -106,5 +110,89 @@ describe('daysWithEvents', () => {
             range
         )
         expect([...days].sort()).toEqual(['2026-09-09', '2026-09-10', '2026-09-12'])
+    })
+})
+
+describe('daysWithEvents against splitting every event by day', () => {
+    function bySegments(events: SchedulerEvent[], within: DateRange): string[] {
+        const found = new Set<string>()
+        for (const item of events) {
+            const visible = intersect({ start: item.start, end: item.end }, within)
+            if (!visible) continue
+            for (const segment of splitByDay(visible)) found.add(isoDate(segment.dayStart))
+        }
+        return [...found].sort()
+    }
+
+    function seeded(seed: number) {
+        let state = seed
+        return (limit: number) => {
+            state = (state * 1103515245 + 12345) % 2147483648
+            return state % limit
+        }
+    }
+
+    function randomEvents(zone: string, from: string, count: number, seed = 1): SchedulerEvent[] {
+        const next = seeded(seed * 7919 + count + from.length)
+        const origin = parseZonedDateTime(`${from}T00:00[${zone}]`)
+        return Array.from({ length: count }, (_, i) => {
+            const minutes = i % 2 === 0
+            const unit = minutes ? 1 : 60
+            const start = origin.add({
+                minutes: (next((60 * 24 * 50) / unit) - (60 * 24 * 5) / unit) * unit
+            })
+            const end = start.add({ minutes: (1 + next((60 * 24 * 4) / unit)) * unit })
+            return { id: `e${i}`, title: `e${i}`, start, end }
+        })
+    }
+
+    const cases: Array<[string, string, string, { months?: number; hours?: number }]> = [
+        ['America/New_York', '2026-03-01', '2026-03-01', { months: 1 }],
+        ['America/New_York', '2026-11-01', '2026-11-01', { months: 1 }],
+        ['Australia/Sydney', '2026-04-01', '2026-04-01', { months: 1 }],
+        ['Australia/Sydney', '2026-10-01', '2026-10-01', { months: 1 }],
+        ['Europe/London', '2026-01-01', '2026-01-01', { months: 12 }],
+        ['Asia/Ho_Chi_Minh', '2026-09-07', '2026-09-07', { hours: 24 * 7 + 13 }]
+    ]
+
+    it.each(cases)('matches in %s from %s', (zone, from, start, length) => {
+        const rangeStart = parseZonedDateTime(`${start}T00:00[${zone}]`).add({
+            hours: length.hours ? 5 : 0
+        })
+        const within = { start: rangeStart, end: rangeStart.add(length) }
+        for (let seed = 1; seed <= 20; seed++) {
+            const events = randomEvents(zone, from, 60, seed)
+            expect([...daysWithEvents(events, within)].sort()).toEqual(bySegments(events, within))
+        }
+    })
+
+    it('leaves out a day an event only touches at midnight or at the range end', () => {
+        const within = week('2026-09-07')
+        const events = [
+            event('to-midnight', '2026-09-08T20:00', '2026-09-09T00:00'),
+            event('from-midnight', '2026-09-11T00:00', '2026-09-11T01:00'),
+            event('to-range-end', '2026-09-13T22:00', '2026-09-14T00:00'),
+            event('before-range', '2026-09-06T22:00', '2026-09-07T00:00')
+        ]
+        expect([...daysWithEvents(events, within)].sort()).toEqual([
+            '2026-09-08',
+            '2026-09-11',
+            '2026-09-13'
+        ])
+        expect([...daysWithEvents(events, within)].sort()).toEqual(bySegments(events, within))
+    })
+
+    it('matches for events kept in another time zone', () => {
+        const within = week('2026-09-07')
+        const events = randomEvents('America/New_York', '2026-09-05', 300).map((item, i) =>
+            i % 3 === 0
+                ? {
+                      ...item,
+                      start: toTimeZone(item.start, 'Asia/Tokyo'),
+                      end: toTimeZone(item.end, 'Asia/Tokyo')
+                  }
+                : item
+        )
+        expect([...daysWithEvents(events, within)].sort()).toEqual(bySegments(events, within))
     })
 })
