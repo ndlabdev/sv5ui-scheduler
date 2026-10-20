@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Scheduler**: a `view` name no registered view carries draws the week view with a development warning instead of throwing, on the server as well. The bound `view` is left as given, so a view passed to `views` later takes over once it is registered, and the toolbar, the snippets and `data-sch-view` report the view actually drawn.
+
 ## [0.1.0] - 2026-09-19
 
 ### Added
