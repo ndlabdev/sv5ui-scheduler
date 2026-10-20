@@ -13,6 +13,7 @@
     import { getComponentConfig } from '../../config/config.js'
     import { announceConflict, announceReverted } from '../../core/a11y/announce.js'
     import { mergeLabels, viewLabel } from '../../core/i18n/labels.js'
+    import { createPositionMemo } from '../../core/layout/stable.js'
     import { createRegistry } from '../../core/registry/registry.js'
     import { EventStore } from '../../core/store/event-store.svelte.js'
     import { createEventFilter } from '../../core/store/filters.js'
@@ -273,8 +274,11 @@
         columnsPerRow: visibleColumns(definition.columnsPerRow, days.length, allDays.length),
         scheduler: context
     })
+    const keepPositions = createPositionMemo<T>()
     const positioned = $derived(
-        registry.layout(definition.layout).layout(visibleEvents, range, layoutContext)
+        keepPositions(
+            registry.layout(definition.layout).layout(visibleEvents, range, layoutContext)
+        )
     )
     const viewPreview = $derived(
         interactionState.preview

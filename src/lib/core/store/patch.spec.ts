@@ -36,3 +36,16 @@ describe('applyPatch', () => {
         expect(next.byId.size).toBe(0)
     })
 })
+
+describe('applyPatch reset', () => {
+    it('keeps the objects of events whose values did not change', () => {
+        const a = event('a')
+        const before = indexFrom([a, event('b', '11:00', '12:00')])
+        const next = applyPatch(before, {
+            type: 'reset',
+            events: [event('a'), { ...event('b', '11:00', '12:00'), title: 'renamed' }]
+        })
+        expect(next.byId.get('a')).toBe(a)
+        expect(next.byId.get('b')?.title).toBe('renamed')
+    })
+})

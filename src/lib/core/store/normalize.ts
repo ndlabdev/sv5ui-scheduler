@@ -95,7 +95,7 @@ const RULE_NUMBERS = ['interval', 'count', 'weekStart'] as const
 const RULE_NUMBER_LISTS = ['bySetPos', 'byMonthDay', 'byMonth', 'byWeekNo', 'byYearDay'] as const
 const RULE_DATE_LISTS = ['exDates', 'rDates'] as const
 
-function sameRule(a: RecurrenceRule | undefined, b: RecurrenceRule | undefined): boolean {
+export function sameRule(a: RecurrenceRule | undefined, b: RecurrenceRule | undefined): boolean {
     if (!a || !b) return a === b
     if (a.freq !== b.freq) return false
     if (RULE_NUMBERS.some((field) => a[field] !== b[field])) return false
