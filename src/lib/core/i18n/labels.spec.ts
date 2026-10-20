@@ -100,4 +100,10 @@ describe('viewLabel', () => {
         expect(viewLabel(vi, 'week')).toBe('Tuần')
         expect(viewLabel(en, 'timeline')).toBe('timeline')
     })
+
+    it('passes through names that an object inherits', () => {
+        for (const name of ['constructor', 'toString', 'hasOwnProperty', '__proto__']) {
+            expect(viewLabel(en, name)).toBe(name)
+        }
+    })
 })

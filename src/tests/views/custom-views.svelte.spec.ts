@@ -36,4 +36,14 @@ describe('custom views', () => {
         await settle()
         expect(container.querySelector('[role="tablist"]')?.textContent).toContain('two-days')
     })
+
+    it('shows the name of a view called like an object method', async () => {
+        const { container } = mount({ ...twoDays, name: 'constructor', label: undefined })
+        await settle()
+        expect(container.querySelector('[role="tablist"]')?.textContent).toContain('constructor')
+        expect(container.querySelector('[role="tablist"]')?.textContent).not.toContain('function')
+        expect(
+            container.querySelector('[role="application"]')?.getAttribute('aria-label')
+        ).not.toContain('function')
+    })
 })
