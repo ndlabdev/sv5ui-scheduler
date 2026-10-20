@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- **Scheduler**: the current time line and its label move at the start of every minute instead of every 60 seconds counted from mounting, which could leave them up to 59 seconds behind.
+- **Scheduler**: the current time line and its label move at the start of every minute instead of every 60 seconds counted from mounting, which could leave them up to 59 seconds behind. ([#43](https://github.com/ndlabdev/sv5ui-scheduler/pull/43))
 
 ## [0.1.0] - 2026-09-19
 
