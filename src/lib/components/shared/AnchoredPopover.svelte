@@ -1,4 +1,8 @@
 <script lang="ts" module>
+    import { MediaQuery } from 'svelte/reactivity'
+
+    const narrow = new MediaQuery('(max-width: 767px)')
+
     export interface PopoverTrigger {
         'aria-haspopup': 'dialog'
         'aria-expanded': boolean
@@ -7,7 +11,7 @@
 </script>
 
 <script lang="ts">
-    import { Popover, useMediaQuery } from 'sv5ui'
+    import { Popover } from 'sv5ui'
     import type { Snippet } from 'svelte'
 
     interface Props {
@@ -32,9 +36,9 @@
         panel
     }: Props = $props()
 
-    const narrow = useMediaQuery('(max-width: 767px)')
+    let mounted = $state(false)
     const placement = $derived(
-        narrow.matches && (side === 'left' || side === 'right') ? 'bottom' : side
+        narrow.current && (side === 'left' || side === 'right') ? 'bottom' : side
     )
 
     let anchor = $state<HTMLElement | null>(null)
@@ -48,7 +52,10 @@
     const anchorProps = $derived({ customAnchor: anchor })
 
     function toggle() {
-        if (!open) onActivate?.()
+        if (!open) {
+            mounted = true
+            onActivate?.()
+        }
         open = !open
     }
 
@@ -74,18 +81,20 @@
 <div bind:this={anchor} class={className}>
     {@render trigger(triggerProps)}
 </div>
-<Popover
-    bind:open
-    bind:ref={contentNode}
-    side={placement}
-    {align}
-    collisionPadding={8}
-    ui={{ content: contentClass }}
-    onInteractOutside={keepOpenOnAnchor}
-    onCloseAutoFocus={restoreFocus}
-    {...anchorProps}
->
-    {#snippet content()}
-        {@render panel({ close })}
-    {/snippet}
-</Popover>
+{#if mounted}
+    <Popover
+        bind:open
+        bind:ref={contentNode}
+        side={placement}
+        {align}
+        collisionPadding={8}
+        ui={{ content: contentClass }}
+        onInteractOutside={keepOpenOnAnchor}
+        onCloseAutoFocus={restoreFocus}
+        {...anchorProps}
+    >
+        {#snippet content()}
+            {@render panel({ close })}
+        {/snippet}
+    </Popover>
+{/if}
