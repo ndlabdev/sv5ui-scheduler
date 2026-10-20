@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **Scheduler**, **DateNavigator**: the documentation of `timeZone` says that its default is the zone of the machine that renders, so a server render in another zone shows the server's times until the page hydrates, and that it should be set when rendering on the server.
+- **Scheduler**, **DateNavigator**: the documentation of `timeZone` says that its default is the zone of the machine that renders, so a server render in another zone shows the server's times until the page hydrates, and that it should be set when rendering on the server. ([#47](https://github.com/ndlabdev/sv5ui-scheduler/pull/47))
 
 ## [0.1.0] - 2026-09-19
 
