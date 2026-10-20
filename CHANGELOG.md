@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Scheduler**: event chips no longer mount a details popover and a media query listener each while nothing is open. A popover is mounted the first time its chip is opened and one media query serves them all, so a week of 500 events mounts in about 124 ms instead of 348 ms and the agenda in about half the time. ([#37](https://github.com/ndlabdev/sv5ui-scheduler/pull/37))
+
 ## [0.1.0] - 2026-09-19
 
 ### Added
