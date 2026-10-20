@@ -79,7 +79,10 @@ export type SchedulerProps<T = unknown> = Omit<HTMLAttributes<HTMLDivElement>, '
 
         /**
          * IANA time zone every date is shown in.
-         * @default the browser's local zone
+         * When rendering on the server, set it: the default is the zone of the
+         * machine that renders, so a server in another zone shows its own times
+         * until the page hydrates.
+         * @default the local zone of the machine that renders
          */
         timeZone?: TimeZoneId
 
