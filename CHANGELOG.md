@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- **Scheduler**: unmounting the scheduler, or replacing `source`, aborts the `source` request still in flight through its `signal`.
+- **Scheduler**: unmounting the scheduler, or replacing `source`, aborts the `source` request still in flight through its `signal`. ([#41](https://github.com/ndlabdev/sv5ui-scheduler/pull/41))
 
 ## [0.1.0] - 2026-09-19
 
