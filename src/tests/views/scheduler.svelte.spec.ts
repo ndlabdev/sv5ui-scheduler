@@ -521,6 +521,23 @@ describe('Scheduler with an async source', () => {
         expect(chips(screen.container)).toHaveLength(1)
     })
 
+    it('aborts a request still in flight when it is unmounted', async () => {
+        const signals: AbortSignal[] = []
+        const source: EventSourceFn = ({ signal }) => {
+            signals.push(signal)
+            return new Promise(() => {})
+        }
+        const screen = render(SourceScheduler, { source, date: anchor })
+        await settle()
+        expect(signals).toHaveLength(1)
+        expect(signals[0].aborted).toBe(false)
+
+        screen.unmount()
+        await settle()
+
+        expect(signals[0].aborted).toBe(true)
+    })
+
     it('keeps a committed mutation after navigating away and back', async () => {
         const source: EventSourceFn = async ({ range }) =>
             range.start.day === 7 ? [input('a', '2026-09-09T09:00', '2026-09-09T10:00')] : []

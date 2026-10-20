@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Scheduler**: unmounting the scheduler, or replacing `source`, aborts the `source` request still in flight through its `signal`.
+
 ## [0.1.0] - 2026-09-19
 
 ### Added
