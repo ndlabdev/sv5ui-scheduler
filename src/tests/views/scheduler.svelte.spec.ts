@@ -162,6 +162,27 @@ describe('Scheduler with a bound events array', () => {
         )
     })
 
+    it('draws the last of events sharing an id and leaves the bound array as given', async () => {
+        const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+        const initial = [
+            input('shared', '2026-09-09T09:00', '2026-09-09T10:00', { title: 'Dentist' }),
+            input('shared', '2026-09-10T11:00', '2026-09-10T12:00', { title: 'Standup' }),
+            input('other', '2026-09-08T09:00', '2026-09-08T10:00', { title: 'Other' })
+        ]
+        const screen = render(BoundScheduler, { initial, date: anchor })
+        await tick()
+        const titles = chips(screen.container).map((chip) => chip.textContent ?? '')
+        expect(titles.some((text) => text.includes('Standup'))).toBe(true)
+        expect(titles.some((text) => text.includes('Dentist'))).toBe(false)
+        expect(screen.component.getEvents().map((event) => event.title)).toEqual([
+            'Dentist',
+            'Standup',
+            'Other'
+        ])
+        expect(warn.mock.calls.some(([message]) => String(message).includes('"shared"'))).toBe(true)
+        warn.mockRestore()
+    })
+
     it('writes a committed mutation back into the array and persists it', async () => {
         const onMutate = vi.fn()
         const plugin: InteractionPlugin = {

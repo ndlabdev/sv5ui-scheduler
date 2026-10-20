@@ -26,18 +26,33 @@ export function normalizeEvents<T>(
     inputs: readonly EventInput<T>[],
     timeZone: TimeZoneId
 ): SchedulerEvent<T>[] {
-    const events: SchedulerEvent<T>[] = []
+    const byId = new Map<string, SchedulerEvent<T>>()
     for (const input of inputs) {
-        try {
-            events.push(normalizeEvent(input, timeZone))
-        } catch (error) {
-            warnOnce(
-                `event:${input.id}`,
-                `Event ${input.id} was skipped: ${error instanceof Error ? error.message : String(error)}`
-            )
-        }
+        const event = readEvent(input, timeZone)
+        if (!event) continue
+        if (byId.has(event.id)) warnDuplicateId(event.id)
+        byId.set(event.id, event)
     }
-    return events
+    return [...byId.values()]
+}
+
+export function warnDuplicateId(id: string): void {
+    warnOnce(
+        `duplicate:${id}`,
+        `Several events share the id "${id}"; only the last one is kept. Ids must be unique.`
+    )
+}
+
+function readEvent<T>(input: EventInput<T>, timeZone: TimeZoneId): SchedulerEvent<T> | null {
+    try {
+        return normalizeEvent(input, timeZone)
+    } catch (error) {
+        warnOnce(
+            `event:${input.id}`,
+            `Event ${input.id} was skipped: ${error instanceof Error ? error.message : String(error)}`
+        )
+        return null
+    }
 }
 
 function seriesZone<T>(input: EventInput<T>, timeZone: TimeZoneId): TimeZoneId {
