@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- **Scheduler**: a custom view without a `label` named like an object method, such as `constructor` or `toString`, shows its name in the view switcher and the grid name instead of function source.
+- **Scheduler**: a custom view without a `label` named like an object method, such as `constructor` or `toString`, shows its name in the view switcher and the grid name instead of function source. ([#39](https://github.com/ndlabdev/sv5ui-scheduler/pull/39))
 
 ## [0.1.0] - 2026-09-19
 
