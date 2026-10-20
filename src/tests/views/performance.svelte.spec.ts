@@ -2,7 +2,10 @@ import { describe, expect, inject, it } from 'vitest'
 import { render } from 'vitest-browser-svelte'
 import { Scheduler } from '../../lib/index.js'
 import type { EventInput } from '../../lib/types/event.types.js'
-import { ZONE, anchor, frame } from '../fixtures/dom.js'
+import type { InteractionContext, InteractionPlugin } from '../../lib/types/interaction.types.js'
+import BoundScheduler from '../fixtures/BoundScheduler.svelte'
+import SearchScheduler from '../fixtures/SearchScheduler.svelte'
+import { ZONE, anchor, frame, settle } from '../fixtures/dom.js'
 
 const EVENTS = 500
 const MOUNT_BUDGET_MS = 1500
@@ -81,5 +84,110 @@ describe(`a week of ${EVENTS} events`, () => {
 
         expect(away).toBeLessThan(NAVIGATE_BUDGET_MS * scale)
         expect(back).toBeLessThan(NAVIGATE_BUDGET_MS * scale)
+    })
+})
+
+describe('changing one event of a full week', () => {
+    function counting() {
+        const counter = {
+            calls: 0,
+            days: [] as number[],
+            context: null as InteractionContext | null
+        }
+        const plugin: InteractionPlugin = {
+            name: 'attach-counter',
+            attach: (context) => {
+                counter.context = context
+                return () => {}
+            },
+            attachEvent: (_context, position) => {
+                counter.calls += 1
+                counter.days.push(position.event.start.day)
+                return () => {}
+            }
+        }
+        return { counter, plugin }
+    }
+
+    function watch(root: Element) {
+        const writes: MutationRecord[] = []
+        const observer = new MutationObserver((records) => writes.push(...records))
+        observer.observe(root, {
+            subtree: true,
+            childList: true,
+            attributes: true,
+            characterData: true
+        })
+        return () => {
+            writes.push(...observer.takeRecords())
+            observer.disconnect()
+            return new Set(
+                writes.map((record) => {
+                    const node =
+                        record.target instanceof Element
+                            ? record.target
+                            : record.target.parentElement
+                    return node?.closest('[data-sch-event-id]')?.getAttribute('data-sch-event-id')
+                })
+            )
+        }
+    }
+
+    it('redraws only the renamed chip of a bound array', async () => {
+        const { counter, plugin } = counting()
+        const screen = render(BoundScheduler, {
+            initial: week(EVENTS),
+            interactions: [plugin],
+            date: anchor
+        })
+        await settle()
+        const before = counter.calls
+        const touched = watch(screen.container)
+
+        screen.component.patch('e7', { title: 'Renamed' })
+        await settle()
+
+        expect(counter.calls - before).toBe(1)
+        expect([...touched()]).toEqual(['e7'])
+    })
+
+    it('redraws only the chips of the two days a move touches', async () => {
+        const { counter, plugin } = counting()
+        render(Scheduler, {
+            props: { timeZone: ZONE, date: anchor, events: week(EVENTS), interactions: [plugin] }
+        })
+        await settle()
+        const event = counter.context!.events.find((candidate) => candidate.id === 'e7')!
+        counter.days = []
+
+        counter.context!.commit({
+            kind: 'move',
+            eventId: 'e7',
+            before: event,
+            after: {
+                ...event,
+                start: event.start.add({ days: 1 }),
+                end: event.end.add({ days: 1 })
+            }
+        })
+        await settle()
+
+        const touchedDays = new Set([event.start.day, event.start.day + 1])
+        expect(counter.days.length).toBeGreaterThan(0)
+        expect(counter.days.filter((day) => !touchedDays.has(day))).toEqual([])
+    })
+
+    it('redraws nothing when a search keeps every event', async () => {
+        const { counter, plugin } = counting()
+        const screen = render(SearchScheduler, {
+            props: { events: week(EVENTS), interactions: [plugin], date: anchor }
+        })
+        await settle()
+        const before = counter.calls
+
+        screen.component.type('Event')
+        await settle()
+
+        expect(counter.calls - before).toBe(0)
     })
 })

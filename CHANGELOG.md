@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Scheduler**: changing one event no longer redraws every event chip. A reset of the events, which `bind:events` and `source` both use, keeps the objects of events whose values did not change, and positions that did not move are handed back unchanged, so renaming one event touches one chip and a search that keeps every event touches none. Renaming one of 1000 events in the week view drops from about 210 ms to about 120 ms, and from 1001 DOM writes to 2. ([#35](https://github.com/ndlabdev/sv5ui-scheduler/pull/35))
+
 ## [0.1.0] - 2026-09-19
 
 ### Added
