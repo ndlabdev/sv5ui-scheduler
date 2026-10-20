@@ -177,6 +177,41 @@ describe('invalid inputs', () => {
     })
 })
 
+describe('ids shared by several events', () => {
+    it('keeps the last one in the place of the first and warns once per id', () => {
+        const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+        const read = () =>
+            normalizeEvents(
+                [
+                    { id: 'a', title: 'first', start: '2026-09-09T09:00', end: '2026-09-09T10:00' },
+                    { id: 'b', title: 'b', start: '2026-09-09T11:00', end: '2026-09-09T12:00' },
+                    { id: 'a', title: 'last', start: '2026-09-10T09:00', end: '2026-09-10T10:00' }
+                ],
+                'UTC'
+            )
+        expect(read().map((event) => event.title)).toEqual(['last', 'b'])
+        read()
+        expect(warn).toHaveBeenCalledTimes(1)
+        expect(String(warn.mock.calls[0][0])).toContain('"a"')
+        warn.mockRestore()
+    })
+
+    it('does not count an unreadable event as a duplicate', () => {
+        const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+        const events = normalizeEvents(
+            [
+                { id: 'a', title: 'bad', start: 'not a date', end: '2026-09-09T10:00' },
+                { id: 'a', title: 'good', start: '2026-09-09T09:00', end: '2026-09-09T10:00' }
+            ],
+            'UTC'
+        )
+        expect(events.map((event) => event.title)).toEqual(['good'])
+        expect(warn).toHaveBeenCalledTimes(1)
+        expect(String(warn.mock.calls[0][0])).toContain('skipped')
+        warn.mockRestore()
+    })
+})
+
 describe('recurrence dates of a series that keeps its own zone', () => {
     const start = parseZonedDateTime('2026-03-02T09:00[Australia/Sydney]')
 

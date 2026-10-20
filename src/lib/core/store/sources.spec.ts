@@ -1,9 +1,12 @@
 import { parseZonedDateTime } from '@internationalized/date'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { EventInput } from '../../types/event.types.js'
 import type { EventSourceFn, LoadContext } from '../../types/source.types.js'
 import { createRange } from '../time/range.js'
+import { resetWarnings } from '../utils/dev.js'
 import { createSourceLoader } from './sources.js'
+
+afterEach(resetWarnings)
 
 const ZONE = 'UTC'
 const at = (iso: string) => parseZonedDateTime(`${iso}[UTC]`)
@@ -312,5 +315,37 @@ describe('time zone changes', () => {
         expect(byId.get('a')?.start.timeZone).toBe('Asia/Ho_Chi_Minh')
         expect(byId.get('a')?.start.hour).toBe(16)
         expect(byId.get('b')?.start.hour).toBe(9)
+    })
+})
+
+describe('ids shared by several events', () => {
+    const titled = (id: string, title: string): EventInput => ({ ...input(id), title })
+
+    it('keeps the last one of a response and warns once', async () => {
+        const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+        const loader = createSourceLoader(
+            async () => [titled('a', 'first'), titled('a', 'second'), input('b')],
+            () => ZONE
+        )
+        const result = await loader.load(week)
+        expect(result.status === 'loaded' && result.events.map((event) => event.title)).toEqual([
+            'second',
+            'b'
+        ])
+        expect(warn).toHaveBeenCalledTimes(1)
+        expect(String(warn.mock.calls[0][0])).toContain('"a"')
+        warn.mockRestore()
+    })
+
+    it('does not warn when a later response returns an event already loaded', async () => {
+        const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+        const loader = createSourceLoader(
+            async () => [input('a')],
+            () => ZONE
+        )
+        await loader.load(week)
+        await loader.load(nextWeek)
+        expect(warn).not.toHaveBeenCalled()
+        warn.mockRestore()
     })
 })
