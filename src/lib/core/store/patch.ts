@@ -1,4 +1,5 @@
 import type { EventPatch } from '../../types/mutation.types.js'
+import { keepUnchanged } from './identity.js'
 import { indexFrom, removeFromIndex, upsertIntoIndex, type EventIndex } from './sorted-index.js'
 
 export function applyPatch<T>(index: EventIndex<T>, patch: EventPatch<T>): EventIndex<T> {
@@ -8,6 +9,6 @@ export function applyPatch<T>(index: EventIndex<T>, patch: EventPatch<T>): Event
         case 'remove':
             return removeFromIndex(index, patch.eventId)
         case 'reset':
-            return indexFrom(patch.events)
+            return indexFrom(keepUnchanged(patch.events, index.byId))
     }
 }
