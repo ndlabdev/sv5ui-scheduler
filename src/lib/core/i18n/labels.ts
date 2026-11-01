@@ -18,12 +18,12 @@ export function mergeLabels(overrides: PartialLabels | undefined): SchedulerLabe
 }
 
 export function viewLabel(labels: SchedulerLabels, view: string): string {
-    const known: Record<string, string> = {
-        month: labels.month,
-        week: labels.week,
-        day: labels.day,
-        agenda: labels.agenda,
-        year: labels.year
-    }
-    return known[view] ?? view
+    const known = new Map([
+        ['month', labels.month],
+        ['week', labels.week],
+        ['day', labels.day],
+        ['agenda', labels.agenda],
+        ['year', labels.year]
+    ])
+    return known.get(view) ?? view
 }
