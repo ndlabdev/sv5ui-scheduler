@@ -191,3 +191,25 @@ describe('changing one event of a full week', () => {
         expect(counter.calls - before).toBe(0)
     })
 })
+
+describe('event popovers', () => {
+    it('cost nothing per chip until one is opened', async () => {
+        const original = window.matchMedia
+        let queries = 0
+        window.matchMedia = (query: string) => {
+            queries += 1
+            return original.call(window, query)
+        }
+        try {
+            const { container } = render(Scheduler, {
+                props: { timeZone: ZONE, date: anchor, events: week(EVENTS) }
+            })
+            container.style.height = '720px'
+            await frame()
+            expect(container.querySelectorAll('[data-sch-event]')).toHaveLength(EVENTS)
+            expect(queries).toBeLessThan(5)
+        } finally {
+            window.matchMedia = original
+        }
+    })
+})
