@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Scheduler**: changing one event no longer redraws every event chip. A reset of the events, which `bind:events` and `source` both use, keeps the objects of events whose values did not change, and positions that did not move are handed back unchanged, so renaming one event touches one chip and a search that keeps every event touches none. Renaming one of 1000 events in the week view drops from about 210 ms to about 120 ms, and from 1001 DOM writes to 2. ([#35](https://github.com/ndlabdev/sv5ui-scheduler/pull/35))
 - **Scheduler**: a `view` name no registered view carries draws the week view with a development warning instead of throwing, on the server as well. The bound `view` is left as given, so a view passed to `views` later takes over once it is registered, and the toolbar, the snippets and `data-sch-view` report the view actually drawn. ([#33](https://github.com/ndlabdev/sv5ui-scheduler/pull/33))
 - **Scheduler**: events sharing an `id` no longer disappear without a word. The last one is kept, a development warning names the id, and a `bind:events` array is no longer rewritten on mount without the others. The same warning covers a `source` response that repeats an id. ([#32](https://github.com/ndlabdev/sv5ui-scheduler/pull/32))
 
