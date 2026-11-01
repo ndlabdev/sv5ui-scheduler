@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **DateNavigator**, **YearView**: the days that carry an event are found from day boundaries computed once per range instead of splitting every event by day, so a month of 1000 events takes about 2 ms instead of 47 ms and a year of 4800 events about 10 ms instead of 210 ms. The year view with 4800 events mounts in about 360 ms instead of 590 ms. ([#45](https://github.com/ndlabdev/sv5ui-scheduler/pull/45))
 - **Scheduler**: the current time line and its label move at the start of every minute instead of every 60 seconds counted from mounting, which could leave them up to 59 seconds behind. ([#43](https://github.com/ndlabdev/sv5ui-scheduler/pull/43))
 - **Scheduler**: unmounting the scheduler, or replacing `source`, aborts the `source` request still in flight through its `signal`. ([#41](https://github.com/ndlabdev/sv5ui-scheduler/pull/41))
 - **Scheduler**: a custom view without a `label` named like an object method, such as `constructor` or `toString`, shows its name in the view switcher and the grid name instead of function source. ([#39](https://github.com/ndlabdev/sv5ui-scheduler/pull/39))
