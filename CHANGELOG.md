@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Scheduler**, **DateNavigator**: the documentation of `timeZone` says that its default is the zone of the machine that renders, so a server render in another zone shows the server's times until the page hydrates, and that it should be set when rendering on the server. ([#47](https://github.com/ndlabdev/sv5ui-scheduler/pull/47))
+
 ### Fixed
 
 - **DateNavigator**, **YearView**: the days that carry an event are found from day boundaries computed once per range instead of splitting every event by day, so a month of 1000 events takes about 2 ms instead of 47 ms and a year of 4800 events about 10 ms instead of 210 ms. The year view with 4800 events mounts in about 360 ms instead of 590 ms. ([#45](https://github.com/ndlabdev/sv5ui-scheduler/pull/45))
