@@ -4,7 +4,7 @@ import type { DateRange, TimeZoneId } from '../../types/range.types.js'
 import type { EventSource, EventSourceFn } from '../../types/source.types.js'
 import { overlaps } from '../time/range.js'
 import { cover, EMPTY_COVERAGE, uncovered, type Coverage } from './coverage.js'
-import { normalizeEvents } from './normalize.js'
+import { normalizeEvents, warnDuplicateId } from './normalize.js'
 
 export type LoadResult<T = unknown> =
     { status: 'loaded'; events: SchedulerEvent<T>[] } | { status: 'superseded' }
@@ -87,7 +87,12 @@ function createFunctionLoader<T>(
     }
 
     function remember(batch: readonly EventInput<T>[]): void {
-        for (const input of batch) inputs.set(input.id, input)
+        const seen = new Set<string>()
+        for (const input of batch) {
+            if (seen.has(input.id)) warnDuplicateId(input.id)
+            seen.add(input.id)
+            inputs.set(input.id, input)
+        }
         zoned.clear()
     }
 

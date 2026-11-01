@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - **Scheduler**: a `view` name no registered view carries draws the week view with a development warning instead of throwing, on the server as well. The bound `view` is left as given, so a view passed to `views` later takes over once it is registered, and the toolbar, the snippets and `data-sch-view` report the view actually drawn. ([#33](https://github.com/ndlabdev/sv5ui-scheduler/pull/33))
+- **Scheduler**: events sharing an `id` no longer disappear without a word. The last one is kept, a development warning names the id, and a `bind:events` array is no longer rewritten on mount without the others. The same warning covers a `source` response that repeats an id. ([#32](https://github.com/ndlabdev/sv5ui-scheduler/pull/32))
 
 ## [0.1.0] - 2026-09-19
 
