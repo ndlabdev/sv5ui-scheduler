@@ -22,6 +22,10 @@ export class SourceLoading<T> {
     constructor(options: SourceLoadingOptions<T>) {
         $effect(() => {
             const current = options.loader()
+            return () => current?.invalidate()
+        })
+        $effect(() => {
+            const current = options.loader()
             const visible = options.range()
             if (!current) return
             this.#pending = true
