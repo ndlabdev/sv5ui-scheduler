@@ -19,7 +19,9 @@ export type EventColor =
 export interface SchedulerEvent<T = unknown> {
     /**
      * Stable identity. Mutations are keyed by it, so it must not change while
-     * the event exists.
+     * the event exists, and it must be unique within `events` and within one
+     * `source` result. When several events share an id only the last one is
+     * kept, with a warning in development.
      */
     id: string
 
