@@ -3,7 +3,7 @@ import { createRawSnippet } from 'svelte'
 import { describe, expect, it, vi } from 'vitest'
 import { render } from 'vitest-browser-svelte'
 import { Scheduler } from '../../lib/index.js'
-import { ZONE, anchor, input, tap, wait } from '../fixtures/dom.js'
+import { ZONE, anchor, animationsDone, input, tap, wait } from '../fixtures/dom.js'
 
 const settle = () => wait(60)
 
@@ -75,6 +75,7 @@ describe('accessibility', () => {
         tap(container.querySelector<HTMLElement>('[data-sch-event-id="review"]')!)
         await settle()
         expect(document.querySelector('[data-sch-detail="review"]')).not.toBeNull()
+        await animationsDone()
         expect(await audit(document.body)).toEqual([])
     })
 
@@ -83,6 +84,7 @@ describe('accessibility', () => {
         tap(container.querySelector<HTMLElement>('[data-sch-more="2026-09-15"]')!)
         await settle()
         expect(document.querySelector('[data-sch-more-list]')).not.toBeNull()
+        await animationsDone()
         expect(await audit(document.body)).toEqual([])
     })
 
