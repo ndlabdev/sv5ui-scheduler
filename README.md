@@ -263,11 +263,11 @@ Configurable: `scheduler`, `eventChip`, `dateNavigator`, `calendarList`, `search
 
 ## Requirements
 
-| Peer          | Version  |
-| ------------- | -------- |
-| `svelte`      | `^5.0.0` |
-| `tailwindcss` | `^4.0.0` |
-| `sv5ui`       | `^2.7.0` |
+| Peer          | Version   |
+| ------------- | --------- |
+| `svelte`      | `^5.34.0` |
+| `tailwindcss` | `^4.0.0`  |
+| `sv5ui`       | `^2.7.0`  |
 
 `@internationalized/date`, `tailwind-variants` and `tailwind-merge` come with the package. Add `@internationalized/date` to your own dependencies only if your code builds or types `ZonedDateTime` values; under pnpm a transitive package cannot be imported.
 
