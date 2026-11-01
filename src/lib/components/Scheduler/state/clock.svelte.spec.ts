@@ -42,6 +42,22 @@ describe('SchedulerClock', () => {
         stop()
     })
 
+    it('moves to the next minute when it starts, not a minute after mounting', () => {
+        const { clock, stop } = start('2026-09-09T02:15:50Z')
+        vi.advanceTimersByTime(9000)
+        flushSync()
+        expect(clock.now.minute).toBe(15)
+        vi.advanceTimersByTime(1000)
+        flushSync()
+        expect(clock.now.minute).toBe(16)
+        expect(clock.now.second).toBe(0)
+        vi.advanceTimersByTime(60000)
+        flushSync()
+        expect(clock.now.minute).toBe(17)
+        expect(clock.now.second).toBe(0)
+        stop()
+    })
+
     it('stops ticking once destroyed', () => {
         const { clock, stop } = start('2026-09-09T02:15:00Z')
         stop()
