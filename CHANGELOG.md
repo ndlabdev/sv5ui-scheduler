@@ -10,6 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - **Scheduler**: the current time line and its label move at the start of every minute instead of every 60 seconds counted from mounting, which could leave them up to 59 seconds behind. ([#43](https://github.com/ndlabdev/sv5ui-scheduler/pull/43))
+- **Scheduler**: unmounting the scheduler, or replacing `source`, aborts the `source` request still in flight through its `signal`. ([#41](https://github.com/ndlabdev/sv5ui-scheduler/pull/41))
+- **Scheduler**: a custom view without a `label` named like an object method, such as `constructor` or `toString`, shows its name in the view switcher and the grid name instead of function source. ([#39](https://github.com/ndlabdev/sv5ui-scheduler/pull/39))
+- **Scheduler**: event chips no longer mount a details popover and a media query listener each while nothing is open. A popover is mounted the first time its chip is opened and one media query serves them all, so a week of 500 events mounts in about 124 ms instead of 348 ms and the agenda in about half the time. ([#37](https://github.com/ndlabdev/sv5ui-scheduler/pull/37))
+- **Scheduler**: changing one event no longer redraws every event chip. A reset of the events, which `bind:events` and `source` both use, keeps the objects of events whose values did not change, and positions that did not move are handed back unchanged, so renaming one event touches one chip and a search that keeps every event touches none. Renaming one of 1000 events in the week view drops from about 210 ms to about 120 ms, and from 1001 DOM writes to 2. ([#35](https://github.com/ndlabdev/sv5ui-scheduler/pull/35))
+- **Scheduler**: a `view` name no registered view carries draws the week view with a development warning instead of throwing, on the server as well. The bound `view` is left as given, so a view passed to `views` later takes over once it is registered, and the toolbar, the snippets and `data-sch-view` report the view actually drawn. ([#33](https://github.com/ndlabdev/sv5ui-scheduler/pull/33))
+- **Scheduler**: events sharing an `id` no longer disappear without a word. The last one is kept, a development warning names the id, and a `bind:events` array is no longer rewritten on mount without the others. The same warning covers a `source` response that repeats an id. ([#32](https://github.com/ndlabdev/sv5ui-scheduler/pull/32))
 
 ## [0.1.0] - 2026-09-19
 
