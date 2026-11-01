@@ -2,6 +2,7 @@ import type { InteractionPlugin } from '../../types/interaction.types.js'
 import type { LayoutStrategy } from '../../types/layout.types.js'
 import type { ViewDefinition } from '../../types/view.types.js'
 import { builtinLayouts } from '../layout/strategies.js'
+import { warnOnce } from '../utils/dev.js'
 
 export interface RegistryOptions<T = unknown> {
     views: readonly ViewDefinition<T>[]
@@ -39,6 +40,19 @@ export function createRegistry<T>(options: RegistryOptions<T>): Registry<T> {
             return views.has(name)
         }
     }
+}
+
+export function resolveView<T>(
+    registry: Registry<T>,
+    name: string,
+    fallback: string
+): ViewDefinition<T> {
+    if (registry.hasView(name)) return registry.view(name)
+    warnOnce(
+        `view:${name}`,
+        `Unknown view "${name}", showing "${fallback}" instead. Known: ${registry.views.map((view) => view.name).join(', ')}`
+    )
+    return registry.view(fallback)
 }
 
 function byName<T extends { name: string }>(items: readonly T[]): Map<string, T> {

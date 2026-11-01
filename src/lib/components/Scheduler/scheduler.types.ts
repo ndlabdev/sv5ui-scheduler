@@ -66,7 +66,10 @@ export type SchedulerProps<T = unknown> = Omit<HTMLAttributes<HTMLDivElement>, '
         onLoadError?: (error: unknown) => void
 
         /**
-         * Name of the active view. Bindable.
+         * Name of the active view. Bindable. A name no registered view carries
+         * draws the week view, with a warning in development, and is left
+         * as given, so a view passed to `views` later takes over once it is
+         * registered.
          * @default 'week'
          */
         view?: string

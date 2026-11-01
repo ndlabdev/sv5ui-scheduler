@@ -1,7 +1,10 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { LayoutStrategy } from '../../types/layout.types.js'
 import type { ViewDefinition } from '../../types/view.types.js'
-import { createRegistry } from './registry.js'
+import { resetWarnings } from '../utils/dev.js'
+import { createRegistry, resolveView } from './registry.js'
+
+afterEach(resetWarnings)
 
 const view = (name: string, layout = 'time-grid'): ViewDefinition => ({
     name,
@@ -49,5 +52,32 @@ describe('createRegistry', () => {
             ]
         })
         expect(registry.interactions).toHaveLength(1)
+    })
+})
+
+describe('resolveView', () => {
+    const registry = createRegistry({ views: [view('week'), view('month', 'month-grid')] })
+
+    it('returns the named view without warning', () => {
+        const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+        expect(resolveView(registry, 'month', 'week').name).toBe('month')
+        expect(warn).not.toHaveBeenCalled()
+        warn.mockRestore()
+    })
+
+    it('falls back for an unknown name and warns once per name', () => {
+        const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+        expect(resolveView(registry, 'timeline', 'week').name).toBe('week')
+        expect(resolveView(registry, 'timeline', 'week').name).toBe('week')
+        expect(warn).toHaveBeenCalledTimes(1)
+        expect(String(warn.mock.calls[0][0])).toContain('"timeline"')
+        expect(String(warn.mock.calls[0][0])).toContain('week, month')
+        warn.mockRestore()
+    })
+
+    it('still throws when the fallback itself is missing', () => {
+        const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+        expect(() => resolveView(registry, 'timeline', 'agenda')).toThrow('Unknown view "agenda"')
+        warn.mockRestore()
     })
 })
