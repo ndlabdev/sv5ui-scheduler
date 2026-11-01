@@ -6,7 +6,7 @@ import {
     parseZonedDateTime,
     toTimeZone,
     toZoned as zonedFromCalendar,
-    type ZonedDateTime
+    ZonedDateTime
 } from '@internationalized/date'
 import type { DateInput, TimeZoneId } from '../../types/range.types.js'
 
@@ -60,4 +60,12 @@ export function min(a: ZonedDateTime, b: ZonedDateTime): ZonedDateTime {
 
 export function max(a: ZonedDateTime, b: ZonedDateTime): ZonedDateTime {
     return isAfter(b, a) ? b : a
+}
+
+export function sameZonedValue(a: unknown, b: unknown): boolean {
+    if (a === b) return true
+    if (a instanceof ZonedDateTime && b instanceof ZonedDateTime) {
+        return a.timeZone === b.timeZone && a.compare(b) === 0
+    }
+    return false
 }

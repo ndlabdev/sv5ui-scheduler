@@ -4,7 +4,11 @@ import { useInterval } from 'sv5ui'
 import { isSameDay, nowIn, startOfDay, toZoned } from '../../../core/time/zone.js'
 import type { TimeZoneId } from '../../../types/range.types.js'
 
-const TICK_MS = 60000
+const MINUTE_MS = 60000
+
+function untilNextMinute(instant: ZonedDateTime): number {
+    return MINUTE_MS - (instant.second * 1000 + instant.millisecond)
+}
 
 export class SchedulerClock {
     readonly #timeZone: () => TimeZoneId
@@ -23,6 +27,9 @@ export class SchedulerClock {
     constructor(timeZone: () => TimeZoneId) {
         this.#timeZone = timeZone
         this.#instant = $state.raw(nowIn(untrack(timeZone)))
-        useInterval(() => (this.#instant = nowIn(this.#timeZone())), TICK_MS)
+        useInterval(
+            () => (this.#instant = nowIn(this.#timeZone())),
+            () => untilNextMinute(this.#instant)
+        )
     }
 }
