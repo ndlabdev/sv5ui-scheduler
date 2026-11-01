@@ -14,7 +14,7 @@
     import { announceConflict, announceReverted } from '../../core/a11y/announce.js'
     import { mergeLabels, viewLabel } from '../../core/i18n/labels.js'
     import { createPositionMemo } from '../../core/layout/stable.js'
-    import { createRegistry } from '../../core/registry/registry.js'
+    import { createRegistry, resolveView } from '../../core/registry/registry.js'
     import { EventStore } from '../../core/store/event-store.svelte.js'
     import { createEventFilter } from '../../core/store/filters.js'
     import { isEditable, normalizeEvent } from '../../core/store/normalize.js'
@@ -46,7 +46,7 @@
     import { syncBoundEvents } from './state/bound-events.svelte.js'
     import CreatePanel from '../event/CreatePanel/CreatePanel.svelte'
     import EventPanel from '../event/EventPanel/EventPanel.svelte'
-    import { createBuiltinViews } from '../views/builtin.js'
+    import { createBuiltinViews, DEFAULT_VIEW } from '../views/builtin.js'
     import { SchedulerClock } from './state/clock.svelte.js'
     import { InteractionState } from './state/interaction-state.svelte.js'
     import { LiveAnnouncer } from './state/live-announcer.svelte.js'
@@ -61,7 +61,7 @@
         events = $bindable(),
         source,
         onLoadError,
-        view = $bindable('week'),
+        view = $bindable(DEFAULT_VIEW),
         date = $bindable(),
         timeZone = getLocalTimeZone(),
         locale = 'en-US',
@@ -133,8 +133,8 @@
     }))
     const interactionState: InteractionState<T> = new InteractionState<T>({
         root: () => ref,
-        view: () => view,
-        viewLabel: () => viewItems.find((item) => item.value === view)?.label ?? view,
+        view: () => activeView,
+        viewLabel: () => viewItems.find((item) => item.value === activeView)?.label ?? activeView,
         range: () => range,
         days: () => days,
         columnsPerRow: () => layoutContext.columnsPerRow,
@@ -193,7 +193,8 @@
             interactions: [...builtinInteractions, ...interactions]
         })
     )
-    const definition = $derived(registry.view(view))
+    const definition = $derived(resolveView(registry, view, DEFAULT_VIEW))
+    const activeView = $derived(definition.name)
     const View = $derived(definition.component)
     const context: SchedulerContext = {
         get timeZone() {
@@ -354,7 +355,7 @@
             return range
         },
         get view() {
-            return view
+            return activeView
         },
         get views() {
             return viewItems.map((item) => ({ name: item.value, label: item.label }))
@@ -379,7 +380,7 @@
             return anchor
         },
         get view() {
-            return view
+            return activeView
         },
         get range() {
             return range
@@ -538,13 +539,13 @@
     class={classes.root}
     style:height={typeof height === 'number' ? `${height}px` : height}
     data-sch-scheduler
-    data-sch-view={view}
+    data-sch-view={activeView}
     onscrollcapture={() => interactionState.invalidateColumns()}
 >
     {#if toolbar === true}
         <Toolbar
             {title}
-            {view}
+            view={activeView}
             views={viewItems}
             {labels}
             {compact}
@@ -575,7 +576,7 @@
         {/if}
         <div class={classes.view}>
             <View
-                {view}
+                view={activeView}
                 {anchor}
                 {range}
                 {days}
