@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-11-02
+
 ### Changed
 
 - **Package**: the `svelte` peer range is now `^5.34.0`. Earlier versions never worked: below 5.29 the components do not compile, and up to 5.33 rendering on the server fails. ([#52](https://github.com/ndlabdev/sv5ui-scheduler/pull/52))
