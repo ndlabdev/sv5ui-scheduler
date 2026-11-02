@@ -1,7 +1,12 @@
 <script lang="ts" module>
     import { MediaQuery } from 'svelte/reactivity'
 
-    const narrow = new MediaQuery('(max-width: 767px)')
+    let narrow: MediaQuery | undefined
+
+    function isNarrow(): boolean {
+        narrow ??= new MediaQuery('(max-width: 767px)')
+        return narrow.current
+    }
 
     export interface PopoverTrigger {
         'aria-haspopup': 'dialog'
@@ -38,7 +43,7 @@
 
     let mounted = $state(false)
     const placement = $derived(
-        narrow.current && (side === 'left' || side === 'right') ? 'bottom' : side
+        (side === 'left' || side === 'right') && isNarrow() ? 'bottom' : side
     )
 
     let anchor = $state<HTMLElement | null>(null)
