@@ -99,7 +99,7 @@ describe('onEventClick', () => {
         expect(document.querySelector('[data-sch-detail="a"]')).not.toBeNull()
         tap(chip(container, 'a'))
         await settle()
-        expect(document.querySelector('[data-sch-detail="a"]')).toBeNull()
+        await vi.waitFor(() => expect(document.querySelector('[data-sch-detail="a"]')).toBeNull())
         expect(onEventClick).toHaveBeenCalledTimes(1)
     })
 

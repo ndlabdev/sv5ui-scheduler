@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-11-02
+
+### Changed
+
+- **Package**: the `svelte` peer range is now `^5.34.0`. Earlier versions never worked: below 5.29 the components do not compile, and up to 5.33 rendering on the server fails. ([#52](https://github.com/ndlabdev/sv5ui-scheduler/pull/52))
+- **Scheduler**, **DateNavigator**: the `timeZone` documentation says the default is the zone of the machine that renders, and to set it when rendering on the server. ([#47](https://github.com/ndlabdev/sv5ui-scheduler/pull/47))
+
+### Fixed
+
+- **Package**: the components ship as plain JavaScript, so apps on Svelte 5.35 to 5.56 can build them. ([#52](https://github.com/ndlabdev/sv5ui-scheduler/pull/52))
+- **Scheduler**: events sharing an `id` are no longer dropped silently. The last one is kept and a development warning names the id, for `events` and `source` alike. ([#32](https://github.com/ndlabdev/sv5ui-scheduler/pull/32))
+- **Scheduler**: an unknown `view` name draws the week view with a development warning instead of throwing, on the server too. The bound `view` is left as given. ([#33](https://github.com/ndlabdev/sv5ui-scheduler/pull/33))
+- **Scheduler**: changing one event redraws only the chips whose event or place changed, not every chip in view. ([#35](https://github.com/ndlabdev/sv5ui-scheduler/pull/35))
+- **Scheduler**: an event popover is mounted the first time it opens, and one media query serves them all, so a week of 500 events mounts about 30% faster. ([#37](https://github.com/ndlabdev/sv5ui-scheduler/pull/37))
+- **Scheduler**: a custom view named like an object method, such as `constructor`, shows its name instead of function source. ([#39](https://github.com/ndlabdev/sv5ui-scheduler/pull/39))
+- **Scheduler**: unmounting the scheduler or replacing `source` aborts the request in flight. ([#41](https://github.com/ndlabdev/sv5ui-scheduler/pull/41))
+- **Scheduler**: the current time line moves at the start of every minute instead of up to 59 seconds late. ([#43](https://github.com/ndlabdev/sv5ui-scheduler/pull/43))
+- **DateNavigator**, **YearView**: finding the days that carry an event is about 20 times faster. ([#45](https://github.com/ndlabdev/sv5ui-scheduler/pull/45))
+
 ## [0.1.0] - 2026-09-19
 
 ### Added

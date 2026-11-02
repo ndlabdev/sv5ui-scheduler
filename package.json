@@ -1,6 +1,6 @@
 {
     "name": "@sv5ui/scheduler",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "description": "Scheduler and calendar component for Svelte 5: month, week, day, year and agenda views, drag and drop, recurring events, time zones and an optimistic save pipeline.",
     "license": "MIT",
     "author": "ndlabdev",
@@ -52,7 +52,7 @@
     },
     "peerDependencies": {
         "sv5ui": "^2.7.0",
-        "svelte": "^5.0.0",
+        "svelte": "^5.34.0",
         "tailwindcss": "^4.0.0"
     },
     "dependencies": {
@@ -80,7 +80,7 @@
         "prettier-plugin-svelte": "^4.1.0",
         "prettier-plugin-tailwindcss": "^0.8.0",
         "publint": "^0.3.21",
-        "sv5ui": "^2.7.0",
+        "sv5ui": "^2.10.0",
         "svelte": "^5.56.1",
         "svelte-check": "^4.6.0",
         "tailwindcss": "^4.3.0",

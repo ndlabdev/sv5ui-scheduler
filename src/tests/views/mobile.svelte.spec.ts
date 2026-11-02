@@ -172,6 +172,33 @@ describe('on a wide screen', () => {
         expect(document.querySelector('[data-sch-event-panel]')).toBeNull()
     })
 
+    it('places a popover below its chip once the screen narrows', async () => {
+        const screen = mount(1100)
+        await settle()
+        const chip = screen.container.querySelector<HTMLElement>('[data-sch-event-id="a"]')!
+        const side = () =>
+            document
+                .querySelector('[data-sch-detail="a"]')
+                ?.closest('[data-side]')
+                ?.getAttribute('data-side')
+
+        tap(chip)
+        await wait(400)
+        expect(side()).not.toBe('bottom')
+        tap(chip)
+        await wait(400)
+
+        await page.viewport(500, 844)
+        try {
+            await wait(100)
+            tap(chip)
+            await wait(400)
+            expect(side()).toBe('bottom')
+        } finally {
+            await page.viewport(1280, 900)
+        }
+    })
+
     it('keeps week numbers and holiday names in month cells', async () => {
         const screen = mount(1100, { view: 'month' })
         await settle()

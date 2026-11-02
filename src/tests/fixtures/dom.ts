@@ -23,6 +23,8 @@ export const iso = (date: { toString(): string }) => date.toString().slice(0, 16
 export const frame = () => new Promise((resolve) => requestAnimationFrame(resolve))
 export const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 export const settle = () => wait(30)
+export const animationsDone = () =>
+    Promise.allSettled(document.getAnimations().map((animation) => animation.finished))
 
 export const grid = (container: Element) =>
     container.querySelector<HTMLElement>('[role="application"]')!
